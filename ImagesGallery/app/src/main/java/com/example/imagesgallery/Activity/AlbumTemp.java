@@ -3,6 +3,7 @@ package com.example.imagesgallery.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -117,17 +119,15 @@ public class AlbumTemp extends AppCompatActivity {
         resizeDialog();
     }
 
-    private void resizeDialog(){
+    private void resizeDialog() {
         // Thay đổi kích thước dialog
         Display display = ((WindowManager) getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
         int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
-        int height = getApplicationContext().getResources().getDisplayMetrics().heightPixels;
-        Objects.requireNonNull(dialog.getWindow()).setLayout((6 * width) / 7, (1 * height) / 4);
+        Objects.requireNonNull(dialog.getWindow()).setLayout((6 * width) / 7, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // Lấy kích thước màn hình
         DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
         float screenWidth = displayMetrics.widthPixels;
-        float screenHeight = displayMetrics.heightPixels;
 
         // Đặt kích thước chữ mới cho view
         float newTextSize = screenWidth * 0.05f;

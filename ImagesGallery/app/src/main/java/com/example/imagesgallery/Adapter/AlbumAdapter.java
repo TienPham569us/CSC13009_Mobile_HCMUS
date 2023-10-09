@@ -2,6 +2,9 @@ package com.example.imagesgallery.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +64,12 @@ public class AlbumAdapter extends BaseAdapter {
         Album album = albumArrayList.get(i);
         viewHolder.image.setImageResource(album.getImage().getSource());
         viewHolder.name.setText(album.getName());
+
+        // Đặt kích thước chữ mới cho tên album
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        float screenWidth = displayMetrics.widthPixels;
+        float newTextSize = screenWidth * 0.05f;
+        viewHolder.name.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
 
         viewHolder.image.setOnClickListener(new View.OnClickListener() {
             @Override
