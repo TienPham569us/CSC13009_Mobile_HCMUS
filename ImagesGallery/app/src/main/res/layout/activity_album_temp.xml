@@ -12,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:numColumns="auto_fit"
-        android:verticalSpacing="15dp" />
+        android:verticalSpacing="15dp"
+        android:columnWidth="200dp" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -24,14 +25,14 @@
             android:layout_height="0dp"
             android:layout_gravity="bottom|end"
             android:background="@null"
-            android:src="@mipmap/button_add_round"
+            android:src="@drawable/button_add"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
             app:layout_constraintWidth_percent="0.2"
             app:layout_constraintDimensionRatio="1:1"
-            android:scaleType="fitXY"/>
+            android:scaleType="fitXY" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

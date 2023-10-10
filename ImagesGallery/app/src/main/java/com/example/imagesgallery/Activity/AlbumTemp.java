@@ -3,6 +3,7 @@ package com.example.imagesgallery.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -53,6 +55,15 @@ public class AlbumTemp extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 showDialog();
+            }
+        });
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(AlbumTemp.this, AlbumInfoActivity.class);
+                intent.putExtra("NameAlbum", albumArrayList.get(i).getName());
+                startActivity(intent);
             }
         });
     }

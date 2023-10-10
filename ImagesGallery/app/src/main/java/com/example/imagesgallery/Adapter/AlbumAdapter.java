@@ -65,20 +65,6 @@ public class AlbumAdapter extends BaseAdapter {
         viewHolder.image.setImageResource(album.getImage().getSource());
         viewHolder.name.setText(album.getName());
 
-        // Đặt kích thước chữ mới cho tên album
-        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        float screenWidth = displayMetrics.widthPixels;
-        float newTextSize = screenWidth * 0.05f;
-        viewHolder.name.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
-
-        viewHolder.image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(context, AlbumInfoActivity.class);
-                context.startActivity(intent);
-            }
-        });
-
         return view;
     }
 }
