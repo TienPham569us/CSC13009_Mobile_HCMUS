@@ -1,15 +1,32 @@
 package com.example.imagesgallery.Model;
 
-public class Album {
-    private Image image;
-    private String name;
+import java.io.Serializable;
 
-    public Image getImage() {
-        return image;
+public class Album implements Serializable {
+    private Image cover;
+    private String name;
+    private String description;
+
+    public Album(Image cover, String name, String description) {
+        this.cover = cover;
+        this.name = name;
+        this.description = description;
     }
 
-    public void setImage(Image image) {
-        this.image = image;
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Image getCover() {
+        return cover;
+    }
+
+    public void setCover(Image cover) {
+        this.cover = cover;
     }
 
     public String getName() {
@@ -17,11 +34,6 @@ public class Album {
     }
 
     public void setName(String name) {
-        this.name = name;
-    }
-
-    public Album(Image image, String name) {
-        this.image = image;
         this.name = name;
     }
 }

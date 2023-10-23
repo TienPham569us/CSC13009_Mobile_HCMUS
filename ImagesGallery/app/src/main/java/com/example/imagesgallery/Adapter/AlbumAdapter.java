@@ -54,15 +54,15 @@ public class AlbumAdapter extends BaseAdapter {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(R.layout.album_item, null);
-            viewHolder.name = (TextView) view.findViewById(R.id.name);
-            viewHolder.image = (ImageView) view.findViewById(R.id.image);
+            viewHolder.name = (TextView) view.findViewById(R.id.nameAlbum);
+            viewHolder.image = (ImageView) view.findViewById(R.id.imageCoverAlbum);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
         }
 
         Album album = albumArrayList.get(i);
-        viewHolder.image.setImageResource(album.getImage().getSource());
+        viewHolder.image.setImageResource(album.getCover().getSource());
         viewHolder.name.setText(album.getName());
 
         return view;

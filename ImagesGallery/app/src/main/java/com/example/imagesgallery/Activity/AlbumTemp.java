@@ -27,6 +27,7 @@ import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -49,8 +50,10 @@ public class AlbumTemp extends AppCompatActivity {
 
         init();
 
+        // display gridview
         addToGridview();
 
+        // when click button add of activity
         btnAddAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -58,17 +61,17 @@ public class AlbumTemp extends AppCompatActivity {
             }
         });
 
+        // when click item of girdview
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(AlbumTemp.this, AlbumInfoActivity.class);
-                intent.putExtra("NameAlbum", albumArrayList.get(i).getName());
+                intent.putExtra("album", (Serializable) albumArrayList.get(i));
                 startActivity(intent);
             }
         });
     }
 
-    /* Ánh xạ và khởi tạo*/
     private void init() {
         albumArrayList = new ArrayList<>();
         albumAdapter = new AlbumAdapter(AlbumTemp.this, albumArrayList);
@@ -77,25 +80,25 @@ public class AlbumTemp extends AppCompatActivity {
         btnAddAlbum = (ImageButton) findViewById(R.id.btnAdd_album);
     }
 
-    /* Thêm album vào mảng và cho hiển thị lên gridview */
+    // add data to grid view and display them
     private void addToGridview() {
         gridView.setAdapter(albumAdapter);
-        albumArrayList.add(new Album(new Image(R.drawable.image1), "Image1111111111111111111111"));
-        albumArrayList.add(new Album(new Image(R.drawable.image2), "Image2"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image4), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3"));
+        albumArrayList.add(new Album(new Image(R.drawable.image1), "Image1111111111111111111111", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image2), "Image2", "Des2"));
+        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3", "Des3"));
+        albumArrayList.add(new Album(new Image(R.drawable.image4), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
         albumAdapter.notifyDataSetChanged();
     }
 
-    /* Hiện dialog khi nhấn nút thêm album */
+    // show dialog when click button add album
     private void showDialog() {
         dialog = new Dialog(AlbumTemp.this);
         dialog.setContentView(R.layout.dialog_add_album);
@@ -105,6 +108,7 @@ public class AlbumTemp extends AppCompatActivity {
         edtNameAlbum = (EditText) dialog.findViewById(R.id.edtAlbumName);
         txtTitleDialog = (TextView) dialog.findViewById(R.id.title_dialog);
 
+        // when click button add of dialog
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -112,13 +116,14 @@ public class AlbumTemp extends AppCompatActivity {
                 if (name.equals("")) {
                     Toast.makeText(AlbumTemp.this, "Bạn chưa nhập tên cho album", Toast.LENGTH_SHORT).show();
                 } else {
-                    albumArrayList.add(new Album(new Image(R.drawable.no_image), name));
+                    albumArrayList.add(new Album(new Image(R.drawable.no_image), name, ""));
                     albumAdapter.notifyDataSetChanged();
                     dialog.dismiss();
                 }
             }
         });
 
+        // when click button cancel of dialog
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,17 +135,18 @@ public class AlbumTemp extends AppCompatActivity {
         resizeDialog();
     }
 
+    // resize the dialog to fit the screen size
     private void resizeDialog() {
-        // Thay đổi kích thước dialog
+        // resize dialog size
         Display display = ((WindowManager) getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
         int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
         Objects.requireNonNull(dialog.getWindow()).setLayout((6 * width) / 7, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        // Lấy kích thước màn hình
+        // get screen size
         DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
         float screenWidth = displayMetrics.widthPixels;
 
-        // Đặt kích thước chữ mới cho view
+        // resize text size
         float newTextSize = screenWidth * 0.05f;
         edtNameAlbum.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
 
@@ -151,6 +157,4 @@ public class AlbumTemp extends AppCompatActivity {
         btnAdd.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
         btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
     }
-
-
 }

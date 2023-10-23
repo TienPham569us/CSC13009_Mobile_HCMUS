@@ -7,7 +7,7 @@
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/image"
+        android:id="@+id/imageCoverAlbum"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="15dp"
@@ -20,7 +20,7 @@
         app:layout_constraintDimensionRatio="h,1:1"/>
 
     <TextView
-        android:id="@+id/name"
+        android:id="@+id/nameAlbum"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -28,9 +28,9 @@
         android:maxLines="1"
         android:text="Image1"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="@+id/image"
-        app:layout_constraintStart_toStartOf="@+id/image"
-        app:layout_constraintTop_toBottomOf="@+id/image"
+        app:layout_constraintEnd_toEndOf="@+id/imageCoverAlbum"
+        app:layout_constraintStart_toStartOf="@+id/imageCoverAlbum"
+        app:layout_constraintTop_toBottomOf="@+id/imageCoverAlbum"
         android:gravity="center"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

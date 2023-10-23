@@ -14,10 +14,6 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    GridView gridView;
-    ArrayList<Album> albumArrayList;
-    AlbumAdapter albumAdapter;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
