@@ -6,18 +6,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageCoverAlbum"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="15dp"
-        android:background="@drawable/image2"
         android:scaleType="fitXY"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent=".75"
-        app:layout_constraintDimensionRatio="h,1:1"/>
+        app:layout_constraintDimensionRatio="h,1:1"
+        android:src="@drawable/image2"
+        app:shapeAppearanceOverlay="@style/rounded_image"/>
 
     <TextView
         android:id="@+id/nameAlbum"

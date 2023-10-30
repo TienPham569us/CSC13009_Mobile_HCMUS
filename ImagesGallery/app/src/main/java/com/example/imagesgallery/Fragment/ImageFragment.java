@@ -1,4 +1,4 @@
-package com.example.imagesgallery.Activity;
+package com.example.imagesgallery.Fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

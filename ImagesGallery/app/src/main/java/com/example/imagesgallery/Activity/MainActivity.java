@@ -4,16 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.GridView;
 
-import com.example.imagesgallery.Adapter.AlbumAdapter;
-import com.example.imagesgallery.Model.Album;
-import com.example.imagesgallery.Model.Image;
+import com.example.imagesgallery.Fragment.AlbumFragment;
+import com.example.imagesgallery.Fragment.ImageFragment;
 import com.example.imagesgallery.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;

@@ -1,27 +1,30 @@
-package com.example.imagesgallery.Activity;
-
-import androidx.appcompat.app.AppCompatActivity;
+package com.example.imagesgallery.Fragment;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.example.imagesgallery.Activity.AlbumInfoActivity;
+import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.AlbumAdapter;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
@@ -31,8 +34,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-// Sau này đổi activity này thành fragment
-public class AlbumTemp extends AppCompatActivity {
+
+public class AlbumFragment extends Fragment {
 
     GridView gridView;
     ArrayList<Album> albumArrayList;
@@ -42,12 +45,19 @@ public class AlbumTemp extends AppCompatActivity {
     EditText edtNameAlbum;
     TextView txtTitleDialog;
     Dialog dialog;
+    MainActivity mainActivity;
+    FrameLayout frameLayoutAlbum;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_album_temp);
+        mainActivity=(MainActivity) getActivity();
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        frameLayoutAlbum = (FrameLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
 
         // display gridview
@@ -65,19 +75,20 @@ public class AlbumTemp extends AppCompatActivity {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(AlbumTemp.this, AlbumInfoActivity.class);
+                Intent intent = new Intent(mainActivity, AlbumInfoActivity.class);
                 intent.putExtra("album", (Serializable) albumArrayList.get(i));
                 startActivity(intent);
             }
         });
+        return frameLayoutAlbum;
     }
 
     private void init() {
         albumArrayList = new ArrayList<>();
-        albumAdapter = new AlbumAdapter(AlbumTemp.this, albumArrayList);
+        albumAdapter = new AlbumAdapter(mainActivity, albumArrayList);
 
-        gridView = (GridView) findViewById(R.id.gridview_album);
-        btnAddAlbum = (ImageButton) findViewById(R.id.btnAdd_album);
+        gridView = (GridView) frameLayoutAlbum.findViewById(R.id.gridview_album);
+        btnAddAlbum = (ImageButton) frameLayoutAlbum.findViewById(R.id.btnAdd_album);
     }
 
     // add data to grid view and display them
@@ -100,7 +111,7 @@ public class AlbumTemp extends AppCompatActivity {
 
     // show dialog when click button add album
     private void showDialog() {
-        dialog = new Dialog(AlbumTemp.this);
+        dialog = new Dialog(mainActivity);
         dialog.setContentView(R.layout.dialog_add_album);
 
         btnAdd = (Button) dialog.findViewById(R.id.buttonAdd);
@@ -114,7 +125,7 @@ public class AlbumTemp extends AppCompatActivity {
             public void onClick(View view) {
                 String name = edtNameAlbum.getText().toString();
                 if (name.equals("")) {
-                    Toast.makeText(AlbumTemp.this, "Bạn chưa nhập tên cho album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mainActivity, "Bạn chưa nhập tên cho album", Toast.LENGTH_SHORT).show();
                 } else {
                     albumArrayList.add(new Album(new Image(R.drawable.no_image), name, ""));
                     albumAdapter.notifyDataSetChanged();
@@ -138,8 +149,8 @@ public class AlbumTemp extends AppCompatActivity {
     // resize the dialog to fit the screen size
     private void resizeDialog() {
         // resize dialog size
-        Display display = ((WindowManager) getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
-        int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
+        Display display = ((WindowManager) mainActivity.getSystemService(mainActivity.getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
+        int width = mainActivity.getApplicationContext().getResources().getDisplayMetrics().widthPixels;
         Objects.requireNonNull(dialog.getWindow()).setLayout((6 * width) / 7, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // get screen size
@@ -157,4 +168,5 @@ public class AlbumTemp extends AppCompatActivity {
         btnAdd.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
         btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
     }
+
 }
