@@ -2,9 +2,10 @@ package com.example.imagesgallery.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+
 import android.os.Bundle;
 import android.view.MenuItem;
-
+import android.database.Cursor;
 import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Fragment.ImageFragment;
 import com.example.imagesgallery.R;

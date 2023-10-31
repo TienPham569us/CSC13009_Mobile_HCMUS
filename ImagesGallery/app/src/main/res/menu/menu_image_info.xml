@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/addImage"
+        android:title="Add Image"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/deleteImage"
+        android:title="Delete Image"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/infomation"
+        android:title="Infomation"
+        android:icon="@android:drawable/bottom_bar" />
+</menu>
