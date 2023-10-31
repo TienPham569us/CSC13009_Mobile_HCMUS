@@ -2,6 +2,7 @@ package com.example.imagesgallery.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
+import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.R;
 
 import java.io.File;
@@ -20,7 +22,8 @@ import java.util.ArrayList;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
 
-    private Context context;
+    MainActivity mainActivity;
+    private Context context ;
     private ArrayList<String> images_list;
 
     public void setImages_list(ArrayList<String> images_list) {
@@ -58,22 +61,26 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             Glide.with(context).load(image_file).into(holder.image);
 
         }
-        holder.image.setOnClickListener(new View.OnClickListener() {
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Get the position of the image
+
                 int position = holder.getAdapterPosition();
 
                 // Pass the position to the listener
                 listener.click(position);
+                context=view.getContext();
                 // Create an intent to start the new activity
-                Intent intent = new Intent(context, ImageInfoActivity.class);
-                // Pass the path to the image to the new activity
+                Intent intent = new Intent(context,ImageInfoActivity.class);
+
                 intent.putExtra("image_path", images_list.get(position));
-                intent.putExtra("next_image_path",images_list.get(position+1));
+                //intent.putExtra("next_image_path",images_list.get(position+1));
+
+                // Pass the path to the image to the new activity
                 // Start the new activity
                 context.startActivity(intent);
-
+                Log.d("newTest", "onClick: 2");
             }
         });
 

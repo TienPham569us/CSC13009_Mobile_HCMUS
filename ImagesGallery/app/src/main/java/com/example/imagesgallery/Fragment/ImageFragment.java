@@ -97,20 +97,16 @@ public class ImageFragment extends Fragment {
                         }
                     });
     int permissionsCode = 42;
-
-
     boolean isStorageImagePermitted = false;
     boolean isStorageVideoPermitted = false;
     boolean isStorageAudioPermitted = false;
 
     String TAG = "Permission";
-
     private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity=(MainActivity) getActivity();
-
     }
 
     @Override
@@ -148,7 +144,6 @@ public class ImageFragment extends Fragment {
             //Log.d("test","6");
             ContentResolver contentResolver = requireActivity().getContentResolver();
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
-            Log.d("test","4");
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -22,25 +23,28 @@ import java.util.ArrayList;
 
 public class ImageInfoActivity extends AppCompatActivity {
     public String imageTemp;
-    private Context context;
     public String nextImageTemp;
+    private Context context;
     ImageView imageView;
     ImageAdapter myAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_image);
+
         // Get the path to the image from the intent
         String imagePath = getIntent().getStringExtra("image_path");
-        String nextImagePath = getIntent().getStringExtra("next_image_path");
+        //String nextImagePath = getIntent().getStringExtra("next_image_path");
         imageTemp=imagePath;
         //nextImageTemp=nextImagePath;
         // Get the ImageView element
         imageView = findViewById(R.id.imageFullScreen);
         Toolbar toolbar =(Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         // Load the image into the ImageView element
-        Glide.with(this).load(imageTemp).into(imageView);
+        Glide.with(this).load(imagePath).into(imageView);
+
         //Glide.with(this).load(nextImageTemp).into(imageView);
     }
     public boolean onCreateOptionsMenu(Menu menu) {
