@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activity.AlbumInfoActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary"
+                android:minHeight="?attr/actionBarSize"
+                android:theme="?attr/actionBarTheme"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                android:backgroundTint="@color/white"/>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_hor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent=".3" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:background="@color/white"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/ConstriantLayout"
+            app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+            app:layout_constraintBottom_toBottomOf="@id/guideline_hor"
+            app:layout_constraintStart_toStartOf="parent"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imgCoverAlbum"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginLeft="15dp"
+                android:scaleType="fitXY"
+                android:background="@drawable/image3"
+                android:foreground="?android:attr/selectableItemBackground"
+                app:layout_constraintDimensionRatio="h,1:1"
+                app:layout_constraintTop_toTopOf="@id/ConstriantLayout"
+                app:layout_constraintLeft_toLeftOf="@id/ConstriantLayout"/>
+
+            <TextView
+                android:id="@+id/txtAlbumDescription"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="15dp"
+                android:ellipsize="end"
+                android:textSize="20sp"
+                android:background="?android:attr/selectableItemBackground"
+                app:layout_constraintTop_toTopOf="@id/ConstriantLayout"
+                app:layout_constraintLeft_toRightOf="@id/imgCoverAlbum"
+                app:layout_constraintRight_toRightOf="@id/ConstriantLayout"
+                android:text="@string/test_long_string"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <ImageButton
+            android:id="@+id/btnAdd_album"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_gravity="bottom|end"
+            android:background="@null"
+            android:src="@drawable/button_add"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintWidth_percent="0.2"
+            app:layout_constraintDimensionRatio="1:1"
+            android:scaleType="fitXY" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>
