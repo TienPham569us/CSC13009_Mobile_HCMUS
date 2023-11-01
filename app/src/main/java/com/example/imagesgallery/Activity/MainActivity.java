@@ -36,11 +36,18 @@ public class MainActivity extends AppCompatActivity {
     boolean isStorageImagePermitted = false;
     boolean isStorageVideoPermitted = false;
     boolean isStorageAudioPermitted = false;//no use now
+    boolean isCameraPermitted = false;
+    boolean isSetWallpaperPermitted = false;
+    boolean isManageExternalStoragePermitted = false;
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_MEDIA_VIDEO,
             Manifest.permission.READ_MEDIA_AUDIO,
-
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.INTERNET,
+            Manifest.permission.CAMERA,
+            Manifest.permission.SET_WALLPAPER,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             MANAGE_EXTERNAL_STORAGE};
@@ -55,6 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (isStorageImagePermitted == false) {
             requestPermissionStorageImage();
+        } else {
+            Toast.makeText(MainActivity.this, "you accepted the permission to read image", Toast.LENGTH_SHORT).show();
+        }
+        if (isCameraPermitted == false) {
+            requestPermissionCamera();
         } else {
             Toast.makeText(MainActivity.this, "you accepted the permission to read image", Toast.LENGTH_SHORT).show();
         }
@@ -122,4 +134,26 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+    public void requestPermissionCamera() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, permissionsStr[4]) == PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, permissionsStr[4] + " Granted");
+            isCameraPermitted = true;
+
+        } else {
+            request_permission_launcher_camera.launch(permissionsStr[4]);
+
+        }
+    }
+    private ActivityResultLauncher<String> request_permission_launcher_camera =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        if (isGranted) {
+                            Log.d(TAG, permissionsStr[4] + " Granted");
+                            isCameraPermitted = true;
+                        } else {
+                            Log.d(TAG, permissionsStr[4] + " Not Granted");
+                            isCameraPermitted = false;
+                            sendToSettingDialog();
+                        }
+                    });
 }

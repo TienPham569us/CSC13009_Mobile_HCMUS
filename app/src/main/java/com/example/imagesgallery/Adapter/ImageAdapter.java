@@ -2,6 +2,7 @@ package com.example.imagesgallery.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,14 +74,23 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
                 context=view.getContext();
                 // Create an intent to start the new activity
                 Intent intent = new Intent(context,ImageInfoActivity.class);
-
+                Bundle bundle= new Bundle();
+                bundle.putInt("position",position);
+                intent.putExtras(bundle);
                 intent.putExtra("image_path", images_list.get(position));
-                //intent.putExtra("next_image_path",images_list.get(position+1));
+                intent.putExtra("next_image_path",images_list.get(position+1));
 
                 // Pass the path to the image to the new activity
                 // Start the new activity
                 context.startActivity(intent);
-                Log.d("newTest", "onClick: 2");
+                //Log.d("newTest", "onClick: 2");
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                return false;
             }
         });
 
