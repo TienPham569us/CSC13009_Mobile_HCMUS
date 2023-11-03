@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.ContentResolver;
@@ -59,6 +60,7 @@ public class ImageFragment extends Fragment {
     MainActivity mainActivity;
 
     ConstraintLayout constraintLayoutImage;
+    LinearLayout linearLayout;
     ArrayList<String> permissionsList;
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
@@ -119,8 +121,8 @@ public class ImageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        constraintLayoutImage =(ConstraintLayout) inflater.inflate(R.layout.fragment_image, container, false);
-        recycler =constraintLayoutImage.findViewById(R.id.gallery_recycler);
+        linearLayout =(LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
+        recycler =linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
         ClickListener clickListener =new ClickListener() {
             @Override
@@ -130,7 +132,7 @@ public class ImageFragment extends Fragment {
         };
         adapter = new ImageAdapter(mainActivity, images,clickListener);
         manager = new GridLayoutManager(mainActivity, 3);
-        totalimages = constraintLayoutImage.findViewById(R.id.gallery_total_images);
+        totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
 
 
@@ -138,7 +140,7 @@ public class ImageFragment extends Fragment {
         loadImages();
         recycler.getAdapter().notifyDataSetChanged();
 
-        return constraintLayoutImage;
+        return linearLayout;
     }
 
     public void loadImages() {
@@ -164,7 +166,7 @@ public class ImageFragment extends Fragment {
                 rowValues.put("id_albumContain", "");
                 rowValues.put("description", "");
                 rowValues.put("isFavored", 0);
-                MainActivity.db.insert("Image", null, rowValues);
+               // MainActivity.db.insert("Image", null, rowValues);
             }
         }
     }

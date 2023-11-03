@@ -32,7 +32,7 @@ public class ImageInfoActivity extends AppCompatActivity {
     private Context context;
     ImageView imageView;
     ImageAdapter myAdapter;
-    int imagePosition =-1;
+    int imagePosition =0;
     TextView totalImages;
     ArrayList<String> images;
     ImageFragment imageFragment;
@@ -45,6 +45,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         // Get the path to the image from the intent
         String imagePath = getIntent().getStringExtra("image_path");
         String nextImagePath = getIntent().getStringExtra("next_image_path");
+        imagePosition = getIntent().getExtras().getInt("position");
         imageTemp=imagePath;
         nextImageTemp=nextImagePath;
         // Get the ImageView element
@@ -78,7 +79,8 @@ public class ImageInfoActivity extends AppCompatActivity {
         if (itemID == R.id.addImage) {
             Toast.makeText(this, "Them hinh", Toast.LENGTH_SHORT).show();
 
-        } else if (itemID == R.id.deleteImage) {
+        }
+        else if (itemID == R.id.deleteImage) {
             //Toast.makeText(this, "Xoa anh", Toast.LENGTH_SHORT).show();
 
             File deleteImage =new File(imageTemp);
@@ -110,6 +112,15 @@ public class ImageInfoActivity extends AppCompatActivity {
             }
             //Glide.with(this).load(nextImageTemp).into(imageView);
         } else if (itemID == R.id.infomation) {
+            Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ImageInfoActivity.this,DetailImageActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putInt("position",imagePosition);
+            intent.putExtras(bundle);
+            ImageInfoActivity.this.startActivity(intent);
+
+        } else if (itemID == R.id.addTag)
+        {
             Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
