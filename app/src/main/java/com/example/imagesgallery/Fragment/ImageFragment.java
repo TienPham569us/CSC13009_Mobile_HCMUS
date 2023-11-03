@@ -62,9 +62,13 @@ public class ImageFragment extends Fragment {
     ArrayList<String> permissionsList;
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_MEDIA_VIDEO,
             Manifest.permission.READ_MEDIA_AUDIO,
-
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.INTERNET,
+            Manifest.permission.CAMERA,
+            Manifest.permission.SET_WALLPAPER,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             MANAGE_EXTERNAL_STORAGE};
@@ -102,8 +106,9 @@ public class ImageFragment extends Fragment {
     boolean isStorageVideoPermitted = false;
     boolean isStorageAudioPermitted = false;
 
+
     String TAG = "Permission";
-    private ActivityResultLauncher<String> requestPermissionLauncher;
+    //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,7 +125,7 @@ public class ImageFragment extends Fragment {
         ClickListener clickListener =new ClickListener() {
             @Override
             public void click(int index) {
-                Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
+               // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
             }
         };
         adapter = new ImageAdapter(mainActivity, images,clickListener);
