@@ -60,7 +60,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         File image_file = new File(images_list.get(position));
         if (image_file.exists()) {
             Glide.with(context).load(image_file).into(holder.image);
-
+            Log.d("imgAdapter", "1 + " + String.valueOf(position));
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

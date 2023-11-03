@@ -6,11 +6,11 @@ import static android.os.Environment.MEDIA_MOUNTED;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,8 +22,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.ContentResolver;
@@ -36,7 +34,6 @@ import androidx.annotation.RequiresApi;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,13 +44,7 @@ import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.R;
 import android.content.Context;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -67,10 +58,7 @@ public class ImageFragment extends Fragment {
     TextView totalimages;
     MainActivity mainActivity;
 
-    ImageButton btnCamera;
-
     ConstraintLayout constraintLayoutImage;
-    LinearLayout linearLayoutImage;
     ArrayList<String> permissionsList;
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
@@ -117,45 +105,8 @@ public class ImageFragment extends Fragment {
     boolean isStorageImagePermitted = false;
     boolean isStorageVideoPermitted = false;
     boolean isStorageAudioPermitted = false;
-    String currentPhotoPath;
 
-   /* private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  // prefix
-                ".jpg",         // suffix
-                storageDir      // directory
-        );
 
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-            ...
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(getContext(),
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
-    }*/
     String TAG = "Permission";
     //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
@@ -168,42 +119,29 @@ public class ImageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-       // constraintLayoutImage =(ConstraintLayout) inflater.inflate(R.layout.fragment_image, container, false);
-        linearLayoutImage = (LinearLayout)inflater.inflate(R.layout.fragment_image, container, false);
-       // recycler =constraintLayoutImage.findViewById(R.id.gallery_recycler);
-        recycler = linearLayoutImage.findViewById(R.id.gallery_recycler);
-        btnCamera = (ImageButton)linearLayoutImage.findViewById(R.id.btnCamera);
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getActivity().getBaseContext(), "camera",Toast.LENGTH_SHORT).show();
-                Intent intent=new Intent(Intent.ACTION_CAMERA_BUTTON);
-                startActivity(intent);
-
-            }
-        });
+        constraintLayoutImage =(ConstraintLayout) inflater.inflate(R.layout.fragment_image, container, false);
+        recycler =constraintLayoutImage.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
-        ClickListener clickListener = new ClickListener() {
+        ClickListener clickListener =new ClickListener() {
             @Override
             public void click(int index) {
                // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
             }
         };
-        adapter = new ImageAdapter(mainActivity, images ,clickListener);
+        adapter = new ImageAdapter(mainActivity, images,clickListener);
         manager = new GridLayoutManager(mainActivity, 3);
-        //totalimages = constraintLayoutImage.findViewById(R.id.gallery_total_images);
-        totalimages = linearLayoutImage.findViewById(R.id.gallery_total_images);
+        totalimages = constraintLayoutImage.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
 
 
         recycler.setAdapter(adapter);
         loadImages();
         recycler.getAdapter().notifyDataSetChanged();
-        return linearLayoutImage;
-        //return constraintLayoutImage;
+
+        return constraintLayoutImage;
     }
 
-    private void loadImages() {
+    public void loadImages() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
         if (SDCard) {
@@ -214,12 +152,19 @@ public class ImageFragment extends Fragment {
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
-
-
+            ContentValues rowValues= new ContentValues();
             for (int i = 0; i < count; i++) {
                 cursor.moveToPosition(i);
                 int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                images.add(cursor.getString(columnindex));
+                String path = cursor.getString(columnindex);
+                images.add(path);
+
+                rowValues.clear();
+                rowValues.put("path", path);
+                rowValues.put("id_albumContain", "");
+                rowValues.put("description", "");
+                rowValues.put("isFavored", 0);
+                MainActivity.db.insert("Image", null, rowValues);
             }
         }
     }
@@ -353,27 +298,4 @@ public class ImageFragment extends Fragment {
                 });
     }
 
-
-    //========CAMERA
-    /** Check if this device has a camera */
-    private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
-    }
-    /** A safe way to get an instance of the Camera object. */
-    public static Camera getCameraInstance(){
-        Camera c = null;
-        try {
-            c = Camera.open(); // attempt to get a Camera instance
-        }
-        catch (Exception e){
-            // Camera is not available (in use or does not exist)
-        }
-        return c; // returns null if camera is unavailable
-    }
 }

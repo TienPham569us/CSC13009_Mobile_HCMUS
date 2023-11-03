@@ -30,7 +30,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
-            app:layout_constraintWidth_percent="0.2"
+            app:layout_constraintWidth_percent="0.17"
             app:layout_constraintDimensionRatio="1:1"
             android:scaleType="fitXY" />
     </androidx.constraintlayout.widget.ConstraintLayout>

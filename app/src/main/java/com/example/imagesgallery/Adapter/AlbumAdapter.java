@@ -12,7 +12,9 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Activity.AlbumInfoActivity;
+import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.R;
 
@@ -62,7 +64,12 @@ public class AlbumAdapter extends BaseAdapter {
         }
 
         Album album = albumArrayList.get(i);
-        viewHolder.image.setImageResource(album.getCover().getSource());
+        String coverPath = album.getCover().getPath();
+        if (coverPath.equals(MainActivity.pathNoImage)){
+            viewHolder.image.setImageResource(R.drawable.no_image);
+        } else{
+            Glide.with(context).load(coverPath).into(viewHolder.image);
+        }
         viewHolder.name.setText(album.getName());
 
         return view;
