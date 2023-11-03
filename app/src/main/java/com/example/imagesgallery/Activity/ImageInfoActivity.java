@@ -88,6 +88,7 @@ public class ImageInfoActivity extends AppCompatActivity {
                     newImageList.remove(imageTemp);
                     myAdapter.setImages_list(newImageList);
                     //myAdapter.notifyItemRemoved(imagePosition);
+                    myAdapter.notifyDataSetChanged();
 
                     // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
                     MediaScannerConnection.scanFile(getApplicationContext(), new String[]{imageTemp}, null, new MediaScannerConnection.OnScanCompletedListener() {
