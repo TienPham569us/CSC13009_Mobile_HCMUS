@@ -1,10 +1,15 @@
 package com.example.imagesgallery.Fragment;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -20,9 +25,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Activity.AlbumInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.AlbumAdapter;
@@ -48,10 +56,13 @@ public class AlbumFragment extends Fragment {
     MainActivity mainActivity;
     FrameLayout frameLayoutAlbum;
 
+    ContentValues rowValues;
+    int clickPosition = -1;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainActivity=(MainActivity) getActivity();
+        mainActivity = (MainActivity) getActivity();
     }
 
     @Override
@@ -59,6 +70,9 @@ public class AlbumFragment extends Fragment {
 
         frameLayoutAlbum = (FrameLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
+        albumArrayList = new ArrayList<>();
+        albumAdapter = new AlbumAdapter(mainActivity, albumArrayList);
+        rowValues = new ContentValues();
 
         // display gridview
         addToGridview();
@@ -71,22 +85,38 @@ public class AlbumFragment extends Fragment {
             }
         });
 
+        ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            String path = data.getStringExtra("path");
+                            Album album = albumArrayList.get(clickPosition);
+                            Image image = album.getCover();
+                            image.setPath(path);
+                            album.setCover(image);
+                            albumArrayList.set(clickPosition, album);
+                            albumAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+        );
+
         // when click item of girdview
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(mainActivity, AlbumInfoActivity.class);
-                intent.putExtra("album", (Serializable) albumArrayList.get(i));
-                startActivity(intent);
+                clickPosition = i;
+                intent.putExtra("album", (Serializable) albumArrayList.get(clickPosition));
+                startIntentAlbumInfo.launch(intent);
             }
         });
         return frameLayoutAlbum;
     }
 
     private void init() {
-        albumArrayList = new ArrayList<>();
-        albumAdapter = new AlbumAdapter(mainActivity, albumArrayList);
-
         gridView = (GridView) frameLayoutAlbum.findViewById(R.id.gridview_album);
         btnAddAlbum = (ImageButton) frameLayoutAlbum.findViewById(R.id.btnAdd_album);
     }
@@ -94,18 +124,45 @@ public class AlbumFragment extends Fragment {
     // add data to grid view and display them
     private void addToGridview() {
         gridView.setAdapter(albumAdapter);
-        albumArrayList.add(new Album(new Image(R.drawable.image1), "Image1111111111111111111111", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image2), "Image2", "Des2"));
-        albumArrayList.add(new Album(new Image(R.drawable.image3), "I3", "Des3"));
-        albumArrayList.add(new Album(new Image(R.drawable.image4), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
-        albumArrayList.add(new Album(new Image(R.drawable.image5), "I3", "Des1"));
+        Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Album", null);
+        cursor.moveToPosition(-1);
+        // load data and add album to arrayList
+        while (cursor.moveToNext()) {
+            int idAlbumColumn = cursor.getColumnIndex("id_album");
+            int descriptionAlbumColumn = cursor.getColumnIndex("description");
+            int nameAlbumColumn = cursor.getColumnIndex("name");
+            int isFavoredAlbumColumn = cursor.getColumnIndex("isFavored");
+            int coverAlbumColumn = cursor.getColumnIndex("cover");
+
+            int idAlbum = cursor.getInt(idAlbumColumn);
+            String descriptionAlbum = cursor.getString(descriptionAlbumColumn);
+            String nameAlbum = cursor.getString(nameAlbumColumn);
+            int isFavoredAlbum = cursor.getInt(isFavoredAlbumColumn);
+            String coverAlbum = cursor.getString(coverAlbumColumn);
+
+            String[] args = {coverAlbum};
+            Cursor cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+            cursorImage.moveToPosition(-1);
+            int pathImageColumn = cursorImage.getColumnIndex("path");
+            int descriptionImageColumn = cursorImage.getColumnIndex("description");
+            int idALbumContainColumn = cursorImage.getColumnIndex("id_albumContain");
+            int isFavoredImageColumn = cursorImage.getColumnIndex("isFavored");
+
+            String pathImage = MainActivity.pathNoImage;
+            String id_AlbumContainImage = "";
+            String descriptionImage = "";
+            int isFavoredImage = 0;
+
+            while (cursorImage.moveToNext()) {
+                id_AlbumContainImage = cursorImage.getString(idALbumContainColumn);
+                descriptionImage = cursorImage.getString(descriptionImageColumn);
+                isFavoredImage = cursorImage.getInt(isFavoredImageColumn);
+                pathImage = cursorImage.getString(pathImageColumn);
+            }
+            cursorImage.close();
+            albumArrayList.add(new Album(new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum,new ArrayList<>()));
+        }
+        cursor.close();
         albumAdapter.notifyDataSetChanged();
     }
 
@@ -127,7 +184,13 @@ public class AlbumFragment extends Fragment {
                 if (name.equals("")) {
                     Toast.makeText(mainActivity, "Bạn chưa nhập tên cho album", Toast.LENGTH_SHORT).show();
                 } else {
-                    albumArrayList.add(new Album(new Image(R.drawable.no_image), name, ""));
+                    rowValues.clear();
+                    rowValues.put("description", "");
+                    rowValues.put("isFavored", 0);
+                    rowValues.put("name", name);
+                    rowValues.put("cover", MainActivity.pathNoImage);
+                    long rowId = MainActivity.db.insert("Album", null, rowValues);
+                    albumArrayList.add(new Album(new Image(MainActivity.pathNoImage, "", "", 0), name, "", 0, (int) rowId,new ArrayList<>()));
                     albumAdapter.notifyDataSetChanged();
                     dialog.dismiss();
                 }

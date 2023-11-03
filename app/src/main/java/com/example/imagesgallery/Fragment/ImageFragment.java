@@ -6,6 +6,7 @@ import static android.os.Environment.MEDIA_MOUNTED;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -135,7 +136,7 @@ public class ImageFragment extends Fragment {
         return constraintLayoutImage;
     }
 
-    private void loadImages() {
+    public void loadImages() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
         if (SDCard) {
@@ -146,11 +147,19 @@ public class ImageFragment extends Fragment {
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
-
+            ContentValues rowValues= new ContentValues();
             for (int i = 0; i < count; i++) {
                 cursor.moveToPosition(i);
                 int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                images.add(cursor.getString(columnindex));
+                String path = cursor.getString(columnindex);
+                images.add(path);
+
+                rowValues.clear();
+                rowValues.put("path", path);
+                rowValues.put("id_albumContain", "");
+                rowValues.put("description", "");
+                rowValues.put("isFavored", 0);
+                MainActivity.db.insert("Image", null, rowValues);
             }
         }
     }

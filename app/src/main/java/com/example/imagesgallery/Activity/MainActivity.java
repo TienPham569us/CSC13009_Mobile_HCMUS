@@ -5,32 +5,35 @@ import static android.content.ContentValues.TAG;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
-import android.database.Cursor;
 import android.widget.Toast;
-
 import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Fragment.ImageFragment;
 import com.example.imagesgallery.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
-
+    public static SQLiteDatabase db;
+    public static final String pathNoImage  = "no_image";
     AlbumFragment albumFragment = new AlbumFragment();
     ImageFragment imageFragment = new ImageFragment();
     boolean isStorageImagePermitted = false;
@@ -40,11 +43,11 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_VIDEO,
             Manifest.permission.READ_MEDIA_AUDIO,
-
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             MANAGE_EXTERNAL_STORAGE};
     AlertDialog alertDialog;
+    String DatabaseName = "myDatabase";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,16 +56,26 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        if (isStorageImagePermitted == false) {
+        if (!isStorageImagePermitted) {
             requestPermissionStorageImage();
         } else {
             Toast.makeText(MainActivity.this, "you accepted the permission to read image", Toast.LENGTH_SHORT).show();
         }
+
+        // create database
+        File storagePath = getApplication().getFilesDir();
+        String myDbPath = storagePath + "/" + DatabaseName;
+        try {
+            db = SQLiteDatabase.openDatabase(myDbPath, null, SQLiteDatabase.CREATE_IF_NECESSARY);
+        } catch (SQLiteException ignored){}
+        db.execSQL("CREATE TABLE IF NOT EXISTS Album(id_album INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, cover INTEGER, name TEXT, isFavored INTEGER)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS Image(path TEXT PRIMARY KEY, description TEXT, id_albumContain TEXT, isFavored INTEGER)");
+
         // Set default fragment when open app
         getSupportFragmentManager().beginTransaction().replace(R.id.container, albumFragment).commit();
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
-            public boolean onNavigationItemSelected(MenuItem item) {
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.album) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.container, albumFragment).commit();
                     return true;

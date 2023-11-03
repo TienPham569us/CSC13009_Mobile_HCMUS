@@ -1,12 +1,19 @@
 package com.example.imagesgallery.Activity;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -16,14 +23,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.Model.Album;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class AlbumInfoActivity extends AppCompatActivity {
@@ -32,11 +45,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
     ImageView imgCoverAlbum;
     Toolbar toolbar;
     Album album;
+    RecyclerView recyclerView;
+    ImageButton btnAddImage;
+    ImageAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_album_info);
+
 
         init();
 
@@ -49,14 +66,51 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 txtAlbumDescription.setText(album.getDescription());
                 txtAlbumDescription.setMaxLines(noOfLinesVisible);
                 txtAlbumDescription.setEllipsize(TextUtils.TruncateAt.END);
-
             }
         });
 
-        // set info of album
+        // set description of album
         album = (Album) getIntent().getSerializableExtra("album");
         txtAlbumDescription.setText(album.getDescription());
-        /* TODO: SET COVER OF ALBUM*/
+
+        // set cover of album
+        String coverPath = album.getCover().getPath();
+        if (coverPath.equals(MainActivity.pathNoImage)) {
+            imgCoverAlbum.setImageResource(R.drawable.no_image);
+        } else {
+            Glide.with(AlbumInfoActivity.this).load(coverPath).into(imgCoverAlbum);
+        }
+
+        // load image in album
+        String sql = "SELECT * FROM Image WHERE id_albumContain LIKE ? ";
+        String[] args = {"% " + String.valueOf(album.getId()) + " %"};
+        Cursor cursor = MainActivity.db.rawQuery(sql, args);
+        cursor.moveToPosition(-1);
+        int pathImageColumn = cursor.getColumnIndex("path");
+        int descriptionImageColumn = cursor.getColumnIndex("description");
+        int id_ALbumContainColumn = cursor.getColumnIndex("id_albumContain");
+        int isFavoredImageColumn = cursor.getColumnIndex("isFavored");
+
+        String pathImage = MainActivity.pathNoImage;
+        String id_AlbumContainImage = "";
+        String descriptionImage = "";
+        int isFavoredImage = 0;
+
+        ArrayList<Image> images = album.getListImage();
+        while (cursor.moveToNext()) {
+            id_AlbumContainImage = cursor.getString(id_ALbumContainColumn);
+            descriptionImage = cursor.getString(descriptionImageColumn);
+            isFavoredImage = cursor.getInt(isFavoredImageColumn);
+            pathImage = cursor.getString(pathImageColumn);
+            Image image = new Image(pathImage,descriptionImage,id_AlbumContainImage,isFavoredImage);
+            images.add(image);
+        }
+        cursor.close();
+        album.setListImage(images);
+        for (int i=0;i<album.getListImage().size();i++){
+            Log.d("ccccc", album.getListImage().get(i).getPath());
+        }
+        /*TODO: set adpater and recyclerview base on ImageAdapter*/
 
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
@@ -67,6 +121,9 @@ public class AlbumInfoActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("path", album.getCover().getPath());
+                setResult(Activity.RESULT_OK, resultIntent);
                 finish();
             }
         });
@@ -81,11 +138,76 @@ public class AlbumInfoActivity extends AppCompatActivity {
             }
         });
 
+        // activity launcher of changing cover
+        ActivityResultLauncher<Intent> startIntentChangeCover = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            // get result from AddImageActivity and change cover
+                            String path = data.getStringExtra("path");
+                            Image image = album.getCover();
+                            image.setPath(path);
+                            album.setCover(image);
+                            Glide.with(AlbumInfoActivity.this).load(album.getCover().getPath()).into(imgCoverAlbum);
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put("cover", path);
+                            String[] args2 = {String.valueOf(album.getId())};
+                            MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
+                        }
+                    }
+                }
+        );
+
         // when click the cover of album
         imgCoverAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(AlbumInfoActivity.this, "Change cover", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(AlbumInfoActivity.this, AddImageActivity.class);
+                startIntentChangeCover.launch(intent);
+            }
+        });
+
+        // activity launcher of adding image to album
+        ActivityResultLauncher<Intent> startIntentAddImage = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            // get result from AddImageActivity and add image to album
+                            String path = data.getStringExtra("path");
+                            int id_album = album.getId();
+
+                            ContentValues contentValues = new ContentValues();
+                            String[] args2 = {path};
+                            Cursor cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args2);
+                            cursorImage.moveToPosition(-1);
+
+                            int idALbumContainColumn = cursorImage.getColumnIndex("id_albumContain");
+                            String idAlbumContainImage = "";
+                            while (cursorImage.moveToNext()) {
+                                idAlbumContainImage = cursorImage.getString(idALbumContainColumn);
+                            }
+                            cursorImage.close();
+                            idAlbumContainImage = idAlbumContainImage + " " + String.valueOf(id_album) + " ";
+                            contentValues.put("id_albumContain", idAlbumContainImage);
+                            String[] args3 = {path};
+                            long rowID = MainActivity.db.update("Image", contentValues, "path = ?", args3);
+                            /*TODO: update array*/
+                        }
+                    }
+                }
+        );
+
+        // click button add to insert image
+        btnAddImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(AlbumInfoActivity.this, AddImageActivity.class);
+                intent.putExtra("album", (Serializable) album);
+                startIntentAddImage.launch(intent);
             }
         });
     }
@@ -94,6 +216,8 @@ public class AlbumInfoActivity extends AppCompatActivity {
         txtAlbumDescription = (TextView) findViewById(R.id.txtAlbumDescription);
         imgCoverAlbum = (ImageView) findViewById(R.id.imgCoverAlbum);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        recyclerView = findViewById(R.id.listImageInAlbum);
+        btnAddImage = (ImageButton) findViewById(R.id.btnAddImage_album);
     }
 
     @Override
