@@ -56,7 +56,7 @@
                 android:layout_marginBottom="15dp"
                 android:layout_marginLeft="15dp"
                 android:scaleType="fitXY"
-                android:background="@drawable/image3"
+                android:background="@drawable/no_image"
                 android:foreground="?android:attr/selectableItemBackground"
                 app:layout_constraintDimensionRatio="h,1:1"
                 app:layout_constraintTop_toTopOf="@id/ConstriantLayout_CoverDescription"

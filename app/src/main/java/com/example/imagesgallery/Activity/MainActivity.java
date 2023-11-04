@@ -22,6 +22,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
+
 import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Fragment.ImageFragment;
 import com.example.imagesgallery.R;
@@ -33,7 +34,7 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
     public static SQLiteDatabase db;
-    public static final String pathNoImage  = "no_image";
+    public static final String pathNoImage = "no_image";
     AlbumFragment albumFragment = new AlbumFragment();
     ImageFragment imageFragment = new ImageFragment();
     boolean isStorageImagePermitted = false;
@@ -75,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
         String myDbPath = storagePath + "/" + DatabaseName;
         try {
             db = SQLiteDatabase.openDatabase(myDbPath, null, SQLiteDatabase.CREATE_IF_NECESSARY);
-        } catch (SQLiteException ignored){}
+        } catch (SQLiteException ignored) {
+        }
         db.execSQL("CREATE TABLE IF NOT EXISTS Album(id_album INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, cover INTEGER, name TEXT, isFavored INTEGER)");
         db.execSQL("CREATE TABLE IF NOT EXISTS Image(path TEXT PRIMARY KEY, description TEXT, id_albumContain TEXT, isFavored INTEGER)");
 
@@ -85,15 +87,14 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "you accepted the permission to read image", Toast.LENGTH_SHORT).show();
         }
         // Set default fragment when open app
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, albumFragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, imageFragment).commit();
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.album) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.container, albumFragment).commit();
                     return true;
-                }
-                else if (item.getItemId() == R.id.image) {
+                } else if (item.getItemId() == R.id.image) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.container, imageFragment).commit();
                     return true;
                 }
@@ -124,9 +125,9 @@ public class MainActivity extends AppCompatActivity {
                             isStorageImagePermitted = false;
                             sendToSettingDialog();
                         }
-            });
-    public void sendToSettingDialog()
-    {
+                    });
+
+    public void sendToSettingDialog() {
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Alert for permission")
                 .setMessage("Go to settings for Permissions")
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Intent rIntent = new Intent();
                         rIntent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        Uri uri= Uri.fromParts("package",getPackageName(),null);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
                         rIntent.setData(uri);
                         startActivity(rIntent);
                         alertDialog.dismiss();
@@ -148,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
     public void requestPermissionCamera() {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permissionsStr[4]) == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, permissionsStr[4] + " Granted");
@@ -158,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
     private ActivityResultLauncher<String> request_permission_launcher_camera =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
                     isGranted -> {

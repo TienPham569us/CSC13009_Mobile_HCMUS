@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent=".75"
         app:layout_constraintDimensionRatio="h,1:1"
-        android:src="@drawable/image2"
+        android:src="@drawable/no_image"
         app:shapeAppearanceOverlay="@style/rounded_image"/>
 
     <TextView
