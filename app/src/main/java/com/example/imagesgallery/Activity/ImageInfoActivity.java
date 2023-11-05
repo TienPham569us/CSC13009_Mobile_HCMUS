@@ -86,11 +86,11 @@ public class ImageInfoActivity extends AppCompatActivity {
             File deleteImage =new File(imageTemp);
             if (deleteImage.exists()) {
                 if (deleteImage.delete()) {
-                    ArrayList<String> newImageList= myAdapter.getImages_list();
-                    newImageList.remove(imageTemp);
-                    myAdapter.setImages_list(newImageList);
+                   // ArrayList<String> newImageList= myAdapter.getImages_list();
+                    //newImageList.remove(imageTemp);
+                    //myAdapter.setImages_list(newImageList);
                     //myAdapter.notifyItemRemoved(imagePosition);
-                    myAdapter.notifyDataSetChanged();
+                    //myAdapter.notifyDataSetChanged();
 
                     // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
                     MediaScannerConnection.scanFile(getApplicationContext(), new String[]{imageTemp}, null, new MediaScannerConnection.OnScanCompletedListener() {
@@ -106,7 +106,7 @@ public class ImageInfoActivity extends AppCompatActivity {
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
                         startActivity(intent);
                     }
-                    Glide.with(this).load(nextImageTemp).into(imageView);
+                    //Glide.with(this).load(nextImageTemp).into(imageView);
 
                 }
             }

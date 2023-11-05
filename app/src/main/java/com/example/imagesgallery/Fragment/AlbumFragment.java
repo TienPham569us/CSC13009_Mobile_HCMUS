@@ -85,24 +85,6 @@ public class AlbumFragment extends Fragment {
             }
         });
 
-        ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null) {
-                            String path = data.getStringExtra("path");
-                            Album album = albumArrayList.get(clickPosition);
-                            Image image = album.getCover();
-                            image.setPath(path);
-                            album.setCover(image);
-                            albumArrayList.set(clickPosition, album);
-                            albumAdapter.notifyDataSetChanged();
-                        }
-                    }
-                }
-        );
-
         // when click item of girdview
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -113,6 +95,15 @@ public class AlbumFragment extends Fragment {
                 startIntentAlbumInfo.launch(intent);
             }
         });
+
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(mainActivity, "Chon nhieu album", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
+
         return frameLayoutAlbum;
     }
 
@@ -160,7 +151,7 @@ public class AlbumFragment extends Fragment {
                 pathImage = cursorImage.getString(pathImageColumn);
             }
             cursorImage.close();
-            albumArrayList.add(new Album(new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum,new ArrayList<>()));
+            albumArrayList.add(new Album(new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum, new ArrayList<>()));
         }
         cursor.close();
         albumAdapter.notifyDataSetChanged();
@@ -190,7 +181,7 @@ public class AlbumFragment extends Fragment {
                     rowValues.put("name", name);
                     rowValues.put("cover", MainActivity.pathNoImage);
                     long rowId = MainActivity.db.insert("Album", null, rowValues);
-                    albumArrayList.add(new Album(new Image(MainActivity.pathNoImage, "", "", 0), name, "", 0, (int) rowId,new ArrayList<>()));
+                    albumArrayList.add(new Album(new Image(MainActivity.pathNoImage, "", "", 0), name, "", 0, (int) rowId, new ArrayList<>()));
                     albumAdapter.notifyDataSetChanged();
                     dialog.dismiss();
                 }
@@ -231,5 +222,37 @@ public class AlbumFragment extends Fragment {
         btnAdd.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
         btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
     }
+
+    ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        String path = data.getStringExtra("path");
+                        String description = data.getStringExtra("description");
+                        long isDelete = data.getLongExtra("isDelete", 0);
+
+                        if (isDelete != 0) {
+                            Log.d("deleted", String.valueOf(isDelete));
+                            albumArrayList.remove(clickPosition);
+                        } else {
+                            Album album = albumArrayList.get(clickPosition);
+                            if (path != null) {
+                                Image image = album.getCover();
+                                image.setPath(path);
+                                album.setCover(image);
+                            }
+                            if (description != null) {
+                                album.setDescription(description);
+                            }
+                            albumArrayList.set(clickPosition, album);
+                        }
+
+                        albumAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+    );
 
 }

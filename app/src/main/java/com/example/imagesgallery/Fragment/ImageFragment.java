@@ -154,20 +154,27 @@ public class ImageFragment extends Fragment {
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
-            ContentValues rowValues= new ContentValues();
-            for (int i = 0; i < count; i++) {
-                cursor.moveToPosition(i);
-                int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                String path = cursor.getString(columnindex);
-                images.add(path);
 
-                rowValues.clear();
-                rowValues.put("path", path);
-                rowValues.put("id_albumContain", "");
-                rowValues.put("description", "");
-                rowValues.put("isFavored", 0);
-               // MainActivity.db.insert("Image", null, rowValues);
-            }
+            Thread insertThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ContentValues rowValues = new ContentValues();
+                    for (int i = 0; i < count; i++) {
+                        cursor.moveToPosition(i);
+                        int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                        String path = cursor.getString(columnindex);
+                        images.add(path);
+
+                        rowValues.clear();
+                        rowValues.put("path", path);
+                        rowValues.put("id_albumContain", "");
+                        rowValues.put("description", "");
+                        rowValues.put("isFavored", 0);
+                        MainActivity.db.insert("Image", null, rowValues);
+                    }
+                }
+            });
+            insertThread.start();
         }
     }
     private boolean checkAndRequestPermissions() {

@@ -65,9 +65,9 @@ public class AlbumAdapter extends BaseAdapter {
 
         Album album = albumArrayList.get(i);
         String coverPath = album.getCover().getPath();
-        if (coverPath.equals(MainActivity.pathNoImage)){
+        if (coverPath.equals(MainActivity.pathNoImage)) {
             viewHolder.image.setImageResource(R.drawable.no_image);
-        } else{
+        } else {
             Glide.with(context).load(coverPath).into(viewHolder.image);
         }
         viewHolder.name.setText(album.getName());

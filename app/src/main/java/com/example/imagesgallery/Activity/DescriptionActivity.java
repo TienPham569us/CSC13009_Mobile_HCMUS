@@ -4,12 +4,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.R;
@@ -20,6 +24,8 @@ public class DescriptionActivity extends AppCompatActivity {
 
     Toolbar toolbar;
     EditText edtDescription;
+    Album album;
+    long rowID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +35,7 @@ public class DescriptionActivity extends AppCompatActivity {
         init();
 
         // set description of album
-        Album album = (Album) getIntent().getSerializableExtra("album");
+        album = (Album) getIntent().getSerializableExtra("album");
         edtDescription.setText(album.getDescription());
         edtDescription.setFocusableInTouchMode(false);
 
@@ -42,6 +48,11 @@ public class DescriptionActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (rowID > 0) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("description", edtDescription.getText().toString());
+                    setResult(Activity.RESULT_OK, resultIntent);
+                }
                 finish();
             }
         });
@@ -65,8 +76,18 @@ public class DescriptionActivity extends AppCompatActivity {
         if (itemID == R.id.changeDescription) {
             if (edtDescription.isFocusableInTouchMode()) { // click done
                 String description_changed = edtDescription.getText().toString();
-                /* TODO: CHANGE DATABASE*/
-                edtDescription.setText(description_changed);
+
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("description", description_changed);
+                String[] args = {String.valueOf(album.getId())};
+                rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+                Log.d("aaaaa", String.valueOf(rowID));
+                if (rowID > 0) {
+                    edtDescription.setText(description_changed);
+                } else {
+                    Toast.makeText(this, "Cập nhật thất bại", Toast.LENGTH_SHORT).show();
+                }
+
                 edtDescription.setFocusable(false);
                 item.setIcon(R.drawable.edit);
             } else { // click edit

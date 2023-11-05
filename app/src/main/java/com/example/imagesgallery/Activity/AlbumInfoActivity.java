@@ -3,6 +3,7 @@ package com.example.imagesgallery.Activity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.res.ResourcesCompat;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -31,6 +33,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Adapter.ImageAdapter;
+import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
@@ -102,12 +105,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
             descriptionImage = cursor.getString(descriptionImageColumn);
             isFavoredImage = cursor.getInt(isFavoredImageColumn);
             pathImage = cursor.getString(pathImageColumn);
-            Image image = new Image(pathImage,descriptionImage,id_AlbumContainImage,isFavoredImage);
+            Image image = new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage);
             images.add(image);
         }
         cursor.close();
         album.setListImage(images);
-        for (int i=0;i<album.getListImage().size();i++){
+        for (int i = 0; i < album.getListImage().size(); i++) {
             Log.d("ccccc", album.getListImage().get(i).getPath());
         }
         /*TODO: set adpater and recyclerview base on ImageAdapter*/
@@ -123,10 +126,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("path", album.getCover().getPath());
+                resultIntent.putExtra("description", album.getDescription());
                 setResult(Activity.RESULT_OK, resultIntent);
                 finish();
             }
         });
+
 
         // when click the description of album
         txtAlbumDescription.setOnClickListener(new View.OnClickListener() {
@@ -134,38 +139,16 @@ public class AlbumInfoActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(AlbumInfoActivity.this, DescriptionActivity.class);
                 intent.putExtra("album", (Serializable) album);
-                startActivity(intent);
+                startIntentChangeDescription.launch(intent);
             }
         });
 
-        // activity launcher of changing cover
-        ActivityResultLauncher<Intent> startIntentChangeCover = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null) {
-                            // get result from AddImageActivity and change cover
-                            String path = data.getStringExtra("path");
-                            Image image = album.getCover();
-                            image.setPath(path);
-                            album.setCover(image);
-                            Glide.with(AlbumInfoActivity.this).load(album.getCover().getPath()).into(imgCoverAlbum);
-                            ContentValues contentValues = new ContentValues();
-                            contentValues.put("cover", path);
-                            String[] args2 = {String.valueOf(album.getId())};
-                            MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
-                        }
-                    }
-                }
-        );
 
         // when click the cover of album
         imgCoverAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(AlbumInfoActivity.this, AddImageActivity.class);
-                startIntentChangeCover.launch(intent);
+                moveToChangeDescriptionScreen();
             }
         });
 
@@ -220,6 +203,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
         btnAddImage = (ImageButton) findViewById(R.id.btnAddImage_album);
     }
 
+    private void moveToChangeDescriptionScreen() {
+        Intent intent = new Intent(AlbumInfoActivity.this, AddImageActivity.class);
+        startIntentChangeCover.launch(intent);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_album_info, menu);
@@ -232,10 +220,82 @@ public class AlbumInfoActivity extends AppCompatActivity {
         if (itemID == R.id.addImage) {
             Toast.makeText(this, "Them hinh", Toast.LENGTH_SHORT).show();
         } else if (itemID == R.id.changeCover) {
-            Toast.makeText(this, "Doi hinh dai dien", Toast.LENGTH_SHORT).show();
+            moveToChangeDescriptionScreen();
         } else if (itemID == R.id.deleteAlbum) {
-            Toast.makeText(this, "Xoa album", Toast.LENGTH_SHORT).show();
+            createDialogDeleteAlbum();
         }
         return super.onOptionsItemSelected(item);
     }
+
+    public void createDialogDeleteAlbum() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Bạn có chắc chắn muốn xóa album này không ?");
+
+        // click yes
+        builder.setPositiveButton("Có", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                deleteAlbum();
+            }
+        });
+        // click no
+        builder.setNegativeButton("Không", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void deleteAlbum() {
+        String[] args = {String.valueOf(album.getId())};
+        long rowID = MainActivity.db.delete("Album", "id_album = ?", args);
+        if (rowID > 0){
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("isDelete", rowID);
+            setResult(Activity.RESULT_OK, resultIntent);
+            finish();
+        } else{
+            Toast.makeText(this, "Xóa thất bại", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // activity launcher of changing cover
+    ActivityResultLauncher<Intent> startIntentChangeCover = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        // get result from AddImageActivity and change cover
+                        String path = data.getStringExtra("path");
+                        Image image = album.getCover();
+                        image.setPath(path);
+                        album.setCover(image);
+                        Glide.with(AlbumInfoActivity.this).load(album.getCover().getPath()).into(imgCoverAlbum);
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put("cover", path);
+                        String[] args2 = {String.valueOf(album.getId())};
+                        MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
+                    }
+                }
+            }
+    );
+
+    // activity launcher of changing description
+    ActivityResultLauncher<Intent> startIntentChangeDescription = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        // get result from DescriptionActivity and change description
+                        String description = data.getStringExtra("description");
+                        album.setDescription(description);
+                        txtAlbumDescription.setText(description);
+                    }
+                }
+            }
+    );
 }
