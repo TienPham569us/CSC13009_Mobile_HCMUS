@@ -17,9 +17,10 @@ import com.example.imagesgallery.R;
 
 public class DetailImageActivity extends AppCompatActivity {
     private int imagePosition=-1;
-    private String imageLink="abc";
-
+    private String imageLink="...";
+    private String dateTaken ="dd/mm/yyyy";
     TextView txtViewLink;
+    TextView txtViewDate;
     TextView Date;
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -31,8 +32,10 @@ public class DetailImageActivity extends AppCompatActivity {
         imagePosition = bundle.getInt("position");
         Toast.makeText(getApplicationContext(),"Detail postion: "+imagePosition,Toast.LENGTH_SHORT ).show();
         txtViewLink = (TextView) findViewById(R.id.txtViewLink);
-        //loadImageInformation();
+        txtViewDate =(TextView)findViewById(R.id.txtViewDate);
+        loadImageInformation();
         txtViewLink.setText(imageLink);
+        //txtViewDate.setText(dateTaken);
 
     }
 
@@ -41,15 +44,19 @@ public class DetailImageActivity extends AppCompatActivity {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
         if (SDCard) {
-            final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
+            final String[] projection = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID,MediaStore.Images.Media.DATE_TAKEN};
             final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
             //Log.d("test","6");
             ContentResolver contentResolver = getContentResolver();
-            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, order);
 
             cursor.moveToPosition(imagePosition);
             int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+            int columnIndexDateTaken = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
             imageLink = cursor.getString(columnindex);
+            dateTaken = cursor.getString(columnIndexDateTaken);
+            Toast.makeText(getApplicationContext(),"date taken:" +dateTaken,Toast.LENGTH_SHORT).show();
+            cursor.close();
 
 
 
