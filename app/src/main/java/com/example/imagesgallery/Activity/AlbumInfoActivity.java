@@ -124,11 +124,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("path", album.getCover().getPath());
-                resultIntent.putExtra("description", album.getDescription());
-                setResult(Activity.RESULT_OK, resultIntent);
-                finish();
+                finishActivity();
             }
         });
 
@@ -201,6 +197,20 @@ public class AlbumInfoActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         recyclerView = findViewById(R.id.listImageInAlbum);
         btnAddImage = (ImageButton) findViewById(R.id.btnAddImage_album);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finishActivity();
+        super.onBackPressed();
+    }
+
+    private void finishActivity(){
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("path", album.getCover().getPath());
+        resultIntent.putExtra("description", album.getDescription());
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
     }
 
     private void moveToChangeDescriptionScreen() {

@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,9 +56,9 @@ public class AlbumFragment extends Fragment {
     Dialog dialog;
     MainActivity mainActivity;
     FrameLayout frameLayoutAlbum;
-
     ContentValues rowValues;
     int clickPosition = -1;
+    ImageView imgCheckAlbum;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,14 +94,6 @@ public class AlbumFragment extends Fragment {
                 clickPosition = i;
                 intent.putExtra("album", (Serializable) albumArrayList.get(clickPosition));
                 startIntentAlbumInfo.launch(intent);
-            }
-        });
-
-        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(mainActivity, "Chon nhieu album", Toast.LENGTH_SHORT).show();
-                return false;
             }
         });
 

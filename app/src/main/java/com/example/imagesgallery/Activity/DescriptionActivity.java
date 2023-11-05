@@ -48,12 +48,7 @@ public class DescriptionActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (rowID > 0) {
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("description", edtDescription.getText().toString());
-                    setResult(Activity.RESULT_OK, resultIntent);
-                }
-                finish();
+                finishActivity();
             }
         });
 
@@ -62,6 +57,21 @@ public class DescriptionActivity extends AppCompatActivity {
     private void init() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         edtDescription = (EditText) findViewById(R.id.edtDescriptionAlbum);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finishActivity();
+        super.onBackPressed();
+    }
+
+    private void finishActivity(){
+        if (rowID > 0) {
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("description", edtDescription.getText().toString());
+            setResult(Activity.RESULT_OK, resultIntent);
+        }
+        finish();
     }
 
     @Override

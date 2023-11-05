@@ -20,6 +20,18 @@
         android:src="@drawable/no_image"
         app:shapeAppearanceOverlay="@style/rounded_image"/>
 
+    <ImageView
+        android:id="@+id/imgCheckAlbum"
+        android:layout_width="27dp"
+        android:layout_height="27dp"
+        app:layout_constraintLeft_toRightOf="@id/imageCoverAlbum"
+        app:layout_constraintBottom_toTopOf="@id/imageCoverAlbum"
+        android:src="@drawable/check"
+        android:layout_marginBottom="-20dp"
+        android:layout_marginLeft="-20dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"/>
+
     <TextView
         android:id="@+id/nameAlbum"
         android:layout_width="0dp"

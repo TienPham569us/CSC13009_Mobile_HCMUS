@@ -45,8 +45,8 @@ public class AlbumAdapter extends BaseAdapter {
     }
 
     private class ViewHolder {
-        TextView name;
-        ImageView image;
+        TextView AlbumName;
+        ImageView AlbumCover, imgCheckAlbum;
     }
 
     @Override
@@ -56,8 +56,9 @@ public class AlbumAdapter extends BaseAdapter {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(R.layout.album_item, null);
-            viewHolder.name = (TextView) view.findViewById(R.id.nameAlbum);
-            viewHolder.image = (ImageView) view.findViewById(R.id.imageCoverAlbum);
+            viewHolder.AlbumName = (TextView) view.findViewById(R.id.nameAlbum);
+            viewHolder.AlbumCover = (ImageView) view.findViewById(R.id.imageCoverAlbum);
+            viewHolder.imgCheckAlbum = (ImageView) view.findViewById(R.id.imgCheckAlbum);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
@@ -66,11 +67,19 @@ public class AlbumAdapter extends BaseAdapter {
         Album album = albumArrayList.get(i);
         String coverPath = album.getCover().getPath();
         if (coverPath.equals(MainActivity.pathNoImage)) {
-            viewHolder.image.setImageResource(R.drawable.no_image);
+            viewHolder.AlbumCover.setImageResource(R.drawable.no_image);
         } else {
-            Glide.with(context).load(coverPath).into(viewHolder.image);
+            Glide.with(context).load(coverPath).into(viewHolder.AlbumCover);
         }
-        viewHolder.name.setText(album.getName());
+        viewHolder.AlbumName.setText(album.getName());
+
+        viewHolder.AlbumCover.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                viewHolder.imgCheckAlbum.setVisibility(View.VISIBLE);
+                return false;
+            }
+        });
 
         return view;
     }
