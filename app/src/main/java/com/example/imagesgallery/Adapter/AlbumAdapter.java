@@ -46,7 +46,7 @@ public class AlbumAdapter extends BaseAdapter {
 
     private class ViewHolder {
         TextView AlbumName;
-        ImageView AlbumCover, imgCheckAlbum;
+        ImageView AlbumCover;
     }
 
     @Override
@@ -58,7 +58,6 @@ public class AlbumAdapter extends BaseAdapter {
             view = inflater.inflate(R.layout.album_item, null);
             viewHolder.AlbumName = (TextView) view.findViewById(R.id.nameAlbum);
             viewHolder.AlbumCover = (ImageView) view.findViewById(R.id.imageCoverAlbum);
-            viewHolder.imgCheckAlbum = (ImageView) view.findViewById(R.id.imgCheckAlbum);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
@@ -72,14 +71,6 @@ public class AlbumAdapter extends BaseAdapter {
             Glide.with(context).load(coverPath).into(viewHolder.AlbumCover);
         }
         viewHolder.AlbumName.setText(album.getName());
-
-        viewHolder.AlbumCover.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                viewHolder.imgCheckAlbum.setVisibility(View.VISIBLE);
-                return false;
-            }
-        });
 
         return view;
     }

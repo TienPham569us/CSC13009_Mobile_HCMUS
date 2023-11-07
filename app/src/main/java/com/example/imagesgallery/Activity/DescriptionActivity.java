@@ -36,7 +36,9 @@ public class DescriptionActivity extends AppCompatActivity {
 
         // set description of album
         album = (Album) getIntent().getSerializableExtra("album");
-        edtDescription.setText(album.getDescription());
+        if (album != null) {
+            edtDescription.setText(album.getDescription());
+        }
         edtDescription.setFocusableInTouchMode(false);
 
         // using toolbar as ActionBar
@@ -65,7 +67,7 @@ public class DescriptionActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    private void finishActivity(){
+    private void finishActivity() {
         if (rowID > 0) {
             Intent resultIntent = new Intent();
             resultIntent.putExtra("description", edtDescription.getText().toString());
@@ -91,11 +93,10 @@ public class DescriptionActivity extends AppCompatActivity {
                 contentValues.put("description", description_changed);
                 String[] args = {String.valueOf(album.getId())};
                 rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
-                Log.d("aaaaa", String.valueOf(rowID));
                 if (rowID > 0) {
                     edtDescription.setText(description_changed);
                 } else {
-                    Toast.makeText(this, "Cập nhật thất bại", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show();
                 }
 
                 edtDescription.setFocusable(false);

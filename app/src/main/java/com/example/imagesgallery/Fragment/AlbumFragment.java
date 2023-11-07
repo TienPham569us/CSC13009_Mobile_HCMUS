@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,10 +29,11 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Activity.AlbumInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.AlbumAdapter;
@@ -42,6 +44,9 @@ import com.example.imagesgallery.R;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 
 public class AlbumFragment extends Fragment {
@@ -59,6 +64,12 @@ public class AlbumFragment extends Fragment {
     ContentValues rowValues;
     int clickPosition = -1;
     ImageView imgCheckAlbum;
+    private int currentMaxPosition = 0;
+    private final int ItemsPerLoading = 10;
+    boolean isLoading = false;
+    Handler handler;
+    private boolean isAllItemsLoaded = false;
+    private int IdMmaxWhenSwitchToTab = 0;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,15 +79,21 @@ public class AlbumFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d("aaaa","onscreate");
 
         frameLayoutAlbum = (FrameLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
         albumArrayList = new ArrayList<>();
         albumAdapter = new AlbumAdapter(mainActivity, albumArrayList);
         rowValues = new ContentValues();
+        //handler = new mHandler();
+        gridView.setAdapter(albumAdapter);
+        handler = new Handler();
 
-        // display gridview
-        addToGridview();
+        // need to set them when switch to album tab the second time or more
+        currentMaxPosition = 0;
+        isAllItemsLoaded = false;
+        IdMmaxWhenSwitchToTab = 0;
 
         // when click button add of activity
         btnAddAlbum.setOnClickListener(new View.OnClickListener() {
@@ -85,6 +102,38 @@ public class AlbumFragment extends Fragment {
                 showDialog();
             }
         });
+
+        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            String path = data.getStringExtra("path");
+                            String description = data.getStringExtra("description");
+                            long isDelete = data.getLongExtra("isDelete", 0);
+
+                            if (isDelete != 0) {
+                                albumArrayList.remove(clickPosition);
+                            } else {
+                                Album album = albumArrayList.get(clickPosition);
+                                if (path != null) {
+                                    Image image = album.getCover();
+                                    image.setPath(path);
+                                    album.setCover(image);
+                                }
+                                if (description != null) {
+                                    album.setDescription(description);
+                                }
+                                albumArrayList.set(clickPosition, album);
+                            }
+
+                            albumAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+        );
 
         // when click item of girdview
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -97,18 +146,72 @@ public class AlbumFragment extends Fragment {
             }
         });
 
+        gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int i) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView absListView, int firstItem, int visibelItemCount, int totalItemCount) {
+                if (!isLoading && absListView.getLastVisiblePosition() == totalItemCount - 1 && !isAllItemsLoaded) {
+                    isLoading = true;
+                    // Create an executor that executes tasks in the main thread.
+                    Executor mainExecutor = ContextCompat.getMainExecutor(mainActivity);
+                    // Create an executor that executes tasks in a background thread.
+                    ScheduledExecutorService backgroundExecutor = Executors.newSingleThreadScheduledExecutor();
+                    // Execute a task in the background thread.
+                    backgroundExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadDataFromDatabase();
+                            // Update gridview on the main thread
+                            mainExecutor.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    albumAdapter.notifyDataSetChanged();
+                                    isLoading = false;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+
         return frameLayoutAlbum;
     }
 
-    private void init() {
-        gridView = (GridView) frameLayoutAlbum.findViewById(R.id.gridview_album);
-        btnAddAlbum = (ImageButton) frameLayoutAlbum.findViewById(R.id.btnAdd_album);
-    }
+    // Load album from database and add to arraylist
+    private void loadDataFromDatabase() {
+        String sql = "";
+        Cursor cursor = null;
+        if (IdMmaxWhenSwitchToTab == 0) {
+            String[] argsAlbum = {String.valueOf(ItemsPerLoading), String.valueOf(currentMaxPosition)};
+            try {
+                sql = "SELECT MAX(id_album) FROM Album";
+                cursor = MainActivity.db.rawQuery(sql, null);
+            } catch (Exception exception) {
+                return;
+            }
 
-    // add data to grid view and display them
-    private void addToGridview() {
-        gridView.setAdapter(albumAdapter);
-        Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Album", null);
+            cursor.moveToPosition(-1);
+            while (cursor.moveToNext()) {
+                IdMmaxWhenSwitchToTab = cursor.getInt(0);
+            }
+        }
+
+        String[] argsAlbum = {String.valueOf(IdMmaxWhenSwitchToTab), String.valueOf(ItemsPerLoading), String.valueOf(currentMaxPosition)};
+        try {
+            sql = "SELECT * FROM Album WHERE id_album <= ? ORDER BY id_album DESC LIMIT ? OFFSET ?";
+            cursor = MainActivity.db.rawQuery(sql, argsAlbum);
+        } catch (Exception exception) {
+            return;
+        }
+
+        if (!cursor.moveToFirst()) {
+            isAllItemsLoaded = true;
+        }
         cursor.moveToPosition(-1);
         // load data and add album to arrayList
         while (cursor.moveToNext()) {
@@ -125,7 +228,12 @@ public class AlbumFragment extends Fragment {
             String coverAlbum = cursor.getString(coverAlbumColumn);
 
             String[] args = {coverAlbum};
-            Cursor cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+            Cursor cursorImage = null;
+            try {
+                cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+            } catch (Exception exception) {
+                return;
+            }
             cursorImage.moveToPosition(-1);
             int pathImageColumn = cursorImage.getColumnIndex("path");
             int descriptionImageColumn = cursorImage.getColumnIndex("description");
@@ -147,7 +255,12 @@ public class AlbumFragment extends Fragment {
             albumArrayList.add(new Album(new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum, new ArrayList<>()));
         }
         cursor.close();
-        albumAdapter.notifyDataSetChanged();
+        currentMaxPosition += ItemsPerLoading;
+    }
+
+    private void init() {
+        gridView = (GridView) frameLayoutAlbum.findViewById(R.id.gridview_album);
+        btnAddAlbum = (ImageButton) frameLayoutAlbum.findViewById(R.id.btnAdd_album);
     }
 
     // show dialog when click button add album
@@ -166,7 +279,7 @@ public class AlbumFragment extends Fragment {
             public void onClick(View view) {
                 String name = edtNameAlbum.getText().toString();
                 if (name.equals("")) {
-                    Toast.makeText(mainActivity, "Bạn chưa nhập tên cho album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mainActivity, "Please enter the name of album", Toast.LENGTH_SHORT).show();
                 } else {
                     rowValues.clear();
                     rowValues.put("description", "");
@@ -174,7 +287,7 @@ public class AlbumFragment extends Fragment {
                     rowValues.put("name", name);
                     rowValues.put("cover", MainActivity.pathNoImage);
                     long rowId = MainActivity.db.insert("Album", null, rowValues);
-                    albumArrayList.add(new Album(new Image(MainActivity.pathNoImage, "", "", 0), name, "", 0, (int) rowId, new ArrayList<>()));
+                    albumArrayList.add(0, new Album(new Image(MainActivity.pathNoImage, "", "", 0), name, "", 0, (int) rowId, new ArrayList<>()));
                     albumAdapter.notifyDataSetChanged();
                     dialog.dismiss();
                 }
@@ -216,36 +329,5 @@ public class AlbumFragment extends Fragment {
         btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
     }
 
-    ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    Intent data = result.getData();
-                    if (data != null) {
-                        String path = data.getStringExtra("path");
-                        String description = data.getStringExtra("description");
-                        long isDelete = data.getLongExtra("isDelete", 0);
-
-                        if (isDelete != 0) {
-                            Log.d("deleted", String.valueOf(isDelete));
-                            albumArrayList.remove(clickPosition);
-                        } else {
-                            Album album = albumArrayList.get(clickPosition);
-                            if (path != null) {
-                                Image image = album.getCover();
-                                image.setPath(path);
-                                album.setCover(image);
-                            }
-                            if (description != null) {
-                                album.setDescription(description);
-                            }
-                            albumArrayList.set(clickPosition, album);
-                        }
-
-                        albumAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-    );
 
 }

@@ -6,26 +6,20 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,7 +27,6 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Adapter.ImageAdapter;
-import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
@@ -87,7 +80,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
         // load image in album
         String sql = "SELECT * FROM Image WHERE id_albumContain LIKE ? ";
         String[] args = {"% " + String.valueOf(album.getId()) + " %"};
-        Cursor cursor = MainActivity.db.rawQuery(sql, args);
+        Cursor cursor = null;
+        try {
+            cursor = MainActivity.db.rawQuery(sql, args);
+        } catch (Exception exception) {
+            return;
+        }
         cursor.moveToPosition(-1);
         int pathImageColumn = cursor.getColumnIndex("path");
         int descriptionImageColumn = cursor.getColumnIndex("description");
@@ -161,7 +159,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
                             ContentValues contentValues = new ContentValues();
                             String[] args2 = {path};
-                            Cursor cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args2);
+                            Cursor cursorImage = null;
+                            try {
+                                cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args2);
+                            } catch (Exception exception) {
+                                return;
+                            }
                             cursorImage.moveToPosition(-1);
 
                             int idALbumContainColumn = cursorImage.getColumnIndex("id_albumContain");
@@ -184,7 +187,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         btnAddImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(AlbumInfoActivity.this, AddImageActivity.class);
+                Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
                 intent.putExtra("album", (Serializable) album);
                 startIntentAddImage.launch(intent);
             }
@@ -205,7 +208,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    private void finishActivity(){
+    private void finishActivity() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("path", album.getCover().getPath());
         resultIntent.putExtra("description", album.getDescription());
@@ -214,7 +217,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
     }
 
     private void moveToChangeDescriptionScreen() {
-        Intent intent = new Intent(AlbumInfoActivity.this, AddImageActivity.class);
+        Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
         startIntentChangeCover.launch(intent);
     }
 
@@ -239,16 +242,16 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
     public void createDialogDeleteAlbum() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Bạn có chắc chắn muốn xóa album này không ?");
+        builder.setMessage("Are you sure you want to delete this album ?");
 
         // click yes
-        builder.setPositiveButton("Có", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 deleteAlbum();
             }
         });
         // click no
-        builder.setNegativeButton("Không", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 dialog.dismiss();
             }
@@ -261,17 +264,17 @@ public class AlbumInfoActivity extends AppCompatActivity {
     private void deleteAlbum() {
         String[] args = {String.valueOf(album.getId())};
         long rowID = MainActivity.db.delete("Album", "id_album = ?", args);
-        if (rowID > 0){
+        if (rowID > 0) {
             Intent resultIntent = new Intent();
             resultIntent.putExtra("isDelete", rowID);
             setResult(Activity.RESULT_OK, resultIntent);
             finish();
-        } else{
-            Toast.makeText(this, "Xóa thất bại", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // activity launcher of changing cover
+    // when click button back in toolbar or in smartphone to finish ChooseImageActivity
     ActivityResultLauncher<Intent> startIntentChangeCover = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -293,7 +296,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
             }
     );
 
-    // activity launcher of changing description
+    // when click button back in toolbar or in smartphone to finish DescriptionActivity
     ActivityResultLauncher<Intent> startIntentChangeDescription = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
