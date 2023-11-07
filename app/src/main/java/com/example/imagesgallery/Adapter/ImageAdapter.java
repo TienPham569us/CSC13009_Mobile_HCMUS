@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -27,6 +28,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     private Context context ;
     private ArrayList<String> images_list;
 
+    //ATuan: check if there is selected mode
+    private boolean isMultiSelectMode = false;
+    private ArrayList<Integer> selectedPositions = new ArrayList<>();
+
+    private ArrayList<String> selectedImages; // New list to track selected images
+    //ATuan
+
     public void setImages_list(ArrayList<String> images_list) {
         this.images_list = images_list;
     }
@@ -41,12 +49,40 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     int getPos(){
         return this.pos;
     }
+
+    //ATuan: set multi select mode
+    public void setMultiSelectMode(boolean multiSelectMode) {
+        this.isMultiSelectMode = multiSelectMode;
+    }
+    public ArrayList<String> getSelectedImages() {
+        return selectedImages;
+    }
+    //ATuan
+
     public ImageAdapter(Context context, ArrayList<String> images_list, ClickListener listener) {
         this.context = context;
         this.images_list = images_list;
         this.listener=listener;
+        this.selectedImages = new ArrayList<>(); //For multi select
     }
 
+
+    //  ATuan Toggle the selection state of an item at the given position
+    public void toggleSelection(int position) {
+        String imagePath = images_list.get(position);
+        if (selectedImages.contains(imagePath)) {
+            selectedImages.remove(imagePath);
+        } else {
+            selectedImages.add(imagePath);
+        }
+        notifyDataSetChanged(); // Update the UI to reflect the selection
+    }
+    //ATuan Clear the selection
+    public void clearSelection() {
+        selectedImages.clear();
+        notifyDataSetChanged(); // Update the UI to clear selection
+    }
+    //ATuan
 
     @NonNull
     @Override
@@ -62,28 +98,62 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             Glide.with(context).load(image_file).into(holder.image);
             Log.d("imgAdapter", "1 + " + String.valueOf(position));
         }
+
+        //ATuan
+        // Check if the item is selected and update its appearance
+        boolean isSelected = selectedImages.contains(images_list.get(position));
+        holder.itemView.setSelected(isSelected);
+        // Initially set the checkbox visibility to GONE
+  /*      if (isMultiSelectMode) {
+            holder.checkBox.setVisibility(View.VISIBLE);
+            holder.checkBox.setChecked(true);
+        }*/
+        if (selectedPositions.contains(position)) {
+            holder.checkBox.setVisibility(View.VISIBLE);
+            holder.checkBox.setChecked(true);
+        } else {
+            holder.checkBox.setVisibility(View.GONE);
+            holder.checkBox.setChecked(false);
+        }
+        //ATuan
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Get the position of the image
 
                 int position = holder.getAdapterPosition();
+                if (isMultiSelectMode) {
+                    if (selectedPositions.contains(position)) {
+                        selectedPositions.remove(Integer.valueOf(position));
+                    } else {
+                        selectedPositions.add(position);
+                    }
+                    // Notify the adapter that the data set has changed
+                    notifyDataSetChanged();
+                    toggleSelection(position);
+                    Log.d("selected images array ", selectedImages.toString());
+                    Log.d("Image list size: ", String.valueOf(getItemCount()));
+                    // Show the checkbox only for the clicked image and set it to true
+                }
 
-                // Pass the position to the listener
-                listener.click(position);
-                context=view.getContext();
-                // Create an intent to start the new activity
-                Intent intent = new Intent(context,ImageInfoActivity.class);
-                Bundle bundle= new Bundle();
-                bundle.putInt("position",position);
-                intent.putExtras(bundle);
-                intent.putExtra("image_path", images_list.get(position));
-                intent.putExtra("next_image_path",images_list.get(position+1));
+                if (!isMultiSelectMode) {
+                    // Pass the position to the listener
+                    listener.click(position);
+                    context = view.getContext();
+                    // Create an intent to start the new activity
+                    Intent intent = new Intent(context, ImageInfoActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("position", position);
+                    intent.putExtras(bundle);
+                    intent.putExtra("image_path", images_list.get(position));
+                    intent.putExtra("next_image_path", images_list.get(position + 1));
 
-                // Pass the path to the image to the new activity
-                // Start the new activity
-                context.startActivity(intent);
-                //Log.d("newTest", "onClick: 2");
+                    // Pass the path to the image to the new activity
+                    // Start the new activity
+                    context.startActivity(intent);
+                    //Log.d("newTest", "onClick: 2");
+                }
             }
         });
 
@@ -106,9 +176,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
         private ImageView image;
 
+        private CheckBox checkBox;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-
+            checkBox = itemView.findViewById(R.id.checkBox);
             image = itemView.findViewById(R.id.gallery_item);
 
         }

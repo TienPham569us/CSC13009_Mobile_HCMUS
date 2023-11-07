@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -45,6 +47,8 @@ import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.R;
 import android.content.Context;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +112,11 @@ public class ImageFragment extends Fragment {
     boolean isStorageVideoPermitted = false;
     boolean isStorageAudioPermitted = false;
 
+    // ATuan: Add button multiSelectButton
+    Button multiSelectButton;
+    Button deleteButton;
+    boolean multiSelectMode = false;
+    //ATuan
 
     String TAG = "Permission";
     //private ActivityResultLauncher<String> requestPermissionLauncher;
@@ -124,6 +133,94 @@ public class ImageFragment extends Fragment {
         linearLayout =(LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         recycler =linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
+
+        //ATuan
+        // Initialize the button
+        multiSelectButton = linearLayout.findViewById(R.id.multiSelectButton);
+        deleteButton = linearLayout.findViewById(R.id.deleteButton);
+        multiSelectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleDeleteButtonVisibility();
+                if (multiSelectMode) {
+                    multiSelectMode = false;
+                    adapter.setMultiSelectMode(multiSelectMode);
+                    adapter.clearSelection();
+                    multiSelectButton.setText("Multi select");
+                    // Handle actions in multi-select mode
+                } else {
+                    // Enter multi-select mode
+                    multiSelectMode = true;
+                    adapter.setMultiSelectMode(multiSelectMode);
+                    // Update UI, e.g., change button text
+                    multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
+                }
+            }
+
+
+        });
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            Context context;
+            String nextImageTemp;
+            @Override
+            public void onClick(View view) {
+                ArrayList<String> selectedImages = adapter.getSelectedImages();
+                // Define variables to track the number of successfully deleted images
+                final int deletedCount = 0;
+                int totalCount = selectedImages.size();
+
+                for (String imagePath : selectedImages) {
+                    File deleteImage = new File(imagePath);
+                    if (deleteImage.exists()) {
+                        if (deleteImage.delete()) {
+                            // ArrayList<String> newImageList= myAdapter.getImages_list();
+                            //newImageList.remove(imageTemp);
+                            //myAdapter.setImages_list(newImageList);
+                            //myAdapter.notifyItemRemoved(imagePosition);
+                            //myAdapter.notifyDataSetChanged();
+
+                            // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
+                            MediaScannerConnection.scanFile(getActivity().getApplicationContext(), new String[]{imagePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                                @Override
+                                public void onScanCompleted(String path, Uri uri) {
+                                    //imageView = findViewById(R.id.imageFullScreen);
+                                    //Glide.with(context).load(nextImageTemp).into(imageView);
+                                }
+                            });
+                            //Glide.with(this).load(nextImageTemp).into(imageView);
+                            Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
+                            if (intent != null) {
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
+                                startActivity(intent);
+                            }
+
+                        }
+                    }
+                }
+
+//                manager = new GridLayoutManager(mainActivity, 3);
+//                recycler.setLayoutManager(manager);
+//                loadImages();
+                toggleDeleteButtonVisibility();
+                if (multiSelectMode) {
+                    multiSelectMode = false;
+                    adapter.setMultiSelectMode(multiSelectMode);
+                    adapter.clearSelection();
+                    Log.d("selected images: ", adapter.getSelectedImages().toString());
+                    multiSelectButton.setText("Multi select");
+                    // Handle actions in multi-select mode
+                } else {
+                    // Enter multi-select mode
+                    Log.d("multi select mode", ": on");
+                    multiSelectMode = true;
+                    adapter.setMultiSelectMode(multiSelectMode);
+                    // Update UI, e.g., change button text
+                    multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
+                }
+            }
+        });
+        //ATuan
         ClickListener clickListener =new ClickListener() {
             @Override
             public void click(int index) {
@@ -141,6 +238,16 @@ public class ImageFragment extends Fragment {
         recycler.getAdapter().notifyDataSetChanged();
 
         return linearLayout;
+    }
+
+    //ATuan When click button Multi Select, i show Button Delete Button
+    private void toggleDeleteButtonVisibility() {
+        if (deleteButton.getVisibility() == View.VISIBLE) {
+            deleteButton.setVisibility(View.GONE);
+        } else {
+            deleteButton.setVisibility(View.VISIBLE);
+
+        }
     }
 
     public void loadImages() {

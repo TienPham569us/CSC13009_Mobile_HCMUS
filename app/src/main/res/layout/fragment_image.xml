@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -14,7 +14,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/btnAdd_album"
@@ -30,21 +30,44 @@
         app:layout_constraintWidth_percent="0.2"
         app:layout_constraintDimensionRatio="1:1"
         android:scaleType="fitXY" />
-    <ImageButton
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="10dp"
-        android:id="@+id/btnCamera"
-        android:background="@drawable/camera_btn"
-        android:importantForAccessibility="no"
-        />
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp">
+        <ImageButton
+            android:id="@+id/btnCamera"
+            android:layout_width="48dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/camera_btn"
+            android:importantForAccessibility="no" />
+        <!-- Add button multi select -->
+        <Button
+            android:id="@+id/multiSelectButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Multi Select"
+            android:textColor="@color/black"
+            android:background="@drawable/multiselect_cancel_btn"
+            android:layout_marginLeft="5dp" />
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:textColor="@color/black"
+            android:layout_marginLeft="5dp"
+            android:background="@drawable/multiselect_cancel_btn"
+            android:visibility="gone" /> <!-- Initially set to GONE -->
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="24dp"
         android:text="All Photos"
         android:textColor="@color/black"
         android:textSize="24sp"
@@ -61,9 +84,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/textView3" />
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/gallery_recycler"
         android:layout_width="match_parent"
@@ -77,5 +98,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
-</LinearLayout >
 </LinearLayout>
