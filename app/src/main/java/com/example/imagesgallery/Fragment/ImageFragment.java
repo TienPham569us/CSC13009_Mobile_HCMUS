@@ -375,7 +375,7 @@ public class ImageFragment extends Fragment {
 
         }
     }
-
+    //Just a comment to change message when commit
     private ActivityResultLauncher<String> request_permission_launcher_storage_images =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
                     isGranted -> {
