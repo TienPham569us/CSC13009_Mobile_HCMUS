@@ -119,9 +119,6 @@ public class ImageInfoActivity extends AppCompatActivity {
             intent.putExtras(bundle);
             ImageInfoActivity.this.startActivity(intent);
 
-        } else if (itemID == R.id.addTag)
-        {
-            Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
     }

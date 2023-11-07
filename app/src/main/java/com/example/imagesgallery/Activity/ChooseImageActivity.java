@@ -8,42 +8,38 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
-import com.example.imagesgallery.Adapter.AddImageAdapter;
-import com.example.imagesgallery.Fragment.ImageFragment;
+import com.example.imagesgallery.Adapter.ChooseImageAdapter;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class AddImageActivity extends AppCompatActivity {
+public class ChooseImageActivity extends AppCompatActivity {
 
     Toolbar toolbar;
     RecyclerView recyclerView;
     ArrayList<Image> imageArrayList;
-    AddImageAdapter addImageAdapter;
+    ChooseImageAdapter chooseImageAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_image);
+        setContentView(R.layout.activity_choose_image);
 
         init();
         imageArrayList = new ArrayList<>();
-        addImageAdapter = new AddImageAdapter(AddImageActivity.this, imageArrayList);
-        recyclerView.setLayoutManager(new GridLayoutManager(AddImageActivity.this, 3));
-        recyclerView.setAdapter(addImageAdapter);
+        chooseImageAdapter = new ChooseImageAdapter(ChooseImageActivity.this, imageArrayList);
+        recyclerView.setLayoutManager(new GridLayoutManager(ChooseImageActivity.this, 3));
+        recyclerView.setAdapter(chooseImageAdapter);
         loadImages();
-        addImageAdapter.notifyDataSetChanged();
+        chooseImageAdapter.notifyDataSetChanged();
 
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
