@@ -274,7 +274,6 @@ public class ImageFragment extends Fragment {
 
                         rowValues.clear();
                         rowValues.put("path", path);
-                        rowValues.put("id_albumContain", "");
                         rowValues.put("description", "");
                         rowValues.put("isFavored", 0);
                         MainActivity.db.insert("Image", null, rowValues);

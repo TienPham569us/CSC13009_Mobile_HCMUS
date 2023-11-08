@@ -78,8 +78,8 @@ public class AlbumInfoActivity extends AppCompatActivity {
         }
 
         // load image in album
-        String sql = "SELECT * FROM Image WHERE id_albumContain LIKE ? ";
-        String[] args = {"% " + String.valueOf(album.getId()) + " %"};
+        String sql = "SELECT * FROM Album_Contain_Images Contain, Image I WHERE id_album = ? AND Contain.path = I.path";
+        String[] args = {String.valueOf(album.getId())};
         Cursor cursor = null;
         try {
             cursor = MainActivity.db.rawQuery(sql, args);
@@ -87,23 +87,20 @@ public class AlbumInfoActivity extends AppCompatActivity {
             return;
         }
         cursor.moveToPosition(-1);
-        int pathImageColumn = cursor.getColumnIndex("path");
-        int descriptionImageColumn = cursor.getColumnIndex("description");
-        int id_ALbumContainColumn = cursor.getColumnIndex("id_albumContain");
-        int isFavoredImageColumn = cursor.getColumnIndex("isFavored");
+        int pathImageColumn = cursor.getColumnIndex("Contain.path");
+        int descriptionImageColumn = cursor.getColumnIndex("I.description");
+        int isFavoredImageColumn = cursor.getColumnIndex("I.isFavored");
 
         String pathImage = MainActivity.pathNoImage;
-        String id_AlbumContainImage = "";
         String descriptionImage = "";
         int isFavoredImage = 0;
 
         ArrayList<Image> images = album.getListImage();
         while (cursor.moveToNext()) {
-            id_AlbumContainImage = cursor.getString(id_ALbumContainColumn);
             descriptionImage = cursor.getString(descriptionImageColumn);
             isFavoredImage = cursor.getInt(isFavoredImageColumn);
             pathImage = cursor.getString(pathImageColumn);
-            Image image = new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage);
+            Image image = new Image(pathImage, descriptionImage, isFavoredImage);
             images.add(image);
         }
         cursor.close();

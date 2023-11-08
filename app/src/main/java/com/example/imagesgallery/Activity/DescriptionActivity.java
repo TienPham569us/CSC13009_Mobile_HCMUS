@@ -44,7 +44,7 @@ public class DescriptionActivity extends AppCompatActivity {
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(album.getName());
+        getSupportActionBar().setTitle("Description");
 
         // set return button
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
