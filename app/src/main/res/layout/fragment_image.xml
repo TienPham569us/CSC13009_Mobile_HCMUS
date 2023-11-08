@@ -60,7 +60,17 @@
             android:textColor="@color/black"
             android:layout_marginLeft="5dp"
             android:background="@drawable/multiselect_cancel_btn"
-            android:visibility="gone" /> <!-- Initially set to GONE -->
+            android:visibility="invisible" /> <!-- Initially set to GONE -->
+        <Button
+            android:id="@+id/slideshowButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Slideshow"
+            android:textColor="@color/black"
+            android:layout_marginLeft="5dp"
+            android:visibility="invisible"
+            android:background="@drawable/multiselect_cancel_btn"
+            android:onClick="startSlideshow"/>
     </LinearLayout>
 
     <TextView

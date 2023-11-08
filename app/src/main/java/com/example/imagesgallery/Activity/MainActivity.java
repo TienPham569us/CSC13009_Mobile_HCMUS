@@ -32,6 +32,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
@@ -45,6 +46,14 @@ public class MainActivity extends AppCompatActivity {
     boolean isCameraPermitted = false;
     boolean isSetWallpaperPermitted = false;
     boolean isManageExternalStoragePermitted = false;
+
+    //AT
+    // Method to start the slideshow activity with selected images
+    public void startSlideshowActivity(ArrayList<String> selectedImages) {
+        Intent intent = new Intent(this, SlideshowActivity.class);
+        intent.putStringArrayListExtra("selectedImages", selectedImages);
+        startActivity(intent);
+    }
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_AUDIO,

@@ -45,6 +45,8 @@
             android:exported="false" />
         <activity android:name=".Activity.DetailImageActivity"
             android:exported="true"/>
+        <activity android:name=".Activity.SlideshowActivity"
+            android:exported="false"/>
         <activity
             android:name=".Activity.MainActivity"
             android:exported="true">

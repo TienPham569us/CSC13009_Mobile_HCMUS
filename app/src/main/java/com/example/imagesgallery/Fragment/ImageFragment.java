@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.media.Image;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -44,6 +45,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
+import com.example.imagesgallery.Activity.SlideshowActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.R;
 import android.content.Context;
@@ -55,7 +57,7 @@ import java.util.Map;
 
 
 
-public class ImageFragment extends Fragment {
+public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
     RecyclerView recycler;
     ArrayList<String> images;
     ImageAdapter adapter;
@@ -115,7 +117,9 @@ public class ImageFragment extends Fragment {
     //AT: Add button multiSelectButton
     Button multiSelectButton;
     Button deleteButton;
+    Button slideshowButton;
     boolean multiSelectMode = false;
+
     //AT
 
     String TAG = "Permission";
@@ -125,6 +129,13 @@ public class ImageFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mainActivity=(MainActivity) getActivity();
     }
+    ClickListener clickListener =new ClickListener() {
+        @Override
+        public void click(int index) {
+            // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
+        }
+    };
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -134,19 +145,29 @@ public class ImageFragment extends Fragment {
         recycler =linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
 
+        adapter = new ImageAdapter(mainActivity, images,clickListener);
+        manager = new GridLayoutManager(mainActivity, 3);
+        totalimages = linearLayout.findViewById(R.id.gallery_total_images);
+        recycler.setLayoutManager(manager);
+        recycler.setAdapter(adapter);
+        loadImages();
+        recycler.getAdapter().notifyDataSetChanged();
+
         //AT
         // Initialize the button
         multiSelectButton = linearLayout.findViewById(R.id.multiSelectButton);
         deleteButton = linearLayout.findViewById(R.id.deleteButton);
+        slideshowButton = linearLayout.findViewById(R.id.slideshowButton);
+
         multiSelectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                toggleDeleteButtonVisibility();
                 if (multiSelectMode) {
                     multiSelectMode = false;
                     adapter.setMultiSelectMode(multiSelectMode);
                     adapter.clearSelection();
                     multiSelectButton.setText("Multi select");
+
                     // Handle actions in multi-select mode
                 } else {
                     // Enter multi-select mode
@@ -155,19 +176,19 @@ public class ImageFragment extends Fragment {
                     // Update UI, e.g., change button text
                     multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
                 }
+                toggleButtonsOfMultiSelectMode(multiSelectMode);
             }
 
         });
+        deleteButton.setEnabled(false);
+        slideshowButton.setEnabled(false);
+        // Set state for buttons when in multi-select mode
+        adapter.setSelectionChangeListener(this);
         deleteButton.setOnClickListener(new View.OnClickListener() {
-            Context context;
-            String nextImageTemp;
             @Override
             public void onClick(View view) {
                 ArrayList<String> selectedImages = adapter.getSelectedImages();
                 // Define variables to track the number of successfully deleted images
-                final int deletedCount = 0;
-                int totalCount = selectedImages.size();
-
                 for (String imagePath : selectedImages) {
                     File deleteImage = new File(imagePath);
                     if (deleteImage.exists()) {
@@ -201,7 +222,7 @@ public class ImageFragment extends Fragment {
 //                manager = new GridLayoutManager(mainActivity, 3);
 //                recycler.setLayoutManager(manager);
 //                loadImages();
-                toggleDeleteButtonVisibility();
+                toggleButtonsOfMultiSelectMode(multiSelectMode);
                 multiSelectMode = false;
                 adapter.setMultiSelectMode(multiSelectMode);
                 adapter.clearSelection();
@@ -210,35 +231,50 @@ public class ImageFragment extends Fragment {
                     // Handle actions in multi-select mode
             }
         });
-        //AT
-        ClickListener clickListener =new ClickListener() {
+        slideshowButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void click(int index) {
-               // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
+            public void onClick(View view) {
+                ArrayList<String> selectedImages = adapter.getSelectedImages();
+                if (!selectedImages.isEmpty()) {
+                    // Call the method in MainActivity to start the SlideshowActivity
+                    if (getActivity() instanceof MainActivity) {
+                        ((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
+                    }
+                }
             }
-        };
-        adapter = new ImageAdapter(mainActivity, images,clickListener);
-        manager = new GridLayoutManager(mainActivity, 3);
-        totalimages = linearLayout.findViewById(R.id.gallery_total_images);
-        recycler.setLayoutManager(manager);
+        });
+        //AT
 
 
-        recycler.setAdapter(adapter);
-        loadImages();
-        recycler.getAdapter().notifyDataSetChanged();
 
         return linearLayout;
     }
 
     //AT When click button Multi Select, it shows Delete Button
-    private void toggleDeleteButtonVisibility() {
-        if (deleteButton.getVisibility() == View.VISIBLE) {
-            deleteButton.setVisibility(View.GONE);
-        } else {
+    private void toggleButtonsOfMultiSelectMode(Boolean isMultiSelectMode) {
+        if (isMultiSelectMode) {
             deleteButton.setVisibility(View.VISIBLE);
-
+            slideshowButton.setVisibility(View.VISIBLE);
+        } else {
+            deleteButton.setVisibility(View.INVISIBLE);
+            slideshowButton.setVisibility(View.INVISIBLE);
         }
     }
+    // Method to update the delete button's state
+    // Implement the onSelectionChanged method from the SelectionChangeListener interface
+    @Override
+    public void onSelectionChanged(boolean hasSelection) {
+        if (hasSelection) {
+            // At least one image is selected, enable the deleteButton
+            slideshowButton.setEnabled(true);
+            deleteButton.setEnabled(true);
+        } else {
+            // No images are selected, disable the deleteButton
+            slideshowButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+        }
+    }
+    //AT
 
     public void loadImages() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);

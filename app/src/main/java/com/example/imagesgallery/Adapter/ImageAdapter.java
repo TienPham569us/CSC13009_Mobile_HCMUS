@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
+import com.example.imagesgallery.Fragment.ImageFragment;
 import com.example.imagesgallery.R;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
 
     MainActivity mainActivity;
+    ImageFragment imageFragment = new ImageFragment();
     private Context context ;
     private ArrayList<String> images_list;
 
@@ -33,6 +35,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     private ArrayList<Integer> selectedPositions = new ArrayList<>();
 
     private ArrayList<String> selectedImages; // New list to track selected images
+    public interface SelectionChangeListener {
+        void onSelectionChanged(boolean hasSelection);
+    }
+    private SelectionChangeListener selectionChangeListener;
+    public void setSelectionChangeListener(SelectionChangeListener listener) {
+        this.selectionChangeListener = listener;
+    }
     //AT
 
     public void setImages_list(ArrayList<String> images_list) {
@@ -76,6 +85,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         } else {
             selectedImages.add(imagePath);
         }
+        if (selectionChangeListener != null) {
+            selectionChangeListener.onSelectionChanged(!selectedImages.isEmpty());
+        }
         notifyDataSetChanged(); // Update the UI to reflect the selection
     }
     //AT Clear the selection
@@ -83,6 +95,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         selectedImages.clear();
         selectedPositions.clear();
         notifyDataSetChanged(); // Update the UI to clear selection
+        if (selectionChangeListener != null) {
+            selectionChangeListener.onSelectionChanged(false);
+        }
     }
     //AT
 
@@ -97,7 +112,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         File image_file = new File(images_list.get(position));
         if (image_file.exists()) {
             Glide.with(context).load(image_file).into(holder.image);
-//            Log.d("imgAdapter", "1 + " + String.valueOf(position));
+//            Log.d("imgAdapter",  String.valueOf(position));
         }
 
         //AT
@@ -118,6 +133,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
         //AT
 
+//        imageFragment.updateDeleteButtonState(selectedImages.size() > 0);
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,9 +146,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
                     } else {
                         selectedPositions.add(position);
                     }
+                    toggleSelection(position);
+
                     // Notify the adapter that the data set has changed
                     notifyDataSetChanged();
-                    toggleSelection(position);
                     Log.d("selected images array ", selectedImages.toString());
                     Log.d("Image list size: ", String.valueOf(getItemCount()));
                     // Show the checkbox only for the clicked image and set it to true
