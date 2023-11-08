@@ -44,7 +44,7 @@ public class ChooseImageActivity extends AppCompatActivity {
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        toolbar.setTitle("");
+        getSupportActionBar().setTitle("Choose Image");
 
         // set return button
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -73,7 +73,7 @@ public class ChooseImageActivity extends AppCompatActivity {
             while (cursor.moveToNext()) {
                 int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
                 String path = cursor.getString(columnindex);
-                imageArrayList.add(new Image(path, "", "", 0));
+                imageArrayList.add(new Image(path, "", 0));
 //                rowValues.clear();
 //                rowValues.put("path", path);
 //                rowValues.put("id_albumContain", "");

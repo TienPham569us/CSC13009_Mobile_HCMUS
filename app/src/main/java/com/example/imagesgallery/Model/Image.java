@@ -6,13 +6,11 @@ import java.io.Serializable;
 public class Image implements Serializable {
     private String path;
     private String description;
-    private String id_album;
     private int isFavored;
 
-    public Image(String path, String description, String id_album, int isFavored) {
+    public Image(String path, String description, int isFavored) {
         this.path = path;
         this.description = description;
-        this.id_album = id_album;
         this.isFavored = isFavored;
     }
 
@@ -30,14 +28,6 @@ public class Image implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getId_album() {
-        return id_album;
-    }
-
-    public void setId_album(String id_album) {
-        this.id_album = id_album;
     }
 
     public int getIsFavored() {

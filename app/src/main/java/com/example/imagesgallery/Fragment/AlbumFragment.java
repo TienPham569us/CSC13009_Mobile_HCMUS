@@ -79,15 +79,14 @@ public class AlbumFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("aaaa","onscreate");
 
         frameLayoutAlbum = (FrameLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
         albumArrayList = new ArrayList<>();
         albumAdapter = new AlbumAdapter(mainActivity, albumArrayList);
         rowValues = new ContentValues();
-        //handler = new mHandler();
         gridView.setAdapter(albumAdapter);
+
         handler = new Handler();
 
         // need to set them when switch to album tab the second time or more
@@ -237,22 +236,19 @@ public class AlbumFragment extends Fragment {
             cursorImage.moveToPosition(-1);
             int pathImageColumn = cursorImage.getColumnIndex("path");
             int descriptionImageColumn = cursorImage.getColumnIndex("description");
-            int idALbumContainColumn = cursorImage.getColumnIndex("id_albumContain");
             int isFavoredImageColumn = cursorImage.getColumnIndex("isFavored");
 
             String pathImage = MainActivity.pathNoImage;
-            String id_AlbumContainImage = "";
             String descriptionImage = "";
             int isFavoredImage = 0;
 
             while (cursorImage.moveToNext()) {
-                id_AlbumContainImage = cursorImage.getString(idALbumContainColumn);
                 descriptionImage = cursorImage.getString(descriptionImageColumn);
                 isFavoredImage = cursorImage.getInt(isFavoredImageColumn);
                 pathImage = cursorImage.getString(pathImageColumn);
             }
             cursorImage.close();
-            albumArrayList.add(new Album(new Image(pathImage, descriptionImage, id_AlbumContainImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum, new ArrayList<>()));
+            albumArrayList.add(new Album(new Image(pathImage, descriptionImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum, new ArrayList<>()));
         }
         cursor.close();
         currentMaxPosition += ItemsPerLoading;
@@ -287,7 +283,7 @@ public class AlbumFragment extends Fragment {
                     rowValues.put("name", name);
                     rowValues.put("cover", MainActivity.pathNoImage);
                     long rowId = MainActivity.db.insert("Album", null, rowValues);
-                    albumArrayList.add(0, new Album(new Image(MainActivity.pathNoImage, "", "", 0), name, "", 0, (int) rowId, new ArrayList<>()));
+                    albumArrayList.add(0, new Album(new Image(MainActivity.pathNoImage, "", 0), name, "", 0, (int) rowId, new ArrayList<>()));
                     albumAdapter.notifyDataSetChanged();
                     dialog.dismiss();
                 }
