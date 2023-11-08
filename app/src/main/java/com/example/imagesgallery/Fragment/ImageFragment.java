@@ -112,11 +112,11 @@ public class ImageFragment extends Fragment {
     boolean isStorageVideoPermitted = false;
     boolean isStorageAudioPermitted = false;
 
-    // ATuan: Add button multiSelectButton
+    //AT: Add button multiSelectButton
     Button multiSelectButton;
     Button deleteButton;
     boolean multiSelectMode = false;
-    //ATuan
+    //AT
 
     String TAG = "Permission";
     //private ActivityResultLauncher<String> requestPermissionLauncher;
@@ -134,7 +134,7 @@ public class ImageFragment extends Fragment {
         recycler =linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
 
-        //ATuan
+        //AT
         // Initialize the button
         multiSelectButton = linearLayout.findViewById(R.id.multiSelectButton);
         deleteButton = linearLayout.findViewById(R.id.deleteButton);
@@ -156,7 +156,6 @@ public class ImageFragment extends Fragment {
                     multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
                 }
             }
-
 
         });
         deleteButton.setOnClickListener(new View.OnClickListener() {
@@ -203,24 +202,15 @@ public class ImageFragment extends Fragment {
 //                recycler.setLayoutManager(manager);
 //                loadImages();
                 toggleDeleteButtonVisibility();
-                if (multiSelectMode) {
-                    multiSelectMode = false;
-                    adapter.setMultiSelectMode(multiSelectMode);
-                    adapter.clearSelection();
-                    Log.d("selected images: ", adapter.getSelectedImages().toString());
-                    multiSelectButton.setText("Multi select");
+                multiSelectMode = false;
+                adapter.setMultiSelectMode(multiSelectMode);
+                adapter.clearSelection();
+                Log.d("selected images: ", adapter.getSelectedImages().toString());
+                multiSelectButton.setText("Multi select");
                     // Handle actions in multi-select mode
-                } else {
-                    // Enter multi-select mode
-                    Log.d("multi select mode", ": on");
-                    multiSelectMode = true;
-                    adapter.setMultiSelectMode(multiSelectMode);
-                    // Update UI, e.g., change button text
-                    multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
-                }
             }
         });
-        //ATuan
+        //AT
         ClickListener clickListener =new ClickListener() {
             @Override
             public void click(int index) {
@@ -240,7 +230,7 @@ public class ImageFragment extends Fragment {
         return linearLayout;
     }
 
-    //ATuan When click button Multi Select, i show Button Delete Button
+    //AT When click button Multi Select, i show Button Delete Button
     private void toggleDeleteButtonVisibility() {
         if (deleteButton.getVisibility() == View.VISIBLE) {
             deleteButton.setVisibility(View.GONE);

@@ -28,12 +28,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     private Context context ;
     private ArrayList<String> images_list;
 
-    //ATuan: check if there is selected mode
+    //AT: check if there is selected mode
     private boolean isMultiSelectMode = false;
     private ArrayList<Integer> selectedPositions = new ArrayList<>();
 
     private ArrayList<String> selectedImages; // New list to track selected images
-    //ATuan
+    //AT
 
     public void setImages_list(ArrayList<String> images_list) {
         this.images_list = images_list;
@@ -50,14 +50,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         return this.pos;
     }
 
-    //ATuan: set multi select mode
+    //AT: set multi select mode
     public void setMultiSelectMode(boolean multiSelectMode) {
         this.isMultiSelectMode = multiSelectMode;
     }
     public ArrayList<String> getSelectedImages() {
         return selectedImages;
     }
-    //ATuan
+    public ArrayList<Integer> getSelectedPositions() { return selectedPositions; }
+    //AT
 
     public ImageAdapter(Context context, ArrayList<String> images_list, ClickListener listener) {
         this.context = context;
@@ -67,7 +68,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     }
 
 
-    //  ATuan Toggle the selection state of an item at the given position
+    //  AT Toggle the selection state of an item at the given position
     public void toggleSelection(int position) {
         String imagePath = images_list.get(position);
         if (selectedImages.contains(imagePath)) {
@@ -77,12 +78,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
         notifyDataSetChanged(); // Update the UI to reflect the selection
     }
-    //ATuan Clear the selection
+    //AT Clear the selection
     public void clearSelection() {
         selectedImages.clear();
+        selectedPositions.clear();
         notifyDataSetChanged(); // Update the UI to clear selection
     }
-    //ATuan
+    //AT
 
     @NonNull
     @Override
@@ -90,16 +92,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         View view = LayoutInflater.from(context).inflate(R.layout.gallery_item, parent, false);
         return new ViewHolder(view);
     }
-
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         File image_file = new File(images_list.get(position));
         if (image_file.exists()) {
             Glide.with(context).load(image_file).into(holder.image);
-            Log.d("imgAdapter", "1 + " + String.valueOf(position));
+//            Log.d("imgAdapter", "1 + " + String.valueOf(position));
         }
 
-        //ATuan
+        //AT
         // Check if the item is selected and update its appearance
         boolean isSelected = selectedImages.contains(images_list.get(position));
         holder.itemView.setSelected(isSelected);
@@ -115,13 +116,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             holder.checkBox.setVisibility(View.GONE);
             holder.checkBox.setChecked(false);
         }
-        //ATuan
+        //AT
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Get the position of the image
-
                 int position = holder.getAdapterPosition();
                 if (isMultiSelectMode) {
                     if (selectedPositions.contains(position)) {
