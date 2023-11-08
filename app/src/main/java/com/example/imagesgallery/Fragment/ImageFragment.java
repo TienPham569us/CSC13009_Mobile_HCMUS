@@ -230,7 +230,7 @@ public class ImageFragment extends Fragment {
         return linearLayout;
     }
 
-    //AT When click button Multi Select, i show Button Delete Button
+    //AT When click button Multi Select, it shows Delete Button
     private void toggleDeleteButtonVisibility() {
         if (deleteButton.getVisibility() == View.VISIBLE) {
             deleteButton.setVisibility(View.GONE);
