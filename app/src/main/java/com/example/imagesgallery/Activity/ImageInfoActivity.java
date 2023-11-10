@@ -86,6 +86,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             File deleteImage =new File(imageTemp);
             if (deleteImage.exists()) {
                 if (deleteImage.delete()) {
+                    /* TODO: change database*/
                    // ArrayList<String> newImageList= myAdapter.getImages_list();
                     //newImageList.remove(imageTemp);
                     //myAdapter.setImages_list(newImageList);

@@ -45,7 +45,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
-import com.example.imagesgallery.Activity.SlideshowActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.R;
 import android.content.Context;
@@ -238,7 +237,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 if (!selectedImages.isEmpty()) {
                     // Call the method in MainActivity to start the SlideshowActivity
                     if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
+                        //((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
                     }
                 }
             }

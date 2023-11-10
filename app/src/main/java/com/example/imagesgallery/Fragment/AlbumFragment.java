@@ -3,7 +3,9 @@ package com.example.imagesgallery.Fragment;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -12,10 +14,15 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -31,6 +38,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -60,39 +70,60 @@ public class AlbumFragment extends Fragment {
     TextView txtTitleDialog;
     Dialog dialog;
     MainActivity mainActivity;
-    FrameLayout frameLayoutAlbum;
+    ConstraintLayout constraintLayoutAlbum;
     ContentValues rowValues;
     int clickPosition = -1;
     ImageView imgCheckAlbum;
+    Toolbar toolbar;
     private int currentMaxPosition = 0;
     private final int ItemsPerLoading = 10;
     boolean isLoading = false;
     Handler handler;
     private boolean isAllItemsLoaded = false;
-    private int IdMmaxWhenSwitchToTab = 0;
+    private int IdMmaxWhenStartingLoadData = 0;
+    private final String DefaultSearchName = "";
+    private String SearchName = DefaultSearchName;
+    SearchView searchView;
+//    SharedPreferences sharedPreferences;
+//    boolean isFirstRun = true;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity = (MainActivity) getActivity();
+
+        setHasOptionsMenu(true);
+
+//        sharedPreferences = mainActivity.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+//        if (isFirstRun) {
+//            isFirstRun = false;
+//            SharedPreferences.Editor editor = sharedPreferences.edit();
+//            editor.clear();
+//            editor.apply();
+//        } else{
+//            SearchName = sharedPreferences.getString("SearchName", "");
+//        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        frameLayoutAlbum = (FrameLayout) inflater.inflate(R.layout.fragment_album, container, false);
+        constraintLayoutAlbum = (ConstraintLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
         albumArrayList = new ArrayList<>();
         albumAdapter = new AlbumAdapter(mainActivity, albumArrayList);
         rowValues = new ContentValues();
         gridView.setAdapter(albumAdapter);
 
+        mainActivity.setSupportActionBar(toolbar);
+        Objects.requireNonNull(mainActivity.getSupportActionBar()).setTitle("");
+
         handler = new Handler();
 
-        // need to set them when switch to album tab the second time or more
+        // need to set them when load data to album tab the second time or more
         currentMaxPosition = 0;
         isAllItemsLoaded = false;
-        IdMmaxWhenSwitchToTab = 0;
+        IdMmaxWhenStartingLoadData = 0;
 
         // when click button add of activity
         btnAddAlbum.setOnClickListener(new View.OnClickListener() {
@@ -163,7 +194,7 @@ public class AlbumFragment extends Fragment {
                     backgroundExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            loadDataFromDatabase();
+                            loadDataFromDatabase(SearchName);
                             // Update gridview on the main thread
                             mainExecutor.execute(new Runnable() {
                                 @Override
@@ -178,14 +209,14 @@ public class AlbumFragment extends Fragment {
             }
         });
 
-        return frameLayoutAlbum;
+        return constraintLayoutAlbum;
     }
 
     // Load album from database and add to arraylist
-    private void loadDataFromDatabase() {
+    private void loadDataFromDatabase(String SearchName) {
         String sql = "";
         Cursor cursor = null;
-        if (IdMmaxWhenSwitchToTab == 0) {
+        if (IdMmaxWhenStartingLoadData == 0) {
             String[] argsAlbum = {String.valueOf(ItemsPerLoading), String.valueOf(currentMaxPosition)};
             try {
                 sql = "SELECT MAX(id_album) FROM Album";
@@ -196,13 +227,12 @@ public class AlbumFragment extends Fragment {
 
             cursor.moveToPosition(-1);
             while (cursor.moveToNext()) {
-                IdMmaxWhenSwitchToTab = cursor.getInt(0);
+                IdMmaxWhenStartingLoadData = cursor.getInt(0);
             }
         }
-
-        String[] argsAlbum = {String.valueOf(IdMmaxWhenSwitchToTab), String.valueOf(ItemsPerLoading), String.valueOf(currentMaxPosition)};
+        String[] argsAlbum = {String.valueOf(IdMmaxWhenStartingLoadData), "%" + SearchName + "%", String.valueOf(ItemsPerLoading), String.valueOf(currentMaxPosition)};
         try {
-            sql = "SELECT * FROM Album WHERE id_album <= ? ORDER BY id_album DESC LIMIT ? OFFSET ?";
+            sql = "SELECT * FROM Album WHERE id_album <= ? AND name LIKE ? ORDER BY id_album DESC LIMIT ? OFFSET ?";
             cursor = MainActivity.db.rawQuery(sql, argsAlbum);
         } catch (Exception exception) {
             return;
@@ -255,8 +285,9 @@ public class AlbumFragment extends Fragment {
     }
 
     private void init() {
-        gridView = (GridView) frameLayoutAlbum.findViewById(R.id.gridview_album);
-        btnAddAlbum = (ImageButton) frameLayoutAlbum.findViewById(R.id.btnAdd_album);
+        gridView = (GridView) constraintLayoutAlbum.findViewById(R.id.gridview_album);
+        btnAddAlbum = (ImageButton) constraintLayoutAlbum.findViewById(R.id.btnAdd_album);
+        toolbar = (Toolbar) constraintLayoutAlbum.findViewById(R.id.toolbar);
     }
 
     // show dialog when click button add album
@@ -325,5 +356,61 @@ public class AlbumFragment extends Fragment {
         btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        mainActivity.getMenuInflater().inflate(R.menu.menu_album_home_page, menu);
+        MenuItem menuItemSearch = menu.findItem(R.id.search_album);
 
+        searchView = (SearchView) menuItemSearch.getActionView();
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+        searchView.onActionViewExpanded();
+        searchView.setQuery(SearchName,false);
+        searchView.clearFocus();
+        //View closeButton = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                SearchName = query;
+                currentMaxPosition = 0;
+                isAllItemsLoaded = false;
+                IdMmaxWhenStartingLoadData = 0;
+                albumArrayList.clear();
+                loadDataFromDatabase(SearchName);
+                searchView.clearFocus();
+                return true;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.equals("")){
+                    this.onQueryTextSubmit("");
+                }
+                return true;
+            }
+        });
+
+//        closeButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                currentMaxPosition = 0;
+//                isAllItemsLoaded = false;
+//                IdMmaxWhenStartingLoadData = 0;
+//                albumArrayList.clear();
+//                SearchName = "";
+//                loadDataFromDatabase(SearchName);
+//                searchView.setQuery(SearchName,false);
+//                searchView.clearFocus();
+//            }
+//        });
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+//    @Override
+//    public void onPause() {
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString("SearchName", SearchName);
+//        editor.apply();
+//        super.onPause();
+//    }
 }
