@@ -23,6 +23,7 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.imagesgallery.Fragment.AlbumFragment;
@@ -113,6 +114,14 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    public void hideBottomNavigationView() {
+        bottomNavigationView.setVisibility(View.GONE);
+    }
+
+    public void showBottomNavigationView() {
+        bottomNavigationView.setVisibility(View.VISIBLE);
     }
 
     public void requestPermissionStorageImage() {

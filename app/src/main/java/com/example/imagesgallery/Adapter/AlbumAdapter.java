@@ -24,6 +24,22 @@ public class AlbumAdapter extends BaseAdapter {
     Context context;
     ArrayList<Album> albumArrayList;
 
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public ArrayList<Album> getAlbumArrayList() {
+        return albumArrayList;
+    }
+
+    public void setAlbumArrayList(ArrayList<Album> albumArrayList) {
+        this.albumArrayList = albumArrayList;
+    }
+
     public AlbumAdapter(Context context, ArrayList<Album> albumArrayList) {
         this.context = context;
         this.albumArrayList = albumArrayList;

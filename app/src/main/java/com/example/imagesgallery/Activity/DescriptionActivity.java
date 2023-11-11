@@ -40,6 +40,7 @@ public class DescriptionActivity extends AppCompatActivity {
             edtDescription.setText(album.getDescription());
         }
         edtDescription.setFocusableInTouchMode(false);
+        edtDescription.setFocusable(false);
 
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
