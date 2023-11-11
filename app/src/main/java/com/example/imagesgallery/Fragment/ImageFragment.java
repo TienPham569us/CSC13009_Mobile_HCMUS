@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.media.Image;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -46,6 +45,7 @@ import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 import android.content.Context;
 
@@ -58,7 +58,7 @@ import java.util.Map;
 
 public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
     RecyclerView recycler;
-    ArrayList<String> images;
+    ArrayList<Image> images;
     ImageAdapter adapter;
     GridLayoutManager manager;
     TextView totalimages;
@@ -144,7 +144,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler =linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
 
-        adapter = new ImageAdapter(mainActivity, images,clickListener);
+        adapter = new ImageAdapter(mainActivity, images , clickListener);
         manager = new GridLayoutManager(mainActivity, 3);
         totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
@@ -295,7 +295,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         cursor.moveToPosition(i);
                         int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
                         String path = cursor.getString(columnindex);
-                        images.add(path);
+                        Image newImage=new Image(path,"",0);
+                        images.add(newImage);
 
                         rowValues.clear();
                         rowValues.put("path", path);

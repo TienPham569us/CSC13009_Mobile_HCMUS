@@ -1,6 +1,8 @@
 package com.example.imagesgallery.Activity;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -14,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -82,35 +85,8 @@ public class ImageInfoActivity extends AppCompatActivity {
         }
         else if (itemID == R.id.deleteImage) {
             //Toast.makeText(this, "Xoa anh", Toast.LENGTH_SHORT).show();
+            createDialogDeleteImage();
 
-            File deleteImage =new File(imageTemp);
-            if (deleteImage.exists()) {
-                if (deleteImage.delete()) {
-                    /* TODO: change database*/
-                   // ArrayList<String> newImageList= myAdapter.getImages_list();
-                    //newImageList.remove(imageTemp);
-                    //myAdapter.setImages_list(newImageList);
-                    //myAdapter.notifyItemRemoved(imagePosition);
-                    //myAdapter.notifyDataSetChanged();
-
-                    // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
-                    MediaScannerConnection.scanFile(getApplicationContext(), new String[]{imageTemp}, null, new MediaScannerConnection.OnScanCompletedListener() {
-                        @Override
-                        public void onScanCompleted(String path, Uri uri) {
-                            //imageView = findViewById(R.id.imageFullScreen);
-                            //Glide.with(context).load(nextImageTemp).into(imageView);
-                        }
-                    });
-                    Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-                    if (intent != null) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
-                        startActivity(intent);
-                    }
-                    //Glide.with(this).load(nextImageTemp).into(imageView);
-
-                }
-            }
             //Glide.with(this).load(nextImageTemp).into(imageView);
         } else if (itemID == R.id.infomation) {
             Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
@@ -123,7 +99,63 @@ public class ImageInfoActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+    public void createDialogDeleteImage() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Are you sure you want to delete this image ?");
 
+        // click yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                deleteAlbum();
+            }
+        });
+        // click no
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+    private void deleteAlbum() {
+        File deleteImage =new File(imageTemp);
+        if (deleteImage.exists()) {
+            if (deleteImage.delete()) {
+                /* TODO: change database*/
+                // ArrayList<String> newImageList= myAdapter.getImages_list();
+                //newImageList.remove(imageTemp);
+                //myAdapter.setImages_list(newImageList);
+                //myAdapter.notifyItemRemoved(imagePosition);
+                //myAdapter.notifyDataSetChanged();
+                String[] args = {String.valueOf(imageTemp)};
+                long rowID = MainActivity.db.delete("Image", "path = ?", args);
+                if (rowID > 0) {
+                    Toast.makeText(this, "Delete success", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
+                }
+                // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
+                MediaScannerConnection.scanFile(getApplicationContext(), new String[]{imageTemp}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                    @Override
+                    public void onScanCompleted(String path, Uri uri) {
+                        //imageView = findViewById(R.id.imageFullScreen);
+                        //Glide.with(context).load(nextImageTemp).into(imageView);
+                    }
+                });
+                Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
+                    startActivity(intent);
+                }
+
+
+            }
+        }
+
+    }
 
 }
 

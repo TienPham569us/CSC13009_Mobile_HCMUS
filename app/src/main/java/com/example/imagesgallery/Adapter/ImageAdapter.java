@@ -18,6 +18,7 @@ import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Fragment.ImageFragment;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
 import java.io.File;
@@ -28,7 +29,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     MainActivity mainActivity;
     ImageFragment imageFragment = new ImageFragment();
     private Context context ;
-    private ArrayList<String> images_list;
+    private ArrayList<Image> images_list;
 
     //AT: check if there is selected mode
     private boolean isMultiSelectMode = false;
@@ -44,12 +45,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     }
     //AT
 
-    public void setImages_list(ArrayList<String> images_list) {
-        this.images_list = images_list;
+
+    public ArrayList<Image> getImages_list() {
+        return images_list;
     }
 
-    public ArrayList<String> getImages_list() {
-        return images_list;
+    public void setImages_list(ArrayList<Image> images_list) {
+        this.images_list = images_list;
     }
 
     ClickListener listener;
@@ -69,7 +71,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public ArrayList<Integer> getSelectedPositions() { return selectedPositions; }
     //AT
 
-    public ImageAdapter(Context context, ArrayList<String> images_list, ClickListener listener) {
+    public ImageAdapter(Context context, ArrayList<Image> images_list, ClickListener listener) {
         this.context = context;
         this.images_list = images_list;
         this.listener=listener;
@@ -79,7 +81,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     //  AT Toggle the selection state of an item at the given position
     public void toggleSelection(int position) {
-        String imagePath = images_list.get(position);
+        String imagePath = images_list.get(position).getPath();
         if (selectedImages.contains(imagePath)) {
             selectedImages.remove(imagePath);
         } else {
@@ -109,7 +111,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     }
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        File image_file = new File(images_list.get(position));
+        File image_file = new File(images_list.get(position).getPath());
         if (image_file.exists()) {
             Glide.with(context).load(image_file).into(holder.image);
 //            Log.d("imgAdapter",  String.valueOf(position));
@@ -164,8 +166,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
                     Bundle bundle = new Bundle();
                     bundle.putInt("position", position);
                     intent.putExtras(bundle);
-                    intent.putExtra("image_path", images_list.get(position));
-                    intent.putExtra("next_image_path", images_list.get(position + 1));
+                    intent.putExtra("image_path", images_list.get(position).getPath());
+                    //intent.putExtra("next_image_path", images_list.get(position + 1));
 
                     // Pass the path to the image to the new activity
                     // Start the new activity
