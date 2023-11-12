@@ -138,7 +138,6 @@ public class ImageInfoActivity extends AppCompatActivity {
                 //myAdapter.setImages_list(newImageList);
                 //myAdapter.notifyItemRemoved(imagePosition);
                 //myAdapter.notifyDataSetChanged();
-
                 // change database
                 String[] args = {imageTemp};
                 long rowID = MainActivity.db.delete("Image", "path = ?", args);

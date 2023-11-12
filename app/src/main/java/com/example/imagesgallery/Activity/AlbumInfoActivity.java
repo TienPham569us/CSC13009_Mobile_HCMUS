@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,6 +36,9 @@ import com.example.imagesgallery.R;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class AlbumInfoActivity extends AppCompatActivity {
 
@@ -47,6 +51,9 @@ public class AlbumInfoActivity extends AppCompatActivity {
     ImageAdapter adapter;
     ArrayList<Image> images;
     int OrderInDatabase;
+    boolean isLoading = false, isAllItemsLoaded = false;
+    private final int ItemsPerLoading = 21;
+    private int CurrentMaxPosition = 0, IdMaxWhenStartingLoadData = 0;
     ClickListener clickListener = new ClickListener() {
         @Override
         public void click(int index) {
@@ -76,6 +83,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_album_info);
 
         init();
+
+        isAllItemsLoaded = false;
+        CurrentMaxPosition = 0;
+        IdMaxWhenStartingLoadData = 0;
+
         // add ellipsize at the end of textview if it is long
         txtAlbumDescription.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -100,41 +112,16 @@ public class AlbumInfoActivity extends AppCompatActivity {
             Glide.with(AlbumInfoActivity.this).load(coverPath).into(imgCoverAlbum);
         }
 
-        // load image in album
-        /*TODO: Load on scroll*/
-        String sqlContainImages = "SELECT * FROM Album_Contain_Images Contain, Image I WHERE id_album = ? AND Contain.path = I.path";
-        String[] argsContainImages = {String.valueOf(album.getId())};
-        Cursor cursorContainImages = null;
-        try {
-            cursorContainImages = MainActivity.db.rawQuery(sqlContainImages, argsContainImages);
-        } catch (Exception exception) {
-            return;
-        }
-        cursorContainImages.moveToPosition(-1);
-
-        int pathImageColumn = cursorContainImages.getColumnIndex("Contain.path");
-        int descriptionImageColumn = cursorContainImages.getColumnIndex("I.description");
-        int isFavoredImageColumn = cursorContainImages.getColumnIndex("I.isFavored");
-
-        String pathImageInAlbum = MainActivity.pathNoImage;
-        String descriptionImageInAlbum = "";
-        int isFavoredImageInAlbum = 0;
-
+        // init to prepare load images to album
         images = new ArrayList<>();
-        while (cursorContainImages.moveToNext()) {
-            descriptionImageInAlbum = cursorContainImages.getString(descriptionImageColumn);
-            isFavoredImageInAlbum = cursorContainImages.getInt(isFavoredImageColumn);
-            pathImageInAlbum = cursorContainImages.getString(pathImageColumn);
-            Image image = new Image(pathImageInAlbum, descriptionImageInAlbum, isFavoredImageInAlbum);
-            images.add(image);
-        }
-        cursorContainImages.close();
-
         album.setListImage(images);
         adapter = new ImageAdapter(AlbumInfoActivity.this, startIntentSeeImageInfo, images, clickListener);
         GridLayoutManager manager = new GridLayoutManager(AlbumInfoActivity.this, 3);
         recyclerView.setLayoutManager(manager);
         recyclerView.setAdapter(adapter);
+
+        // load first images in album
+        loadDataFromDatabase();
 
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
@@ -201,7 +188,98 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 startIntentAddImage.launch(intent);
             }
         });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                GridLayoutManager gridLayoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
+                if (!isLoading && gridLayoutManager != null && gridLayoutManager.findLastCompletelyVisibleItemPosition() >= images.size() - 1 && !isAllItemsLoaded) {
+                    isLoading = true;
+                    // Create an executor that executes tasks in the main thread and background thread
+                    Executor mainExecutor = ContextCompat.getMainExecutor(AlbumInfoActivity.this);
+                    ScheduledExecutorService backgroundExecutor = Executors.newSingleThreadScheduledExecutor();
+                    // Load data in the background thread.
+                    backgroundExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadDataFromDatabase();
+                            // Update list images in a album on the main thread
+                            mainExecutor.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    adapter.notifyDataSetChanged();
+                                    isLoading = false;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
     }
+
+    private void loadDataFromDatabase() {
+        Log.d("aaaaa","before: " + images.size());
+        String sql = "";
+        Cursor cursor = null;
+        if (IdMaxWhenStartingLoadData == 0) {
+            String[] argsAlbum = {String.valueOf(ItemsPerLoading), String.valueOf(CurrentMaxPosition)};
+            try {
+                sql = "SELECT MAX(id) FROM Album_Contain_Images";
+                cursor = MainActivity.db.rawQuery(sql, null);
+            } catch (Exception exception) {
+                return;
+            }
+
+            cursor.moveToPosition(-1);
+            while (cursor.moveToNext()) {
+                IdMaxWhenStartingLoadData = cursor.getInt(0);
+            }
+            cursor.close();
+        }
+
+        String sqlContainImages = "SELECT * FROM Album_Contain_Images Contain, Image I " +
+                "WHERE id_album = ? AND Contain.path = I.path AND Contain.id <= ? ORDER BY id DESC LIMIT ? OFFSET ?";
+        String[] argsContainImages = {String.valueOf(album.getId()), String.valueOf(IdMaxWhenStartingLoadData), String.valueOf(ItemsPerLoading), String.valueOf(CurrentMaxPosition)};
+        Cursor cursorContainImages = null;
+        try {
+            cursorContainImages = MainActivity.db.rawQuery(sqlContainImages, argsContainImages);
+        } catch (Exception exception) {
+            return;
+        }
+
+        if (!cursorContainImages.moveToFirst()) {
+            isAllItemsLoaded = true;
+        }
+        cursorContainImages.moveToPosition(-1);
+
+        int pathImageColumn = cursorContainImages.getColumnIndex("Contain.path");
+        int descriptionImageColumn = cursorContainImages.getColumnIndex("I.description");
+        int isFavoredImageColumn = cursorContainImages.getColumnIndex("I.isFavored");
+
+        String pathImageInAlbum = MainActivity.pathNoImage;
+        String descriptionImageInAlbum = "";
+        int isFavoredImageInAlbum = 0;
+
+        //images = new ArrayList<>();
+        while (cursorContainImages.moveToNext()) {
+            descriptionImageInAlbum = cursorContainImages.getString(descriptionImageColumn);
+            isFavoredImageInAlbum = cursorContainImages.getInt(isFavoredImageColumn);
+            pathImageInAlbum = cursorContainImages.getString(pathImageColumn);
+            Image image = new Image(pathImageInAlbum, descriptionImageInAlbum, isFavoredImageInAlbum);
+            images.add(image);
+        }
+        cursorContainImages.close();
+        CurrentMaxPosition += ItemsPerLoading;
+        Log.d("aaaaa","after: " + images.size());
+    }
+
 
     private void init() {
         txtAlbumDescription = (TextView) findViewById(R.id.txtAlbumDescription);

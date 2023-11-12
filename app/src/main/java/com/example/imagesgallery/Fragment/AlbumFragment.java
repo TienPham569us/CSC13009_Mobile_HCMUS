@@ -188,10 +188,10 @@ public class AlbumFragment extends Fragment {
             }
         });
 
+        // load on scroll
         gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView absListView, int i) {
-
             }
 
             @Override
@@ -199,8 +199,6 @@ public class AlbumFragment extends Fragment {
                 boolean isAllItemLoaded = isAllItemsDefaultLoaded[0];
                 if (CurrentAlbumArrayList == SearchAlbumArrayList)
                     isAllItemLoaded = isAllItemsSearchLoaded[0];
-
-                Log.d("aaaa", String.valueOf(isAllItemLoaded));
 
                 if (!isLoading && absListView.getLastVisiblePosition() == totalItemCount - 1 && !isAllItemLoaded) {
                     isLoading = true;
