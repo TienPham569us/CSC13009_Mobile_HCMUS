@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,10 +36,11 @@ public class ImageInfoActivity extends AppCompatActivity {
     private Context context;
     ImageView imageView;
     ImageAdapter myAdapter;
-    int imagePosition =0;
+    int imagePosition = 0;
     TextView totalImages;
     ArrayList<String> images;
     ImageFragment imageFragment;
+    String imagePath = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,19 +48,18 @@ public class ImageInfoActivity extends AppCompatActivity {
         setContentView(R.layout.edit_image);
 
         // Get the path to the image from the intent
-        String imagePath = getIntent().getStringExtra("image_path");
+        imagePath = getIntent().getStringExtra("image_path");
         String nextImagePath = getIntent().getStringExtra("next_image_path");
         imagePosition = getIntent().getExtras().getInt("position");
-        imageTemp=imagePath;
-        nextImageTemp=nextImagePath;
+        imageTemp = imagePath;
+        nextImageTemp = nextImagePath;
         // Get the ImageView element
         imageView = findViewById(R.id.imageFullScreen);
-        Toolbar toolbar =(Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        imagePosition = getIntent().getExtras().getInt("position");
-        Toast.makeText(getApplicationContext(),"image position:"+imagePosition,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "image position:" + imagePosition, Toast.LENGTH_SHORT).show();
         // Load the image into the ImageView element
         Glide.with(this).load(imagePath).into(imageView);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -71,8 +72,15 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         //Glide.with(this).load(nextImageTemp).into(imageView);
     }
+
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_image_info, menu);
+        MenuItem disabledMenuItem = menu.findItem(R.id.RemoveImage);
+        // Disable item if user go to this activity from ImageTab
+        String PreviousActivity = getIntent().getStringExtra("PreviousActivity");
+        if (disabledMenuItem != null && PreviousActivity != null && !(PreviousActivity.equals("AlbumInfoActivity"))) {
+            disabledMenuItem.setEnabled(false);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -82,23 +90,24 @@ public class ImageInfoActivity extends AppCompatActivity {
         if (itemID == R.id.addImage) {
             Toast.makeText(this, "Them hinh", Toast.LENGTH_SHORT).show();
 
-        }
-        else if (itemID == R.id.deleteImage) {
+        } else if (itemID == R.id.deleteImage) {
             //Toast.makeText(this, "Xoa anh", Toast.LENGTH_SHORT).show();
             createDialogDeleteImage();
 
             //Glide.with(this).load(nextImageTemp).into(imageView);
         } else if (itemID == R.id.infomation) {
             Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(ImageInfoActivity.this,DetailImageActivity.class);
+            Intent intent = new Intent(ImageInfoActivity.this, DetailImageActivity.class);
             Bundle bundle = new Bundle();
-            bundle.putInt("position",imagePosition);
+            bundle.putInt("position", imagePosition);
             intent.putExtras(bundle);
             ImageInfoActivity.this.startActivity(intent);
-
+        } else if (itemID == R.id.RemoveImage) {
+            RemoveImageFromAlbum();
         }
         return super.onOptionsItemSelected(item);
     }
+
     public void createDialogDeleteImage() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Are you sure you want to delete this image ?");
@@ -106,7 +115,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         // click yes
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                deleteAlbum();
+                deleteImage();
             }
         });
         // click no
@@ -119,23 +128,29 @@ public class ImageInfoActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-    private void deleteAlbum() {
-        File deleteImage =new File(imageTemp);
+
+    private void deleteImage() {
+        File deleteImage = new File(imageTemp);
         if (deleteImage.exists()) {
             if (deleteImage.delete()) {
-                /* TODO: change database*/
                 // ArrayList<String> newImageList= myAdapter.getImages_list();
                 //newImageList.remove(imageTemp);
                 //myAdapter.setImages_list(newImageList);
                 //myAdapter.notifyItemRemoved(imagePosition);
                 //myAdapter.notifyDataSetChanged();
-                String[] args = {String.valueOf(imageTemp)};
+
+                // change database
+                String[] args = {imageTemp};
                 long rowID = MainActivity.db.delete("Image", "path = ?", args);
-                if (rowID > 0) {
+                long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
+
+                if (rowID > 0 && rowID2 > 0) {
                     Toast.makeText(this, "Delete success", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
                 }
+
+
                 // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
                 MediaScannerConnection.scanFile(getApplicationContext(), new String[]{imageTemp}, null, new MediaScannerConnection.OnScanCompletedListener() {
                     @Override
@@ -144,18 +159,38 @@ public class ImageInfoActivity extends AppCompatActivity {
                         //Glide.with(context).load(nextImageTemp).into(imageView);
                     }
                 });
-                Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-                if (intent != null) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
-                    startActivity(intent);
+
+                String PreviousActivity = getIntent().getStringExtra("PreviousActivity");
+                if (Objects.equals(PreviousActivity, "AlbumInfoActivity")) {
+                    // return to previous activity
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("ImageDeleted", imageTemp);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
+                } else {
+                    Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                    if (intent != null) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
+                        startActivity(intent);
+                    }
                 }
-
-
             }
         }
-
     }
 
+    private void RemoveImageFromAlbum() {
+        int id_album = getIntent().getIntExtra("id_album", -1);
+        int OrderInDatabase = getIntent().getIntExtra("OrderInDatabase", 1);
+
+        String[] args = {String.valueOf(id_album), imagePath, String.valueOf(OrderInDatabase - 1)};
+        String sql = "DELETE FROM Album_Contain_Images WHERE id = (SELECT id FROM Album_Contain_Images WHERE id_album = ? AND path = ? LIMIT 1 OFFSET ?)";
+        MainActivity.db.execSQL(sql, args);
+
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("ImageRemoved", imagePath);
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
+    }
 }
 

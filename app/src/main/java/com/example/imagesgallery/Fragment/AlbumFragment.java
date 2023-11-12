@@ -96,7 +96,6 @@ public class AlbumFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         constraintLayoutAlbum = (ConstraintLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
         DefaultAlbumArrayList = new ArrayList<>();
@@ -131,10 +130,18 @@ public class AlbumFragment extends Fragment {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
                         if (data != null) {
-                            String path = data.getStringExtra("path");
+                            String path = data.getStringExtra("CoverPath");
                             String description = data.getStringExtra("description");
                             long isDelete = data.getLongExtra("isDelete", 0);
+                            ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
 
+                            // change images in album if user choose button add image or delete image in album
+                            if (imageArrayListAfterChange != null) {
+                                CurrentAlbumArrayList.get(clickPosition).setListImage(imageArrayListAfterChange);
+                                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                    DefaultAlbumArrayList.get(DefaultAlbumClickPosition).setListImage(imageArrayListAfterChange);
+                                }
+                            }
                             // remove data if user choose delete album
                             if (isDelete != 0) {
                                 CurrentAlbumArrayList.remove(clickPosition);
@@ -293,11 +300,12 @@ public class AlbumFragment extends Fragment {
                 pathImage = cursorImage.getString(pathImageColumn);
             }
             cursorImage.close();
+
             albumArrayList.add(new Album(new Image(pathImage, descriptionImage, isFavoredImage), nameAlbum, descriptionAlbum, isFavoredAlbum, idAlbum, new ArrayList<>()));
         }
+
         cursor.close();
         currentMaxPosition[0] += ItemsPerLoading;
-        Log.d("aaaa", "Load" + String.valueOf(currentMaxPosition[0]));
     }
 
     private void init() {

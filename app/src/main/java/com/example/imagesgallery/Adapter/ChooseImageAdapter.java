@@ -61,7 +61,7 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
             @Override
             public void onClick(View view) {
                 Intent resultIntent = new Intent();
-                resultIntent.putExtra("path", imageArrayList.get(pos).getPath());
+                resultIntent.putExtra("image", imageArrayList.get(pos));
                 if (context instanceof Activity) {
                     ((Activity) context).setResult(Activity.RESULT_OK, resultIntent);
                     ((Activity) context).finish();

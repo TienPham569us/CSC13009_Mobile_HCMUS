@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ public class ChooseImageActivity extends AppCompatActivity {
     ArrayList<Image> imageArrayList;
     ChooseImageAdapter chooseImageAdapter;
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,26 +64,20 @@ public class ChooseImageActivity extends AppCompatActivity {
 
     private void loadImages() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
-
         if (SDCard) {
             final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
             final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
             ContentResolver contentResolver = getContentResolver();
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
-            cursor.moveToPosition(-1);
-//            ContentValues rowValues= new ContentValues();
-            while (cursor.moveToNext()) {
-                int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                String path = cursor.getString(columnindex);
-                imageArrayList.add(new Image(path, "", 0));
-//                rowValues.clear();
-//                rowValues.put("path", path);
-//                rowValues.put("id_albumContain", "");
-//                rowValues.put("description", "");
-//                rowValues.put("isFavored", 0);
-//                MainActivity.db.insert("Image", null, rowValues);
+            if (cursor != null) {
+                cursor.moveToPosition(-1);
+                while (cursor.moveToNext()) {
+                    int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                    String path = cursor.getString(columnindex);
+                    imageArrayList.add(new Image(path, "", 0));
+                }
+                cursor.close();
             }
-            cursor.close();
         }
     }
 }

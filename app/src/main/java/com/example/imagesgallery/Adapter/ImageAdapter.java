@@ -10,10 +10,12 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.imagesgallery.Activity.AlbumInfoActivity;
 import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
@@ -28,7 +30,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     MainActivity mainActivity;
     ImageFragment imageFragment = new ImageFragment();
-    private Context context ;
+    private Context context;
+    private ActivityResultLauncher<Intent> activityLauncher;
     private ArrayList<Image> images_list;
 
     //AT: check if there is selected mode
@@ -36,10 +39,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     private ArrayList<Integer> selectedPositions = new ArrayList<>();
 
     private ArrayList<String> selectedImages; // New list to track selected images
+
     public interface SelectionChangeListener {
         void onSelectionChanged(boolean hasSelection);
     }
+
     private SelectionChangeListener selectionChangeListener;
+
     public void setSelectionChangeListener(SelectionChangeListener listener) {
         this.selectionChangeListener = listener;
     }
@@ -55,9 +61,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     }
 
     ClickListener listener;
-    public static  int DELETE_REQUEST_CODE = 15;
+    public static int DELETE_REQUEST_CODE = 15;
     public int pos = 0;
-    int getPos(){
+
+    int getPos() {
         return this.pos;
     }
 
@@ -65,19 +72,30 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public void setMultiSelectMode(boolean multiSelectMode) {
         this.isMultiSelectMode = multiSelectMode;
     }
+
     public ArrayList<String> getSelectedImages() {
         return selectedImages;
     }
-    public ArrayList<Integer> getSelectedPositions() { return selectedPositions; }
+
+    public ArrayList<Integer> getSelectedPositions() {
+        return selectedPositions;
+    }
     //AT
 
     public ImageAdapter(Context context, ArrayList<Image> images_list, ClickListener listener) {
         this.context = context;
         this.images_list = images_list;
-        this.listener=listener;
+        this.listener = listener;
         this.selectedImages = new ArrayList<>(); //For multi select
     }
 
+    public ImageAdapter(Context context, ActivityResultLauncher<Intent> activityLauncher, ArrayList<Image> images_list, ClickListener listener) {
+        this.context = context;
+        this.activityLauncher = activityLauncher;
+        this.images_list = images_list;
+        this.listener = listener;
+        this.selectedImages = new ArrayList<>(); //For multi select
+    }
 
     //  AT Toggle the selection state of an item at the given position
     public void toggleSelection(int position) {
@@ -92,6 +110,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
         notifyDataSetChanged(); // Update the UI to reflect the selection
     }
+
     //AT Clear the selection
     public void clearSelection() {
         selectedImages.clear();
@@ -109,6 +128,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         View view = LayoutInflater.from(context).inflate(R.layout.gallery_item, parent, false);
         return new ViewHolder(view);
     }
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         File image_file = new File(images_list.get(position).getPath());
@@ -160,19 +180,21 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
                 if (!isMultiSelectMode) {
                     // Pass the position to the listener
                     listener.click(position);
-                    context = view.getContext();
-                    // Create an intent to start the new activity
-                    Intent intent = new Intent(context, ImageInfoActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("position", position);
-                    intent.putExtras(bundle);
-                    intent.putExtra("image_path", images_list.get(position).getPath());
-                    //intent.putExtra("next_image_path", images_list.get(position + 1));
+                    if (!(context instanceof AlbumInfoActivity)) {
+                        context = view.getContext();
+                        // Create an intent to start the new activity
+                        Intent intent = new Intent(context, ImageInfoActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("position", position);
+                        intent.putExtras(bundle);
+                        intent.putExtra("image_path", images_list.get(position).getPath());
+                        //intent.putExtra("next_image_path", images_list.get(position + 1));
 
-                    // Pass the path to the image to the new activity
-                    // Start the new activity
-                    context.startActivity(intent);
-                    //Log.d("newTest", "onClick: 2");
+                        // Pass the path to the image to the new activity
+                        // Start the new activity
+                        context.startActivity(intent);
+                        //Log.d("newTest", "onClick: 2");
+                    }
                 }
             }
         });
@@ -197,6 +219,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         private ImageView image;
 
         private CheckBox checkBox;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             checkBox = itemView.findViewById(R.id.checkBox);

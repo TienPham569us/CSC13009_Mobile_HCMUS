@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
@@ -44,15 +45,37 @@ public class AlbumInfoActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     ImageButton btnAddImage;
     ImageAdapter adapter;
+    ArrayList<Image> images;
+    int OrderInDatabase;
+    ClickListener clickListener = new ClickListener() {
+        @Override
+        public void click(int index) {
+            int id_album = album.getId();
+            OrderInDatabase = 1;  // Order of image among identical images in the same album
+            ArrayList<Image> listImage = album.getListImage();
+            String pathImage = listImage.get(index).getPath();
+            for (int i = 0; i < index; i++) {
+                if (listImage.get(i).getPath().equals(pathImage)) {
+                    OrderInDatabase++;
+                }
+            }
+
+            Intent intent = new Intent(AlbumInfoActivity.this, ImageInfoActivity.class);
+            intent.putExtra("PreviousActivity", "AlbumInfoActivity");
+            intent.putExtra("id_album", id_album);
+            intent.putExtra("position", index);
+            intent.putExtra("image_path", pathImage);
+            intent.putExtra("OrderInDatabase", OrderInDatabase);
+            startIntentSeeImageInfo.launch(intent);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_album_info);
 
-
         init();
-
         // add ellipsize at the end of textview if it is long
         txtAlbumDescription.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -78,42 +101,46 @@ public class AlbumInfoActivity extends AppCompatActivity {
         }
 
         // load image in album
-        String sql = "SELECT * FROM Album_Contain_Images Contain, Image I WHERE id_album = ? AND Contain.path = I.path";
-        String[] args = {String.valueOf(album.getId())};
-        Cursor cursor = null;
+        /*TODO: Load on scroll*/
+        String sqlContainImages = "SELECT * FROM Album_Contain_Images Contain, Image I WHERE id_album = ? AND Contain.path = I.path";
+        String[] argsContainImages = {String.valueOf(album.getId())};
+        Cursor cursorContainImages = null;
         try {
-            cursor = MainActivity.db.rawQuery(sql, args);
+            cursorContainImages = MainActivity.db.rawQuery(sqlContainImages, argsContainImages);
         } catch (Exception exception) {
             return;
         }
-        cursor.moveToPosition(-1);
-        int pathImageColumn = cursor.getColumnIndex("Contain.path");
-        int descriptionImageColumn = cursor.getColumnIndex("I.description");
-        int isFavoredImageColumn = cursor.getColumnIndex("I.isFavored");
+        cursorContainImages.moveToPosition(-1);
 
-        String pathImage = MainActivity.pathNoImage;
-        String descriptionImage = "";
-        int isFavoredImage = 0;
+        int pathImageColumn = cursorContainImages.getColumnIndex("Contain.path");
+        int descriptionImageColumn = cursorContainImages.getColumnIndex("I.description");
+        int isFavoredImageColumn = cursorContainImages.getColumnIndex("I.isFavored");
 
-        ArrayList<Image> images = album.getListImage();
-        while (cursor.moveToNext()) {
-            descriptionImage = cursor.getString(descriptionImageColumn);
-            isFavoredImage = cursor.getInt(isFavoredImageColumn);
-            pathImage = cursor.getString(pathImageColumn);
-            Image image = new Image(pathImage, descriptionImage, isFavoredImage);
+        String pathImageInAlbum = MainActivity.pathNoImage;
+        String descriptionImageInAlbum = "";
+        int isFavoredImageInAlbum = 0;
+
+        images = new ArrayList<>();
+        while (cursorContainImages.moveToNext()) {
+            descriptionImageInAlbum = cursorContainImages.getString(descriptionImageColumn);
+            isFavoredImageInAlbum = cursorContainImages.getInt(isFavoredImageColumn);
+            pathImageInAlbum = cursorContainImages.getString(pathImageColumn);
+            Image image = new Image(pathImageInAlbum, descriptionImageInAlbum, isFavoredImageInAlbum);
             images.add(image);
         }
-        cursor.close();
+        cursorContainImages.close();
+
         album.setListImage(images);
-        for (int i = 0; i < album.getListImage().size(); i++) {
-            Log.d("ccccc", album.getListImage().get(i).getPath());
-        }
-        /*TODO: set adpater and recyclerview base on ImageAdapter*/
+        adapter = new ImageAdapter(AlbumInfoActivity.this, startIntentSeeImageInfo, images, clickListener);
+        GridLayoutManager manager = new GridLayoutManager(AlbumInfoActivity.this, 3);
+        recyclerView.setLayoutManager(manager);
+        recyclerView.setAdapter(adapter);
 
         // using toolbar as ActionBar
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(album.getName());
+
 
         // set return button
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -134,7 +161,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
             }
         });
 
-
         // when click the cover of album
         imgCoverAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,35 +176,21 @@ public class AlbumInfoActivity extends AppCompatActivity {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
                         if (data != null) {
-                            // get result from AddImageActivity and add image to album
-                            String path = data.getStringExtra("path");
-                            int id_album = album.getId();
-
-                            ContentValues contentValues = new ContentValues();
-                            String[] args2 = {path};
-                            Cursor cursorImage = null;
-                            try {
-                                cursorImage = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args2);
-                            } catch (Exception exception) {
-                                return;
+                            Image image = (Image) data.getSerializableExtra("image");
+                            if (image != null) {
+                                images.add(image);
+                                album.setListImage(images);
+                                adapter.notifyDataSetChanged();
+                                ContentValues contentValues = new ContentValues();
+                                contentValues.put("id_album", album.getId());
+                                contentValues.put("path", image.getPath());
+                                long rowID = MainActivity.db.insert("Album_Contain_Images", null, contentValues);
                             }
-                            cursorImage.moveToPosition(-1);
-
-                            int idALbumContainColumn = cursorImage.getColumnIndex("id_albumContain");
-                            String idAlbumContainImage = "";
-                            while (cursorImage.moveToNext()) {
-                                idAlbumContainImage = cursorImage.getString(idALbumContainColumn);
-                            }
-                            cursorImage.close();
-                            idAlbumContainImage = idAlbumContainImage + " " + String.valueOf(id_album) + " ";
-                            contentValues.put("id_albumContain", idAlbumContainImage);
-                            String[] args3 = {path};
-                            long rowID = MainActivity.db.update("Image", contentValues, "path = ?", args3);
-                            /*TODO: update array*/
                         }
                     }
                 }
         );
+
 
         // click button add to insert image
         btnAddImage.setOnClickListener(new View.OnClickListener() {
@@ -207,8 +219,9 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
     private void finishActivity() {
         Intent resultIntent = new Intent();
-        resultIntent.putExtra("path", album.getCover().getPath());
+        resultIntent.putExtra("CoverPath", album.getCover().getPath());
         resultIntent.putExtra("description", album.getDescription());
+        resultIntent.putExtra("images", images);
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
@@ -279,15 +292,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
                     Intent data = result.getData();
                     if (data != null) {
                         // get result from AddImageActivity and change cover
-                        String path = data.getStringExtra("path");
-                        Image image = album.getCover();
-                        image.setPath(path);
-                        album.setCover(image);
-                        Glide.with(AlbumInfoActivity.this).load(album.getCover().getPath()).into(imgCoverAlbum);
-                        ContentValues contentValues = new ContentValues();
-                        contentValues.put("cover", path);
-                        String[] args2 = {String.valueOf(album.getId())};
-                        MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
+                        Image image = (Image) data.getSerializableExtra("image");
+                        if (image != null) {
+                            album.setCover(image);
+                            Glide.with(AlbumInfoActivity.this).load(album.getCover().getPath()).into(imgCoverAlbum);
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put("cover", image.getPath());
+                            String[] args2 = {String.valueOf(album.getId())};
+                            MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
+                        }
                     }
                 }
             }
@@ -308,4 +321,52 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 }
             }
     );
+
+    // when return from ImageInfoActivity
+    public ActivityResultLauncher<Intent> startIntentSeeImageInfo = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        String pathDeleted = data.getStringExtra("ImageDeleted");
+                        String pathRemoved = data.getStringExtra("ImageRemoved");
+
+                        // if user choose delete image
+                        if (pathDeleted != null) {
+                            // delete images in album
+                            for (int i = 0; i < images.size(); i++) {
+                                if (images.get(i).getPath().equals(pathDeleted)) {
+                                    images.remove(i);
+                                    adapter.notifyItemRemoved(i);
+                                    i--;
+                                }
+                            }
+                            if (album.getCover().getPath().equals(pathDeleted)) {
+                                // change cover if deleting image used as cover
+                                album.getCover().setPath(MainActivity.pathNoImage);
+                                imgCoverAlbum.setImageResource(R.drawable.no_image);
+                            }
+                        }
+
+                        // if user choose remove image from album
+                        if (pathRemoved != null) {
+                            int count = 1;
+                            for (int i = 0; i < images.size(); i++) {
+                                if (images.get(i).getPath().equals(pathRemoved)) {
+                                    if (count == OrderInDatabase) {
+                                        images.remove(i);
+                                        adapter.notifyItemRemoved(i);
+                                        break;
+                                    } else {
+                                        count++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    );
+
 }

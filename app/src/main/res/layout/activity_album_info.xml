@@ -73,32 +73,45 @@
                 app:layout_constraintTop_toTopOf="@id/ConstriantLayout_CoverDescription"
                 app:layout_constraintLeft_toRightOf="@id/imgCoverAlbum"
                 app:layout_constraintRight_toRightOf="@id/ConstriantLayout_CoverDescription"
-                android:text="@string/test_long_string"/>
+                android:text="description"/>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-        <ImageButton
-            android:id="@+id/btnAddImage_album"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_gravity="bottom|end"
-            android:background="@null"
-            android:src="@drawable/button_add"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            app:layout_constraintWidth_percent="0.2"
-            app:layout_constraintDimensionRatio="1:1"
-            android:scaleType="fitXY" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/listImageInAlbum"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@+id/ConstriantLayout_CoverDescription"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ConstriantLayout_CoverDescription">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listImageInAlbum"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/btnAddImage_album"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@null"
+                    android:src="@drawable/button_add"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="10dp"
+                    app:layout_constraintWidth_percent="0.17"
+                    app:layout_constraintDimensionRatio="1:1"
+                    android:scaleType="fitXY" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </FrameLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
