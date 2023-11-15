@@ -156,36 +156,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
             }
         });
 
-        // activity launcher of adding image to album
-        ActivityResultLauncher<Intent> startIntentAddImage = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null) {
-                            Image image = (Image) data.getSerializableExtra("image");
-                            if (image != null) {
-                                images.add(image);
-                                album.setListImage(images);
-                                adapter.notifyDataSetChanged();
-                                ContentValues contentValues = new ContentValues();
-                                contentValues.put("id_album", album.getId());
-                                contentValues.put("path", image.getPath());
-                                long rowID = MainActivity.db.insert("Album_Contain_Images", null, contentValues);
-                            }
-                        }
-                    }
-                }
-        );
-
-
         // click button add to insert image
         btnAddImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
-                intent.putExtra("album", (Serializable) album);
-                startIntentAddImage.launch(intent);
+                chooseImage();
             }
         });
 
@@ -222,6 +197,34 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    // activity launcher of adding image to album
+    ActivityResultLauncher<Intent> startIntentAddImage = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        Image image = (Image) data.getSerializableExtra("image");
+                        if (image != null) {
+                            images.add(0, image);
+                            album.setListImage(images);
+                            adapter.notifyDataSetChanged();
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put("id_album", album.getId());
+                            contentValues.put("path", image.getPath());
+                            long rowID = MainActivity.db.insert("Album_Contain_Images", null, contentValues);
+                        }
+                    }
+                }
+            }
+    );
+
+    private void chooseImage() {
+        Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
+        intent.putExtra("album", (Serializable) album);
+        startIntentAddImage.launch(intent);
     }
 
     private void loadDataFromDatabase() {
@@ -319,7 +322,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemID = item.getItemId();
         if (itemID == R.id.addImage) {
-            Toast.makeText(this, "Them hinh", Toast.LENGTH_SHORT).show();
+            chooseImage();
         } else if (itemID == R.id.changeCover) {
             moveToChangeDescriptionScreen();
         } else if (itemID == R.id.deleteAlbum) {
