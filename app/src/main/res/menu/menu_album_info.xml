@@ -10,4 +10,7 @@
     <item android:id="@+id/addImage"
         android:title="Add images"
         android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/changeDescription"
+        android:title="Change description"
+        android:icon="@android:drawable/bottom_bar" />
 </menu>
