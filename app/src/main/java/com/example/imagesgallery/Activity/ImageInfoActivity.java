@@ -96,7 +96,7 @@ public class ImageInfoActivity extends AppCompatActivity {
 
             //Glide.with(this).load(nextImageTemp).into(imageView);
         } else if (itemID == R.id.infomation) {
-            Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(ImageInfoActivity.this, DetailImageActivity.class);
             Bundle bundle = new Bundle();
             bundle.putInt("position", imagePosition);

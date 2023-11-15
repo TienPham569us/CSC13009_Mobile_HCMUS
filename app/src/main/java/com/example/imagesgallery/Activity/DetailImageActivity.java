@@ -5,6 +5,8 @@ import static android.os.Environment.MEDIA_MOUNTED;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -15,13 +17,23 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.imagesgallery.R;
 
+import org.w3c.dom.Text;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class DetailImageActivity extends AppCompatActivity {
     private int imagePosition=-1;
     private String imageLink="...";
-    private String dateTaken ="dd/mm/yyyy";
+    private long dateTaken =0; //="dd/mm/yyyy";
+    private String imageExif="";
+    Uri imageUri=null;
     TextView txtViewLink;
     TextView txtViewDate;
-    TextView Date;
+    TextView txtViewImageExif;
+    TextView txtViewTag;
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -30,12 +42,20 @@ public class DetailImageActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
 
         imagePosition = bundle.getInt("position");
-        Toast.makeText(getApplicationContext(),"Detail postion: "+imagePosition,Toast.LENGTH_SHORT ).show();
+        //Toast.makeText(getApplicationContext(),"Detail position: "+imagePosition,Toast.LENGTH_SHORT ).show();
         txtViewLink = (TextView) findViewById(R.id.txtViewLink);
         txtViewDate =(TextView)findViewById(R.id.txtViewDate);
+        txtViewImageExif =(TextView)findViewById(R.id.txtViewExif);
+        txtViewTag = (TextView)findViewById(R.id.txtViewTag);
         loadImageInformation();
         txtViewLink.setText(imageLink);
-        //txtViewDate.setText(dateTaken);
+
+        Date date = new Date(dateTaken);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+        String formattedDate = dateFormat.format(date);
+        txtViewDate.setText(formattedDate);
+        //getImageExif(imageUri);
+        txtViewImageExif.setText(imageExif);
 
     }
 
@@ -44,23 +64,64 @@ public class DetailImageActivity extends AppCompatActivity {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
         if (SDCard) {
-            final String[] projection = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID,MediaStore.Images.Media.DATE_TAKEN};
+            final String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN,MediaStore.Images.ImageColumns.ORIENTATION};
             final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
             //Log.d("test","6");
             ContentResolver contentResolver = getContentResolver();
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, order);
 
             cursor.moveToPosition(imagePosition);
-            int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+            int columnIndexData = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
             int columnIndexDateTaken = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
-            imageLink = cursor.getString(columnindex);
-            dateTaken = cursor.getString(columnIndexDateTaken);
-            Toast.makeText(getApplicationContext(),"date taken:" +dateTaken,Toast.LENGTH_SHORT).show();
+            //int orientationColumnIndex = cursor.getColumnIndex(MediaStore.Images.ImageColumns.ORIENTATION);
+            imageLink = cursor.getString(columnIndexData);
+            dateTaken = cursor.getLong(columnIndexDateTaken);
+            int columnIndexImageID=cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID);
+            long imageID = cursor.getLong(columnIndexImageID);
+            imageUri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,String.valueOf(imageID));
+            //Toast.makeText(getApplicationContext(),imageUri.toString(),Toast.LENGTH_SHORT).show();
+            getImageExif(imageLink);
             cursor.close();
 
+        }
+    }
+    private void getImageExif(String imageLink) {
+        ExifInterface exifInterface = null;
+        try {
+            exifInterface = new ExifInterface(imageLink);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        if (exifInterface!=null) {
+            StringBuilder sb= new StringBuilder();
+            sb.append("Width x Length: "+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH));
+            sb.append("x"+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH));
+            sb.append("\n | ISO:"+exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS));
+            sb.append("\n | Exposure time: "+exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME));
+            sb.append("\n | F-number: "+exifInterface.getAttribute(ExifInterface.TAG_F_NUMBER));
+            sb.append("\n | Focal length: "+exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH));
+            sb.append("\n | Camera manufacturer: "+exifInterface.getAttribute(ExifInterface.TAG_MAKE));
+            sb.append("\n | Camera model: "+exifInterface.getAttribute(ExifInterface.TAG_MODEL));
+            sb.append("\n | Author: "+exifInterface.getAttribute(ExifInterface.TAG_ARTIST));
+            sb.append("\n | Subject location: "+exifInterface.getAttribute(ExifInterface.TAG_SUBJECT_LOCATION));
+            sb.append("\n | Latitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
+            sb.append("\n | Longitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE));
+            imageExif+=sb.toString();
+            /*imageExif+="x"+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_F_NUMBER);
 
-
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_MAKE);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_MODEL);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_ARTIST);
+            imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_SUBJECT_LOCATION);
+            imageExif+=" | "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            imageExif+=" | "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);*/
+        } else {
+            Toast.makeText(getApplicationContext(),"Fail to load exif of image",Toast.LENGTH_SHORT).show();
         }
     }
 
