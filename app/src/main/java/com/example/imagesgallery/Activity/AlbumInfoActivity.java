@@ -142,9 +142,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         txtAlbumDescription.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(AlbumInfoActivity.this, DescriptionActivity.class);
-                intent.putExtra("album", (Serializable) album);
-                startIntentChangeDescription.launch(intent);
+                moveToChangeDescriptionScreen();
             }
         });
 
@@ -152,7 +150,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         imgCoverAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                moveToChangeDescriptionScreen();
+                moveToChangeCoverScreen();
             }
         });
 
@@ -220,6 +218,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 }
             }
     );
+
+    private void moveToChangeDescriptionScreen(){
+        Intent intent = new Intent(AlbumInfoActivity.this, DescriptionActivity.class);
+        intent.putExtra("album", (Serializable) album);
+        startIntentChangeDescription.launch(intent);
+    }
 
     private void chooseImage() {
         Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
@@ -307,7 +311,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         finish();
     }
 
-    private void moveToChangeDescriptionScreen() {
+    private void moveToChangeCoverScreen() {
         Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
         startIntentChangeCover.launch(intent);
     }
@@ -324,9 +328,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
         if (itemID == R.id.addImage) {
             chooseImage();
         } else if (itemID == R.id.changeCover) {
-            moveToChangeDescriptionScreen();
+            moveToChangeCoverScreen();
         } else if (itemID == R.id.deleteAlbum) {
             createDialogDeleteAlbum();
+        } else if (itemID==R.id.changeDescription){
+            moveToChangeDescriptionScreen();
         }
         return super.onOptionsItemSelected(item);
     }
