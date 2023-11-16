@@ -50,11 +50,11 @@ public class MainActivity extends AppCompatActivity {
 
     //AT
     // Method to start the slideshow activity with selected images
-//    public void startSlideshowActivity(ArrayList<String> selectedImages) {
-//        Intent intent = new Intent(this, SlideshowActivity.class);
-//        intent.putStringArrayListExtra("selectedImages", selectedImages);
-//        startActivity(intent);
-//    }
+    public void startSlideshowActivity(ArrayList<String> selectedImages) {
+        Intent intent = new Intent(this, SlideshowActivity.class);
+        intent.putStringArrayListExtra("selectedImages", selectedImages);
+        startActivity(intent);
+    }
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_AUDIO,

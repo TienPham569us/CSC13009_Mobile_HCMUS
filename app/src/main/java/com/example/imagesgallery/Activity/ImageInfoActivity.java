@@ -110,7 +110,7 @@ public class ImageInfoActivity extends AppCompatActivity {
 
     public void createDialogDeleteImage() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Are you sure you want to delete this image ?");
+        builder.setMessage("Are you sure you want to delete these images ?");
 
         // click yes
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

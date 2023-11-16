@@ -48,7 +48,7 @@
             android:id="@+id/multiSelectButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Multi Select"
+            android:text="Select"
             android:textColor="@color/black"
             android:background="@drawable/multiselect_cancel_btn"
             android:layout_marginLeft="5dp" />
