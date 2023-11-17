@@ -241,7 +241,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 if (!selectedImages.isEmpty()) {
                     // Call the method in MainActivity to start the SlideshowActivity
                     if (getActivity() instanceof MainActivity) {
-
+                        ((MainActivity)getActivity()).startSlideshowActivity(selectedImages);
                     }
                 }
             }
