@@ -12,6 +12,8 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,6 +24,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -36,6 +41,7 @@ import android.widget.Toast;
 
 import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Fragment.ImageFragment;
+import com.example.imagesgallery.Interface.DownloadService;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
@@ -43,7 +49,17 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
@@ -58,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
     boolean isSetWallpaperPermitted = false;
     boolean isManageExternalStoragePermitted = false;
 
+    boolean isInternetAccessPermitted = false;
+    ProgressDialog progressDialog;
     Dialog dialogNavBottom;
 
     //AT
@@ -97,7 +115,9 @@ public class MainActivity extends AppCompatActivity {
         if (!isCameraPermitted) {
             requestPermissionCamera();
         }
-
+        if (!isInternetAccessPermitted) {
+            requestInternetAccessPermission();
+        }
         // create database
         File storagePath = getApplication().getFilesDir();
         String myDbPath = storagePath + "/" + DatabaseName;
@@ -184,6 +204,28 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    public void requestInternetAccessPermission() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, permissionsStr[3]) == PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, permissionsStr[3] + " Granted");
+            isInternetAccessPermitted = true;
+
+        } else {
+            request_permission_launcher_internet_access.launch(permissionsStr[3]);
+
+        }
+    }
+    private ActivityResultLauncher<String> request_permission_launcher_internet_access =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+                    isGranted ->{
+                        if (isGranted) {
+                            Log.d(TAG, permissionsStr[3] + " Granted");
+                            isInternetAccessPermitted = true;
+                        } else {
+                            Log.d(TAG, permissionsStr[3] + " Not Granted");
+                            isInternetAccessPermitted = false;
+                            sendToSettingDialog();
+                        }
+                    });
     public void requestPermissionCamera() {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permissionsStr[4]) == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, permissionsStr[4] + " Granted");
@@ -215,8 +257,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     }
-    Button btnAdd;
-    Button btnCancel;
+
+    Button btnDownloadImage;
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
         dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
@@ -224,6 +266,19 @@ public class MainActivity extends AppCompatActivity {
         dialogNavBottom.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialogNavBottom.getWindow().setGravity(Gravity.BOTTOM);
 
+        btnDownloadImage =(Button) dialogNavBottom.findViewById(R.id.buttonDownload);
+        btnDownloadImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Loading ...");
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.show();
+
+                String imageUrl="https://en.wikipedia.org/wiki/Main_Page#/media/File:Australiformis_Distribution.png";
+                downloadImage(imageUrl);
+            }
+        });
         /*btnAdd = (Button) dialogNavBottom.findViewById(R.id.buttonAdd);
         btnCancel = (Button) dialogNavBottom.findViewById(R.id.buttonCancel);
 
@@ -241,6 +296,108 @@ public class MainActivity extends AppCompatActivity {
 
         dialogNavBottom.show();
 
+    }
+
+    boolean writeFileToStorage(ResponseBody body) {
+        String nameOfFile = "Downloaded_image"+System.currentTimeMillis()+".jpg";
+
+        File location = null;
+
+        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.TIRAMISU) {
+            try {
+                location = new File(String.valueOf(MediaStore.Downloads.EXTERNAL_CONTENT_URI),nameOfFile);
+
+                if (location.exists()) {
+                    location.delete();
+                }
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.TITLE,nameOfFile);
+                values.put(MediaStore.Images.Media.DISPLAY_NAME,nameOfFile);
+                values.put(MediaStore.Images.Media.MIME_TYPE,"image/jpeg");
+
+                Uri uri = null;
+                uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+
+                ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(uri,"w");
+                FileDescriptor fileDescriptor = descriptor.getFileDescriptor();
+
+                InputStream inputStream = body.byteStream();
+
+                byte[] fileReader = new byte[4096];
+                long fileSize = body.contentLength();
+                long fileSizeDownloaded = 0;
+
+                OutputStream outputstream = new FileOutputStream(fileDescriptor);
+                while (true) {
+                    int read = inputStream.read(fileReader);
+
+                    if (read==-1) {
+                        break;
+                    }
+
+                    outputstream.write(fileReader,0,read);
+
+                    fileSizeDownloaded += read;
+                    Log.d(TAG,"File download size: "+fileSizeDownloaded+" from "+fileSize);
+
+                }
+
+                outputstream.flush();
+
+                if (inputStream!=null) {
+                    inputStream.close();
+                }
+
+                if (outputstream!=null) {
+                    outputstream.close();
+                }
+
+                File readLocation = new File(Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_DOWNLOADS)+"/"+nameOfFile);
+                Log.d(TAG, "Read location: "+readLocation);
+                //setImageDrawable(drawable.createFromPath(readLocation.sotString()));
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void downloadImage(String fileUrl) {
+        Retrofit.Builder builder = new Retrofit.Builder().baseUrl(fileUrl);
+        Retrofit retrofit =builder.build();
+
+        DownloadService downloadService = retrofit.create(DownloadService.class);
+        Call<ResponseBody> call = downloadService.downloadFileFromUrl(fileUrl);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        boolean writeToDisk = writeFileToStorage(response.body());
+                        Log.d(TAG,"file downloaded or not status -> "+writeToDisk);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    Log.d(TAG,"server connection error");
+                }
+                progressDialog.dismiss();
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.d(TAG,"Something went wrong");
+                progressDialog.dismiss();
+            }
+        });
     }
 
 }
