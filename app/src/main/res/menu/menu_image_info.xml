@@ -15,4 +15,7 @@
     <item
         android:id="@+id/setAsWallpaper"
         android:title="Set as wallpaper"/>
+    <item
+        android:id="@+id/shareImage"
+        android:title="Share Image"/>
 </menu>
