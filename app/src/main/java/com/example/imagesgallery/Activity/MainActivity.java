@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,12 +25,19 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Fragment.ImageFragment;
+import com.example.imagesgallery.Model.Album;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
@@ -50,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     boolean isSetWallpaperPermitted = false;
     boolean isManageExternalStoragePermitted = false;
 
+    Dialog dialogNavBottom;
 
     //AT
     // Method to start the slideshow activity with selected images
@@ -100,11 +109,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (SQLiteException ignored) {
         }
 
-        if (isCameraPermitted == false) {
-            requestPermissionCamera();
-        } else {
-            Toast.makeText(MainActivity.this, "you accepted the permission to read image", Toast.LENGTH_SHORT).show();
-        }
+
         // Set default fragment when open app
         getSupportFragmentManager().beginTransaction().replace(R.id.container, imageFragment).commit();
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
@@ -116,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
                 } else if (item.getItemId() == R.id.image) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.container, imageFragment).commit();
                     return true;
+                } else if (item.getItemId() == R.id.itemBottomNav) {
+                    showDialogNavBottom();
                 }
                 return false;
             }
@@ -208,4 +215,32 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     }
+    Button btnAdd;
+    Button btnCancel;
+    private void showDialogNavBottom() {
+        dialogNavBottom = new Dialog(MainActivity.this);
+        dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
+
+        dialogNavBottom.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialogNavBottom.getWindow().setGravity(Gravity.BOTTOM);
+
+        /*btnAdd = (Button) dialogNavBottom.findViewById(R.id.buttonAdd);
+        btnCancel = (Button) dialogNavBottom.findViewById(R.id.buttonCancel);
+
+
+        // when click button add of dialog
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, "add",Toast.LENGTH_SHORT).show();
+            }
+        });*/
+
+        // when click button cancel of dialog
+
+
+        dialogNavBottom.show();
+
+    }
+
 }

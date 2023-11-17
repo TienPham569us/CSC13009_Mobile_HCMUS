@@ -71,6 +71,7 @@
             android:visibility="invisible"
             android:background="@drawable/multiselect_cancel_btn"
             android:onClick="startSlideshow"/>
+
     </LinearLayout>
 
     <TextView

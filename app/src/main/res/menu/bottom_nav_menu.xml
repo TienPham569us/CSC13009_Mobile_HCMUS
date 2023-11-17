@@ -6,4 +6,7 @@
     <item android:id="@+id/album"
         android:title="Album"
         android:icon="@drawable/album_icon"/>
+    <item android:id="@+id/itemBottomNav"
+        android:title=""
+        android:icon="@drawable/nav_bar_bottom"/>
 </menu>
