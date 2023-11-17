@@ -97,6 +97,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         this.selectedImages = new ArrayList<>(); //For multi select
     }
 
+    public void addImage(Image image){
+        this.images_list.add(image);
+    }
     //  AT Toggle the selection state of an item at the given position
     public void toggleSelection(int position) {
         String imagePath = images_list.get(position).getPath();

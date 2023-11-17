@@ -37,7 +37,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="24dp">
         <ImageButton
-            android:id="@+id/btnCamera"
+            android:id="@+id/imageBtnCamera"
             android:layout_width="48dp"
             android:layout_height="50dp"
             android:layout_marginStart="10dp"
