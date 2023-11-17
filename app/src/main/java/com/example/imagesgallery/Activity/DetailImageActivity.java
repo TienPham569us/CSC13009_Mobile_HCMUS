@@ -19,6 +19,7 @@ import com.example.imagesgallery.R;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -87,26 +88,33 @@ public class DetailImageActivity extends AppCompatActivity {
     }
     private void getImageExif(String imageLink) {
         ExifInterface exifInterface = null;
+        File imageFile=null;
         try {
             exifInterface = new ExifInterface(imageLink);
+            imageFile = new File(imageLink);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        StringBuilder sb= new StringBuilder();
+        if (imageFile!=null) {
+            long imageSizeInBytes = imageFile.length();
+            long imageSizeInKB = imageSizeInBytes / 1024;
+            sb.append("Size: "+imageSizeInKB+" KB\n");
+        }
         if (exifInterface!=null) {
-            StringBuilder sb= new StringBuilder();
             sb.append("Width x Length: "+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH));
             sb.append("x"+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH));
-            sb.append("\n | ISO:"+exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS));
-            sb.append("\n | Exposure time: "+exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME));
-            sb.append("\n | F-number: "+exifInterface.getAttribute(ExifInterface.TAG_F_NUMBER));
-            sb.append("\n | Focal length: "+exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH));
-            sb.append("\n | Camera manufacturer: "+exifInterface.getAttribute(ExifInterface.TAG_MAKE));
-            sb.append("\n | Camera model: "+exifInterface.getAttribute(ExifInterface.TAG_MODEL));
-            sb.append("\n | Author: "+exifInterface.getAttribute(ExifInterface.TAG_ARTIST));
-            sb.append("\n | Subject location: "+exifInterface.getAttribute(ExifInterface.TAG_SUBJECT_LOCATION));
-            sb.append("\n | Latitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-            sb.append("\n | Longitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE));
+            sb.append("\nISO:"+exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS));
+            sb.append("\nExposure time: "+exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME));
+            sb.append("\nF-number: "+exifInterface.getAttribute(ExifInterface.TAG_F_NUMBER));
+            sb.append("\nFocal length: "+exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH));
+            sb.append("\nCamera manufacturer: "+exifInterface.getAttribute(ExifInterface.TAG_MAKE));
+            sb.append("\nCamera model: "+exifInterface.getAttribute(ExifInterface.TAG_MODEL));
+            sb.append("\nAuthor: "+exifInterface.getAttribute(ExifInterface.TAG_ARTIST));
+            sb.append("\nSubject location: "+exifInterface.getAttribute(ExifInterface.TAG_SUBJECT_LOCATION));
+            sb.append("\nLatitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
+            sb.append("\nLongitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE));
             imageExif+=sb.toString();
             /*imageExif+="x"+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
             imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS);
@@ -123,6 +131,8 @@ public class DetailImageActivity extends AppCompatActivity {
         } else {
             Toast.makeText(getApplicationContext(),"Fail to load exif of image",Toast.LENGTH_SHORT).show();
         }
+
+
     }
 
 
