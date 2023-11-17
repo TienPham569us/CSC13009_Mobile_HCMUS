@@ -125,6 +125,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to set wallpaper", Toast.LENGTH_SHORT).show();
         }
     }
+    //Update set as wallpaper
 
 
     public void createDialogDeleteImage() {
