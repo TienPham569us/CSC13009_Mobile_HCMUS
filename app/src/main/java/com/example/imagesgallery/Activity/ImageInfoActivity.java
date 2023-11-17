@@ -1,6 +1,7 @@
 package com.example.imagesgallery.Activity;
 
 import android.app.Activity;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -104,13 +105,31 @@ public class ImageInfoActivity extends AppCompatActivity {
             ImageInfoActivity.this.startActivity(intent);
         } else if (itemID == R.id.RemoveImage) {
             RemoveImageFromAlbum();
+        } else if (itemID == R.id.setAsWallpaper) {
+            setAsWallpaper();
         }
+
         return super.onOptionsItemSelected(item);
     }
 
+    //AT
+    private void setAsWallpaper() {
+        try {
+            WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+            // Load the image from the file
+            Uri imageUri = Uri.fromFile(new File(imagePath));
+            wallpaperManager.setStream(getContentResolver().openInputStream(imageUri));
+            Toast.makeText(this, "Wallpaper set successfully", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e("Set Wallpaper", "Error setting wallpaper", e);
+            Toast.makeText(this, "Failed to set wallpaper", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
     public void createDialogDeleteImage() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Are you sure you want to delete this image ?");
+        builder.setMessage("Are you sure you want to delete these images ?");
 
         // click yes
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

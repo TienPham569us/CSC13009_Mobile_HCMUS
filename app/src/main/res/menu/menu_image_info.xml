@@ -12,4 +12,7 @@
     <item
         android:id="@+id/RemoveImage"
         android:title="Remove from album"/>
+    <item
+        android:id="@+id/setAsWallpaper"
+        android:title="Set as wallpaper"/>
 </menu>

@@ -64,7 +64,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Objects;
 
 
 public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
@@ -223,50 +223,17 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ArrayList<String> selectedImages = adapter.getSelectedImages();
-                // Define variables to track the number of successfully deleted images
-                for (String imagePath : selectedImages) {
-                    File deleteImage = new File(imagePath);
-                    if (deleteImage.exists()) {
-                        if (deleteImage.delete()) {
-                            // ArrayList<String> newImageList= myAdapter.getImages_list();
-                            //newImageList.remove(imageTemp);
-                            //myAdapter.setImages_list(newImageList);
-                            //myAdapter.notifyItemRemoved(imagePosition);
-                            //myAdapter.notifyDataSetChanged();
-
-                            // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
-                            MediaScannerConnection.scanFile(getActivity().getApplicationContext(), new String[]{imagePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
-                                @Override
-                                public void onScanCompleted(String path, Uri uri) {
-                                    //imageView = findViewById(R.id.imageFullScreen);
-                                    //Glide.with(context).load(nextImageTemp).into(imageView);
-                                }
-                            });
-                            //Glide.with(this).load(nextImageTemp).into(imageView);
-                            Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
-                            if (intent != null) {
-                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
-                                startActivity(intent);
-                            }
-
-                        }
-                    }
-                }
-
+                createDialogDeleteImage();
 //                manager = new GridLayoutManager(mainActivity, 3);
 //                recycler.setLayoutManager(manager);
 //                loadImages();
-                toggleButtonsOfMultiSelectMode(multiSelectMode);
-                multiSelectMode = false;
-                adapter.setMultiSelectMode(multiSelectMode);
-                adapter.clearSelection();
-                Log.d("selected images: ", adapter.getSelectedImages().toString());
-                multiSelectButton.setText("Multi select");
+
                     // Handle actions in multi-select mode
             }
         });
+
+
+
         slideshowButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -274,7 +241,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 if (!selectedImages.isEmpty()) {
                     // Call the method in MainActivity to start the SlideshowActivity
                     if (getActivity() instanceof MainActivity) {
-                        //((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
+                        ((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
                     }
                 }
             }
@@ -293,7 +260,96 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         return linearLayout;
     }
+    //AT
+    private void deleteImage(String imagePath) {
+        File deleteImage = new File(imagePath);
+        if (deleteImage.exists()) {
+            if (deleteImage.delete()) {
+                // ArrayList<String> newImageList= myAdapter.getImages_list();
+                //newImageList.remove(imageTemp);
+                //myAdapter.setImages_list(newImageList);
+                //myAdapter.notifyItemRemoved(imagePosition);
+                //myAdapter.notifyDataSetChanged();
+                // change database
+                String[] args = {imagePath};
+                long rowID = MainActivity.db.delete("Image", "path = ?", args);
+                long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
 
+                if (rowID > 0 && rowID2 > 0) {
+                    Toast.makeText(getContext(), "Delete success", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Delete failed", Toast.LENGTH_SHORT).show();
+                }
+
+
+                // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
+                MediaScannerConnection.scanFile(getActivity().getApplicationContext(), new String[]{imagePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                    @Override
+                    public void onScanCompleted(String path, Uri uri) {
+                        //imageView = findViewById(R.id.imageFullScreen);
+                        //Glide.with(context).load(nextImageTemp).into(imageView);
+                    }
+                });
+
+                String PreviousActivity = null;
+
+                if (getActivity() != null) {
+                    Intent activityIntent = getActivity().getIntent();
+                    if (activityIntent != null) {
+                        PreviousActivity = activityIntent.getStringExtra("PreviousActivity");
+                    }
+                }
+                if (Objects.equals(PreviousActivity, "AlbumInfoActivity")) {
+                    // return to previous activity
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("ImageDeleted", imagePath);
+                    getActivity().setResult(Activity.RESULT_OK, resultIntent);
+                    getActivity().finish();
+                } else {
+                    Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
+                    if (intent != null) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
+                        startActivity(intent);
+                    }
+                }
+            }
+        }
+    }
+
+    public void createDialogDeleteImage() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getContext());
+        builder.setMessage("Are you sure you want to delete these images ?");
+
+        // click yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Log.d(TAG, "onClick: delete image");
+
+                ArrayList<String> selectedImages = adapter.getSelectedImages();
+                Log.d(TAG,"selectedImages size " + adapter.getSelectedImages().size() );
+                // Define variables to track the number of successfully deleted images
+                for (String imagePath : selectedImages) {
+                    deleteImage(imagePath);
+                }
+                toggleButtonsOfMultiSelectMode(multiSelectMode);
+                multiSelectMode = false;
+                adapter.setMultiSelectMode(multiSelectMode);
+                adapter.clearSelection();
+                Log.d("selected images: ", adapter.getSelectedImages().toString());
+                multiSelectButton.setText("Multi select");
+            }
+        });
+        // click no
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+    };
     //AT When click button Multi Select, it shows Delete Button
     private void toggleButtonsOfMultiSelectMode(Boolean isMultiSelectMode) {
         if (isMultiSelectMode) {
