@@ -18,7 +18,9 @@ import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -48,13 +50,14 @@ public class MainActivity extends AppCompatActivity {
     boolean isSetWallpaperPermitted = false;
     boolean isManageExternalStoragePermitted = false;
 
+
     //AT
     // Method to start the slideshow activity with selected images
-    public void startSlideshowActivity(ArrayList<String> selectedImages) {
-        Intent intent = new Intent(this, SlideshowActivity.class);
-        intent.putStringArrayListExtra("selectedImages", selectedImages);
-        startActivity(intent);
-    }
+//    public void startSlideshowActivity(ArrayList<String> selectedImages) {
+//        Intent intent = new Intent(this, SlideshowActivity.class);
+//        intent.putStringArrayListExtra("selectedImages", selectedImages);
+//        startActivity(intent);
+//    }
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_AUDIO,
@@ -81,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
             requestPermissionStorageImage();
         } else {
             Toast.makeText(MainActivity.this, "you accepted the permission to read image", Toast.LENGTH_SHORT).show();
+        }
+        if (!isCameraPermitted) {
+            requestPermissionCamera();
         }
 
         // create database
@@ -194,4 +200,12 @@ public class MainActivity extends AppCompatActivity {
                             sendToSettingDialog();
                         }
                     });
+
+    public boolean hasManageExternalStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        } else {
+            return true;
+        }
+    }
 }

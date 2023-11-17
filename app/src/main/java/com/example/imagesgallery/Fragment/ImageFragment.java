@@ -1,7 +1,9 @@
 package com.example.imagesgallery.Fragment;
 
 import static android.Manifest.permission.MANAGE_EXTERNAL_STORAGE;
+import static android.app.Activity.RESULT_OK;
 import static android.os.Environment.MEDIA_MOUNTED;
+import static android.os.Environment.isExternalStorageManager;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -24,14 +27,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.ContentResolver;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -50,6 +56,11 @@ import com.example.imagesgallery.R;
 import android.content.Context;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +75,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     TextView totalimages;
     MainActivity mainActivity;
 
-    ConstraintLayout constraintLayoutImage;
+    private ActivityResultLauncher<Intent> launcher_for_camera;
     LinearLayout linearLayout;
     ArrayList<String> permissionsList;
     String[] permissionsStr = {
@@ -108,6 +119,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
                     });
+    int REQUEST_IMAGE_CAPTURE=100;
     int permissionsCode = 42;
     boolean isStorageImagePermitted = false;
     boolean isStorageVideoPermitted = false;
@@ -119,7 +131,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     Button slideshowButton;
     boolean multiSelectMode = false;
 
+    private Uri imageUri;
+    private String imageUrl;
+    private Bitmap thumbnail;
     //AT
+
+    ImageButton imageBtnCamera;
 
     String TAG = "Permission";
     //private ActivityResultLauncher<String> requestPermissionLauncher;
@@ -127,6 +144,25 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity=(MainActivity) getActivity();
+        launcher_for_camera =
+                registerForActivityResult(
+                        new ActivityResultContracts.StartActivityForResult(),
+                        new ActivityResultCallback<ActivityResult>() {
+                            @Override
+                            public void onActivityResult(ActivityResult result) {
+                                if (result.getResultCode()==RESULT_OK) {
+                                /*try {
+                                    thumbnail = MediaStore.Images.Media.getBitmap(
+                                            mainActivity.getContentResolver(),imageUri);
+                                    imageUrl = getPathFromUri(mainActivity,imageUri);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }*/
+                                    triggerMediaScan(imageUri);
+                                }
+                            }
+                        }
+                );
     }
     ClickListener clickListener =new ClickListener() {
         @Override
@@ -152,12 +188,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         loadImages();
         recycler.getAdapter().notifyDataSetChanged();
 
+
         //AT
         // Initialize the button
         multiSelectButton = linearLayout.findViewById(R.id.multiSelectButton);
         deleteButton = linearLayout.findViewById(R.id.deleteButton);
         slideshowButton = linearLayout.findViewById(R.id.slideshowButton);
-
+        imageBtnCamera =(ImageButton) linearLayout.findViewById(R.id.imageBtnCamera);
         multiSelectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -204,13 +241,21 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 if (!selectedImages.isEmpty()) {
                     // Call the method in MainActivity to start the SlideshowActivity
                     if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
+
                     }
                 }
             }
         });
         //AT
 
+
+        imageBtnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Toast.makeText(getContext(),"Open camera",Toast.LENGTH_SHORT).show();
+                openCamera();
+            }
+        });
 
 
         return linearLayout;
@@ -431,6 +476,14 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 Toast.makeText(mainActivity, "You have denied the permissions", Toast.LENGTH_SHORT).show();
             }
         }
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                    grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                Toast.makeText(mainActivity, "Camera permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void showDialogOK(String message, DialogInterface.OnClickListener okListener) {
@@ -493,6 +546,329 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         mainActivity.finish();
                     }
                 });
+    }
+
+   /* private void openCamera() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(mainActivity.getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        } else {
+            Toast.makeText(getContext(), "Camera not available", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+            // Save the captured image to external storage
+            String imageFilePath = saveImageToExternalStorage(imageBitmap);
+            if (imageFilePath != null) {
+                Toast.makeText(getContext(), "Save image successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }*/
+    /*private void openCamera() {
+        mainActivity.requestPermissionManageExternalStorage();
+        mainActivity.requestPermissionCamera();
+        mainActivity.requestPermissionWriteExternalStorage();
+        &&
+                ContextCompat.checkSelfPermission(mainActivity, MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+        if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED ) {
+
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            if (takePictureIntent.resolveActivity(mainActivity.getPackageManager()) != null)  {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            } else {
+                Toast.makeText(getContext(), "Camera not available", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getContext(), "Camera permission not approve", Toast.LENGTH_SHORT).show();
+            requestCameraPermission();
+        }
+
+    }*/
+   private void triggerMediaScan(Uri imageUri) {
+       File tempFile = new File(imageUri.toString());
+//       String[] filePaths = {imageUri.getPath()};
+       String[] filePaths = {tempFile.getAbsolutePath()};
+       MediaScannerConnection.scanFile(
+               mainActivity,
+               filePaths,
+               null,
+               new MediaScannerConnection.OnScanCompletedListener() {
+                   @Override
+                   public void onScanCompleted(String path, Uri uri) {
+
+
+                   }
+               }
+       );
+       Image newImage = new Image(imageUri.getPath(),"captured image",0);
+       images.add(0,newImage);
+       //adapter.addImage(newImage);
+       adapter.notifyDataSetChanged();
+       adapter.notifyItemInserted(0);
+       adapter.notifyItemRangeInserted(0,10);
+   }
+
+    protected void openCamera() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE,"Custom album group 9");
+        imageUri =mainActivity.getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+        launcher_for_camera.launch(cameraIntent);
+        /*Image newImage = new Image(imageUri.getPath(),"captured image",0);
+        images.add(0,newImage);
+        //adapter.addImage(newImage);
+        adapter.notifyDataSetChanged();
+        adapter.notifyItemInserted(0);*/
+    }
+
+
+    private static final int REQUEST_CAMERA_PERMISSION = 1;
+    private void requestCameraPermission() {
+        ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+    }
+
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+            // Save the captured image to external storage
+           // String imageFilePath = saveImageToExternalStorage(imageBitmap);
+            //String imageFilePath  = saveImageToMediaStore(imageBitmap);
+            //String imageFilePath  = saveImageToMediaStore2(imageBitmap);
+            String imageFilePath  = saveImageToMediaStore3(imageBitmap);
+            if (imageFilePath != null) {
+                // Image saved successfully, do something with the file path
+                // ...
+                Toast.makeText(getContext(), "Image path: " + imageFilePath, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private String saveImageToExternalStorage(Bitmap imageBitmap) {
+        String imageFileName = "JAVA_ANDROID_ALBUM_GROUP_9_IMG_" + System.currentTimeMillis() + ".jpg";
+        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File imageFile = new File(storageDir, imageFileName);
+
+        try {
+            FileOutputStream outputStream = new FileOutputStream(imageFile);
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            outputStream.close();
+            Toast.makeText(getContext(), "Save image successfully", Toast.LENGTH_SHORT).show();
+            return imageFile.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private String saveImageToMediaStore(Bitmap imageBitmap)  {
+        String imageFileName = "ALBUM_GROUP_9_IMG_" + System.currentTimeMillis() + ".jpg";
+        /*ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+
+        final ContentResolver contentResolver = getContext().getContentResolver();
+
+        Uri imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);*/
+
+        // Get the directory for saving images in MediaStore
+        File imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        //File imagesDir = Environment.getExternalStorageDirectory();
+        Toast.makeText(mainActivity, imagesDir.toString(), Toast.LENGTH_SHORT).show();
+        File imageFile = new File(imagesDir, imageFileName);
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(imageFile);
+
+            if (outputStream!=null) {
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+                //Toast.makeText(mainActivity, "Image saved to MediaStore successfully", Toast.LENGTH_SHORT).show();
+                final ContentResolver contentResolver = mainActivity.getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                values.put(MediaStore.Images.Media.DATA, imageFile.getAbsolutePath());
+                values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+                values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+                contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                MediaScannerConnection.scanFile(mainActivity,new String[]{imageFile.getAbsolutePath()},null,null);
+
+            }
+        } catch (FileNotFoundException e) {
+//            throw new RuntimeException(e);
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (outputStream!=null) {
+                    outputStream.close();
+                }
+                return imageFileName;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+       return null;
+    }
+    public String saveImageToMediaStore2(Bitmap imageBitmap) {
+
+        String imageFileName = "ALBUM_G9_IMG_" + System.currentTimeMillis()  + ".jpg";
+
+        File storageDir = Environment.getExternalStorageDirectory();
+
+        // Create the directory for the custom album
+        File albumDir = new File(storageDir, "captured image");
+        albumDir.mkdirs();
+
+        // Create the image file within the album directory
+        File imageFile = new File(albumDir, imageFileName);
+
+        // Create the content values for the image file
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        // Get the content resolver
+        ContentResolver resolver = mainActivity.getContentResolver();
+
+        // Insert the image file into MediaStore
+        Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        // Open an output stream for the image file
+        OutputStream outputStream = null;
+        try {
+            outputStream = resolver.openOutputStream(imageUri);
+            if (outputStream != null) {
+                // Compress the bitmap and write it to the output stream
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            // Close the output stream
+            try {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Trigger media scanner to scan the newly added image file
+        MediaScannerConnection.scanFile(mainActivity, new String[]{imageUri.getPath()}, null, null);
+        return imageFileName;
+    }
+    public String saveImageToMediaStore3(Bitmap imageBitmap) {
+
+        String imageFileName = "ALBUM_G9_IMG_" + System.currentTimeMillis()  + ".jpg";
+
+        // Create the content values for the image file
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        // Get the content resolver
+        ContentResolver resolver = mainActivity.getContentResolver();
+
+        // Insert the image file into MediaStore
+        Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        // Open an output stream for the image file
+        OutputStream outputStream = null;
+        try {
+            outputStream = resolver.openOutputStream(imageUri);
+            if (outputStream != null) {
+                // Compress the bitmap and write it to the output stream
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                // Get the file path from the imageUri
+                String imagePath = getPathFromUri(mainActivity, imageUri);
+
+                // Move the image file to the SD card/Camera folder
+                File imageFile = new File(imagePath);
+
+                //File storageDir = new File(Environment.getExternalStorageDirectory(),"DCIM/Camera");
+                File storageDir = mainActivity.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                File albumDir = new File(storageDir, "Album Group 09/Captured Image");
+                /*if (!albumDir.exists()) {
+                    albumDir.mkdirs();
+                }*/
+                //albumDir.mkdirs();
+                File destination = new File(storageDir, imageFileName);
+                Toast.makeText(mainActivity, destination.toString(),Toast.LENGTH_SHORT).show();
+                if (mainActivity.hasManageExternalStoragePermission()) {
+                    Toast.makeText(mainActivity, "Can access external memory",Toast.LENGTH_SHORT).show();
+                    if (imageFile.renameTo(destination)) {
+                        // Update the imageUri with the new file path
+                        values.put(MediaStore.Images.Media.DATA, destination.getAbsolutePath());
+                        resolver.update(imageUri, values, null, null);
+                        // Trigger media scanner to scan the newly added image file
+                    }
+                    MediaScannerConnection.scanFile(mainActivity, new String[]{destination.getAbsolutePath()}, null, null);
+
+                } else {
+                    Toast.makeText(mainActivity, "Can't access external memory",Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            // Close the output stream
+            try {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return imageFileName;
+    }
+
+
+    // Helper method to get the file path from Uri
+    private String getPathFromUri(Context context, Uri uri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            String path = cursor.getString(columnIndex);
+            cursor.close();
+            return path;
+        }
+        return null;
     }
 
 }
