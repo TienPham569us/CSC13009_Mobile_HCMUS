@@ -15,18 +15,18 @@
         <TableRow>
         <Button
             android:backgroundTint="#AD91DD"
-            android:id="@+id/buttonFavoriteImages"
+            android:id="@+id/buttonFavoriteAlbums"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Favorites"
+            android:text="Favorite Albums"
             android:textColor="@color/black"/>
 
         <Button
             android:backgroundTint="#AD91DD"
-            android:id="@+id/buttonSharedAlbum"
+            android:id="@+id/buttonFavoriteImages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Shared Album"
+            android:text="Favortie Images"
             android:textColor="@color/black"/>
 
         </TableRow>

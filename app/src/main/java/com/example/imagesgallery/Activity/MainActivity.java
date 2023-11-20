@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     CallbackManager callbackManager;
     ProgressDialog progressDialog;
     Dialog dialogNavBottom;
+    Button btnFavoriteAlbums, btnFavoriteImages;
 
     //AT
     // Method to start the slideshow activity with selected images
@@ -99,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putStringArrayListExtra("selectedImages", selectedImages);
         startActivity(intent);
     }
+
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_AUDIO,
@@ -208,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     public static void printHashKey(Context pContext) {
         try {
             PackageInfo info = pContext.getPackageManager().getPackageInfo(pContext.getPackageName(), PackageManager.GET_SIGNATURES);
@@ -223,11 +226,13 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "printHashKey()", e);
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
     }
+
     public void hideBottomNavigationView() {
         bottomNavigationView.setVisibility(View.GONE);
     }
@@ -293,9 +298,10 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
     private ActivityResultLauncher<String> request_permission_launcher_internet_access =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
-                    isGranted ->{
+                    isGranted -> {
                         if (isGranted) {
                             Log.d(TAG, permissionsStr[3] + " Granted");
                             isInternetAccessPermitted = true;
@@ -305,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
                             sendToSettingDialog();
                         }
                     });
+
     public void requestPermissionCamera() {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permissionsStr[4]) == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, permissionsStr[4] + " Granted");
@@ -338,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     Button btnDownloadImage;
+
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
         dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
@@ -345,7 +353,9 @@ public class MainActivity extends AppCompatActivity {
         dialogNavBottom.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialogNavBottom.getWindow().setGravity(Gravity.BOTTOM);
 
-        btnDownloadImage =(Button) dialogNavBottom.findViewById(R.id.buttonDownload);
+        btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonDownload);
+        btnFavoriteAlbums = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteAlbums);
+        btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteImages);
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -354,10 +364,27 @@ public class MainActivity extends AppCompatActivity {
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog.show();
 
-                String imageUrl="https://en.wikipedia.org/wiki/Main_Page#/media/File:Australiformis_Distribution.png";
+                String imageUrl = "https://en.wikipedia.org/wiki/Main_Page#/media/File:Australiformis_Distribution.png";
                 downloadImage(imageUrl);
             }
         });
+
+        btnFavoriteAlbums.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, FavoriteAlbumsActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnDownloadImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, FavoriteImagesActivity.class);
+                startActivity(intent);
+            }
+        });
+
         /*btnAdd = (Button) dialogNavBottom.findViewById(R.id.buttonAdd);
         btnCancel = (Button) dialogNavBottom.findViewById(R.id.buttonCancel);
 
@@ -378,26 +405,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     boolean writeFileToStorage(ResponseBody body) {
-        String nameOfFile = "Downloaded_image"+System.currentTimeMillis()+".jpg";
+        String nameOfFile = "Downloaded_image" + System.currentTimeMillis() + ".jpg";
 
         File location = null;
 
-        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
-                location = new File(String.valueOf(MediaStore.Downloads.EXTERNAL_CONTENT_URI),nameOfFile);
+                location = new File(String.valueOf(MediaStore.Downloads.EXTERNAL_CONTENT_URI), nameOfFile);
 
                 if (location.exists()) {
                     location.delete();
                 }
                 ContentValues values = new ContentValues();
-                values.put(MediaStore.Images.Media.TITLE,nameOfFile);
-                values.put(MediaStore.Images.Media.DISPLAY_NAME,nameOfFile);
-                values.put(MediaStore.Images.Media.MIME_TYPE,"image/jpeg");
+                values.put(MediaStore.Images.Media.TITLE, nameOfFile);
+                values.put(MediaStore.Images.Media.DISPLAY_NAME, nameOfFile);
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
 
                 Uri uri = null;
                 uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
 
-                ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(uri,"w");
+                ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(uri, "w");
                 FileDescriptor fileDescriptor = descriptor.getFileDescriptor();
 
                 InputStream inputStream = body.byteStream();
@@ -410,30 +437,30 @@ public class MainActivity extends AppCompatActivity {
                 while (true) {
                     int read = inputStream.read(fileReader);
 
-                    if (read==-1) {
+                    if (read == -1) {
                         break;
                     }
 
-                    outputstream.write(fileReader,0,read);
+                    outputstream.write(fileReader, 0, read);
 
                     fileSizeDownloaded += read;
-                    Log.d(TAG,"File download size: "+fileSizeDownloaded+" from "+fileSize);
+                    Log.d(TAG, "File download size: " + fileSizeDownloaded + " from " + fileSize);
 
                 }
 
                 outputstream.flush();
 
-                if (inputStream!=null) {
+                if (inputStream != null) {
                     inputStream.close();
                 }
 
-                if (outputstream!=null) {
+                if (outputstream != null) {
                     outputstream.close();
                 }
 
                 File readLocation = new File(Environment.getExternalStoragePublicDirectory(
-                                        Environment.DIRECTORY_DOWNLOADS)+"/"+nameOfFile);
-                Log.d(TAG, "Read location: "+readLocation);
+                        Environment.DIRECTORY_DOWNLOADS) + "/" + nameOfFile);
+                Log.d(TAG, "Read location: " + readLocation);
                 //setImageDrawable(drawable.createFromPath(readLocation.sotString()));
 
 
@@ -448,7 +475,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void downloadImage(String fileUrl) {
         Retrofit.Builder builder = new Retrofit.Builder().baseUrl(fileUrl);
-        Retrofit retrofit =builder.build();
+        Retrofit retrofit = builder.build();
 
         DownloadService downloadService = retrofit.create(DownloadService.class);
         Call<ResponseBody> call = downloadService.downloadFileFromUrl(fileUrl);
@@ -459,21 +486,21 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     try {
                         boolean writeToDisk = writeFileToStorage(response.body());
-                        Log.d(TAG,"file downloaded or not status -> "+writeToDisk);
+                        Log.d(TAG, "file downloaded or not status -> " + writeToDisk);
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                 } else {
-                    Log.d(TAG,"server connection error");
+                    Log.d(TAG, "server connection error");
                 }
                 progressDialog.dismiss();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d(TAG,"Something went wrong");
+                Log.d(TAG, "Something went wrong");
                 progressDialog.dismiss();
             }
         });
