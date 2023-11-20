@@ -205,7 +205,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     multiSelectMode = false;
                     adapter.setMultiSelectMode(multiSelectMode);
                     adapter.clearSelection();
-                    multiSelectButton.setText("Multi select");
+                    multiSelectButton.setText("Select");
 
                     // Handle actions in multi-select mode
                 } else {
@@ -340,7 +340,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 adapter.setMultiSelectMode(multiSelectMode);
                 adapter.clearSelection();
                 Log.d("selected images: ", adapter.getSelectedImages().toString());
-                multiSelectButton.setText("Multi select");
+                multiSelectButton.setText("Select");
             }
         });
         // click no
