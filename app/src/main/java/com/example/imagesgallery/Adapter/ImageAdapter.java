@@ -227,7 +227,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             super(itemView);
             checkBox = itemView.findViewById(R.id.checkBox);
             image = itemView.findViewById(R.id.gallery_item);
-
         }
     }
 }
