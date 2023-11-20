@@ -63,21 +63,17 @@ public class ChooseImageActivity extends AppCompatActivity {
     }
 
     private void loadImages() {
-        boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
-        if (SDCard) {
-            final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
-            final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
-            ContentResolver contentResolver = getContentResolver();
-            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
-            if (cursor != null) {
-                cursor.moveToPosition(-1);
-                while (cursor.moveToNext()) {
-                    int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                    String path = cursor.getString(columnindex);
-                    imageArrayList.add(new Image(path, "", 0));
-                }
-                cursor.close();
-            }
+        Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Image",null);
+        while (cursor.moveToNext()){
+            int pathColumnIndex = cursor.getColumnIndex("path");
+            int descriptionColumnIndex = cursor.getColumnIndex("description");
+            int favorColumnIndex = cursor.getColumnIndex("isFavored");
+
+            String path = cursor.getString(pathColumnIndex);
+            String description = cursor.getString(descriptionColumnIndex);
+            int isFavored = cursor.getInt(favorColumnIndex);
+            imageArrayList.add(new Image(path,description,isFavored));
         }
+        cursor.close();
     }
 }

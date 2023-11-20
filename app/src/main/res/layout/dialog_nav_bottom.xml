@@ -7,10 +7,6 @@
     android:orientation="vertical"
     android:gravity="bottom">
 
-
-
-
-
     <TableLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,7 +15,7 @@
         <TableRow>
         <Button
             android:backgroundTint="#AD91DD"
-            android:id="@+id/buttonFavorites"
+            android:id="@+id/buttonFavoriteImages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Favorites"

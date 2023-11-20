@@ -24,6 +24,7 @@ import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
@@ -97,9 +98,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         this.selectedImages = new ArrayList<>(); //For multi select
     }
 
-    public void addImage(Image image){
+    public void addImage(Image image) {
         this.images_list.add(image);
     }
+
     //  AT Toggle the selection state of an item at the given position
     public void toggleSelection(int position) {
         String imagePath = images_list.get(position).getPath();
@@ -191,6 +193,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
                         bundle.putInt("position", position);
                         intent.putExtras(bundle);
                         intent.putExtra("image_path", images_list.get(position).getPath());
+                        intent.putExtra("image", (Serializable) images_list.get(position));
                         //intent.putExtra("next_image_path", images_list.get(position + 1));
 
                         // Pass the path to the image to the new activity

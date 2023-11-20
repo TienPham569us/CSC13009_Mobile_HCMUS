@@ -54,9 +54,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
     boolean isLoading = false, isAllItemsLoaded = false;
     private final int ItemsPerLoading = 21;
     private int CurrentMaxPosition = 0, IdMaxWhenStartingLoadData = 0;
+    int clickPosition = -1;
     ClickListener clickListener = new ClickListener() {
         @Override
         public void click(int index) {
+            clickPosition = index;
             int id_album = album.getId();
             OrderInDatabase = 1;  // Order of image among identical images in the same album
             ArrayList<Image> listImage = album.getListImage();
@@ -71,7 +73,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
             intent.putExtra("PreviousActivity", "AlbumInfoActivity");
             intent.putExtra("id_album", id_album);
             intent.putExtra("position", index);
-            intent.putExtra("image_path", pathImage);
+            intent.putExtra("image", (Serializable) listImage.get(index));
             intent.putExtra("OrderInDatabase", OrderInDatabase);
             startIntentSeeImageInfo.launch(intent);
         }
@@ -219,7 +221,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
             }
     );
 
-    private void moveToChangeDescriptionScreen(){
+    private void moveToChangeDescriptionScreen() {
         Intent intent = new Intent(AlbumInfoActivity.this, DescriptionActivity.class);
         intent.putExtra("album", (Serializable) album);
         startIntentChangeDescription.launch(intent);
@@ -232,7 +234,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
     }
 
     private void loadDataFromDatabase() {
-        Log.d("aaaaa","before: " + images.size());
+        Log.d("aaaaa", "before: " + images.size());
         String sql = "";
         Cursor cursor = null;
         if (IdMaxWhenStartingLoadData == 0) {
@@ -284,7 +286,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         }
         cursorContainImages.close();
         CurrentMaxPosition += ItemsPerLoading;
-        Log.d("aaaaa","after: " + images.size());
+        Log.d("aaaaa", "after: " + images.size());
     }
 
 
@@ -307,6 +309,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         resultIntent.putExtra("CoverPath", album.getCover().getPath());
         resultIntent.putExtra("description", album.getDescription());
         resultIntent.putExtra("images", images);
+        resultIntent.putExtra("isFavored", album.getIsFavored());
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
@@ -319,6 +322,14 @@ public class AlbumInfoActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_album_info, menu);
+        int isFavored = album.getIsFavored();
+        if (isFavored == 1) {
+            menu.findItem(R.id.removeFavorites).setVisible(true);
+            menu.findItem(R.id.addFavorites).setVisible(false);
+        } else if (isFavored == 0) {
+            menu.findItem(R.id.removeFavorites).setVisible(false);
+            menu.findItem(R.id.addFavorites).setVisible(true);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -331,10 +342,36 @@ public class AlbumInfoActivity extends AppCompatActivity {
             moveToChangeCoverScreen();
         } else if (itemID == R.id.deleteAlbum) {
             createDialogDeleteAlbum();
-        } else if (itemID==R.id.changeDescription){
+        } else if (itemID == R.id.changeDescription) {
             moveToChangeDescriptionScreen();
+        } else if (itemID == R.id.addFavorites) {
+            addAlbumToFavorites();
+            invalidateOptionsMenu();
+        } else if (itemID == R.id.removeFavorites) {
+            removeAlbumFromFavorites();
+            invalidateOptionsMenu();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void addAlbumToFavorites() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 1);
+        String[] args = {String.valueOf(album.getId())};
+        long rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+        if (rowID > 0) {
+            album.setIsFavored(1);
+        }
+    }
+
+    private void removeAlbumFromFavorites() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 0);
+        String[] args = {String.valueOf(album.getId())};
+        long rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+        if (rowID > 0) {
+            album.setIsFavored(0);
+        }
     }
 
     public void createDialogDeleteAlbum() {
@@ -418,17 +455,14 @@ public class AlbumInfoActivity extends AppCompatActivity {
                     if (data != null) {
                         String pathDeleted = data.getStringExtra("ImageDeleted");
                         String pathRemoved = data.getStringExtra("ImageRemoved");
+                        int isFavored = data.getIntExtra("isFavored", 0);
 
                         // if user choose delete image
                         if (pathDeleted != null) {
                             // delete images in album
-                            for (int i = 0; i < images.size(); i++) {
-                                if (images.get(i).getPath().equals(pathDeleted)) {
-                                    images.remove(i);
-                                    adapter.notifyItemRemoved(i);
-                                    i--;
-                                }
-                            }
+                            images.remove(clickPosition);
+                            adapter.notifyItemRemoved(clickPosition);
+
                             if (album.getCover().getPath().equals(pathDeleted)) {
                                 // change cover if deleting image used as cover
                                 album.getCover().setPath(MainActivity.pathNoImage);
@@ -438,19 +472,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
                         // if user choose remove image from album
                         if (pathRemoved != null) {
-                            int count = 1;
-                            for (int i = 0; i < images.size(); i++) {
-                                if (images.get(i).getPath().equals(pathRemoved)) {
-                                    if (count == OrderInDatabase) {
-                                        images.remove(i);
-                                        adapter.notifyItemRemoved(i);
-                                        break;
-                                    } else {
-                                        count++;
-                                    }
-                                }
-                            }
+                            images.remove(clickPosition);
+                            adapter.notifyItemRemoved(clickPosition);
                         }
+
+                        // update favorite of image
+                        images.get(clickPosition).setIsFavored(isFavored);
                     }
                 }
             }
