@@ -133,6 +133,7 @@ public class AlbumFragment extends Fragment {
                             String path = data.getStringExtra("CoverPath");
                             String description = data.getStringExtra("description");
                             long isDelete = data.getLongExtra("isDelete", 0);
+                            int isFavored = data.getIntExtra("isFavored",0);
                             ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
 
                             // change images in album if user choose button add image or delete image in album
@@ -158,6 +159,8 @@ public class AlbumFragment extends Fragment {
                                 if (description != null) {
                                     album.setDescription(description);
                                 }
+                                album.setIsFavored(isFavored);
+
                                 CurrentAlbumArrayList.set(clickPosition, album);
                                 if (CurrentAlbumArrayList == SearchAlbumArrayList) {
                                     DefaultAlbumArrayList.set(DefaultAlbumClickPosition, album);

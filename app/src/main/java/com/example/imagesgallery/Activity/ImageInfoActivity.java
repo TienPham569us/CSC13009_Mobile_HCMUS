@@ -2,6 +2,7 @@ package com.example.imagesgallery.Activity;
 
 import android.app.Activity;
 import android.app.WallpaperManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,6 +29,8 @@ import androidx.core.content.FileProvider;
 import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.Fragment.ImageFragment;
+import com.example.imagesgallery.Model.Album;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
 import java.io.File;
@@ -46,6 +49,7 @@ public class ImageInfoActivity extends AppCompatActivity {
     ArrayList<String> images;
     ImageFragment imageFragment;
     String imagePath = "";
+    Image image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,10 @@ public class ImageInfoActivity extends AppCompatActivity {
         imagePath = getIntent().getStringExtra("image_path");
         String nextImagePath = getIntent().getStringExtra("next_image_path");
         imagePosition = getIntent().getExtras().getInt("position");
+        image = (Image) getIntent().getSerializableExtra("image");
+        if (image != null) {
+            imagePath = image.getPath();
+        }
         imageTemp = imagePath;
         nextImageTemp = nextImagePath;
         // Get the ImageView element
@@ -70,7 +78,16 @@ public class ImageInfoActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                // check whether user go to this activity from AlbumInfoActivity or not
+                String PreviousActivity = getIntent().getStringExtra("PreviousActivity");
+                if (PreviousActivity != null && PreviousActivity.equals("AlbumInfoActivity")) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("isFavored", image.getIsFavored());
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
+                } else {
+                    finish();
+                }
             }
         });
 
@@ -83,9 +100,19 @@ public class ImageInfoActivity extends AppCompatActivity {
         MenuItem disabledMenuItem = menu.findItem(R.id.RemoveImage);
         // Disable item if user go to this activity from ImageTab
         String PreviousActivity = getIntent().getStringExtra("PreviousActivity");
-        if (disabledMenuItem != null && PreviousActivity != null && !(PreviousActivity.equals("AlbumInfoActivity"))) {
-            disabledMenuItem.setEnabled(false);
+        if (disabledMenuItem != null && (PreviousActivity == null || !(PreviousActivity.equals("AlbumInfoActivity")))) {
+            menu.findItem(R.id.RemoveImage).setVisible(false);
         }
+
+        int isFavored = image.getIsFavored();
+        if (isFavored == 1) {
+            menu.findItem(R.id.removeFavorites).setVisible(true);
+            menu.findItem(R.id.addFavorites).setVisible(false);
+        } else if (isFavored == 0) {
+            menu.findItem(R.id.removeFavorites).setVisible(false);
+            menu.findItem(R.id.addFavorites).setVisible(true);
+        }
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -111,42 +138,67 @@ public class ImageInfoActivity extends AppCompatActivity {
             RemoveImageFromAlbum();
         } else if (itemID == R.id.setAsWallpaper) {
             setAsWallpaper();
-        }
-        else if (itemID == R.id.shareImage) {
+        } else if (itemID == R.id.shareImage) {
             shareImage();
+        } else if (itemID == R.id.addFavorites) {
+            addImageToFavorites();
+            invalidateOptionsMenu();
+        } else if (itemID == R.id.removeFavorites) {
+            removeAlbumFromFavorites();
+            invalidateOptionsMenu();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void addImageToFavorites() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 1);
+        String[] args = {image.getPath()};
+        long rowID = MainActivity.db.update("Image", contentValues, "path = ?", args);
+        if (rowID > 0) {
+            image.setIsFavored(1);
+        }
+    }
+
+    private void removeAlbumFromFavorites() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 0);
+        String[] args = {image.getPath()};
+        long rowID = MainActivity.db.update("Image", contentValues, "path = ?", args);
+        if (rowID > 0) {
+            image.setIsFavored(0);
+        }
+    }
+
     private void shareImage() {
-        BitmapDrawable bitmapDrawable= (BitmapDrawable) imageView.getDrawable();
-        Bitmap bitmap= bitmapDrawable.getBitmap();
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
+        Bitmap bitmap = bitmapDrawable.getBitmap();
         shareImageAndText(bitmap);
     }
 
     private void shareImageAndText(Bitmap bitmap) {
-        Uri uri=getImageToShare(bitmap);
-        Intent intent=new Intent(Intent.ACTION_SEND);
-        intent.putExtra(Intent.EXTRA_STREAM,uri);
-        intent.putExtra(Intent.EXTRA_TEXT,"Image Text");
-        intent.putExtra(Intent.EXTRA_SUBJECT,"Image Subject");
+        Uri uri = getImageToShare(bitmap);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.putExtra(Intent.EXTRA_TEXT, "Image Text");
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Image Subject");
         intent.setType("image/*");
-        startActivity(Intent.createChooser(intent,"Share via"));
+        startActivity(Intent.createChooser(intent, "Share via"));
     }
 
     private Uri getImageToShare(Bitmap bitmap) {
-        File folder =new File(getCacheDir(),"images");
-        Uri uri=null;
+        File folder = new File(getCacheDir(), "images");
+        Uri uri = null;
         try {
             folder.mkdirs();
-            File file=new File(folder,"image.ipg");
-            FileOutputStream fileOutputStream=new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG,90,fileOutputStream);
+            File file = new File(folder, "image.ipg");
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
             fileOutputStream.flush();
             fileOutputStream.close();
 
-            uri= FileProvider.getUriForFile(this,"com.example.imagesgallery.Activity",file);
+            uri = FileProvider.getUriForFile(this, "com.example.imagesgallery.Activity", file);
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -244,12 +296,12 @@ public class ImageInfoActivity extends AppCompatActivity {
         int id_album = getIntent().getIntExtra("id_album", -1);
         int OrderInDatabase = getIntent().getIntExtra("OrderInDatabase", 1);
 
-        String[] args = {String.valueOf(id_album), imagePath, String.valueOf(OrderInDatabase - 1)};
+        String[] args = {String.valueOf(id_album), image.getPath(), String.valueOf(OrderInDatabase - 1)};
         String sql = "DELETE FROM Album_Contain_Images WHERE id = (SELECT id FROM Album_Contain_Images WHERE id_album = ? AND path = ? LIMIT 1 OFFSET ?)";
         MainActivity.db.execSQL(sql, args);
 
         Intent resultIntent = new Intent();
-        resultIntent.putExtra("ImageRemoved", imagePath);
+        resultIntent.putExtra("ImageRemoved", image.getPath());
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }

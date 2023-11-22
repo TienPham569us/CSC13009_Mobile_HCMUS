@@ -53,6 +53,7 @@ import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
+
 import android.content.Context;
 
 import java.io.File;
@@ -103,7 +104,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             for (int i = 0; i < list.size(); i++) {
                                 if (shouldShowRequestPermissionRationale(permissionsStr[i])) {
                                     permissionsList.add(permissionsStr[i]);
-                                } else if (!hasPermission(mainActivity , permissionsStr[i])) {
+                                } else if (!hasPermission(mainActivity, permissionsStr[i])) {
                                     ActivityCompat.requestPermissions(mainActivity, permissionsStr, permissionsCode);
                                     permissionsCount++;
                                 }
@@ -119,7 +120,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
                     });
-    int REQUEST_IMAGE_CAPTURE=100;
+    int REQUEST_IMAGE_CAPTURE = 100;
     int permissionsCode = 42;
     boolean isStorageImagePermitted = false;
     boolean isStorageVideoPermitted = false;
@@ -141,16 +142,17 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     String TAG = "Permission";
     //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
+
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainActivity=(MainActivity) getActivity();
+        mainActivity = (MainActivity) getActivity();
         launcher_for_camera =
                 registerForActivityResult(
                         new ActivityResultContracts.StartActivityForResult(),
                         new ActivityResultCallback<ActivityResult>() {
                             @Override
                             public void onActivityResult(ActivityResult result) {
-                                if (result.getResultCode()==RESULT_OK) {
+                                if (result.getResultCode() == RESULT_OK) {
                                 /*try {
                                     thumbnail = MediaStore.Images.Media.getBitmap(
                                             mainActivity.getContentResolver(),imageUri);
@@ -164,7 +166,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         }
                 );
     }
-    ClickListener clickListener =new ClickListener() {
+
+    ClickListener clickListener = new ClickListener() {
         @Override
         public void click(int index) {
             // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
@@ -176,11 +179,11 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        linearLayout =(LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
-        recycler =linearLayout.findViewById(R.id.gallery_recycler);
+        linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
+        recycler = linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
 
-        adapter = new ImageAdapter(mainActivity, images , clickListener);
+        adapter = new ImageAdapter(mainActivity, images, clickListener);
         manager = new GridLayoutManager(mainActivity, 3);
         totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
@@ -194,7 +197,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         multiSelectButton = linearLayout.findViewById(R.id.multiSelectButton);
         deleteButton = linearLayout.findViewById(R.id.deleteButton);
         slideshowButton = linearLayout.findViewById(R.id.slideshowButton);
-        imageBtnCamera =(ImageButton) linearLayout.findViewById(R.id.imageBtnCamera);
+        imageBtnCamera = (ImageButton) linearLayout.findViewById(R.id.imageBtnCamera);
         multiSelectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -202,7 +205,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     multiSelectMode = false;
                     adapter.setMultiSelectMode(multiSelectMode);
                     adapter.clearSelection();
-                    multiSelectButton.setText("Multi select");
+                    multiSelectButton.setText("Select");
 
                     // Handle actions in multi-select mode
                 } else {
@@ -228,10 +231,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 //                recycler.setLayoutManager(manager);
 //                loadImages();
 
-                    // Handle actions in multi-select mode
+                // Handle actions in multi-select mode
             }
         });
-
 
 
         slideshowButton.setOnClickListener(new View.OnClickListener() {
@@ -241,7 +243,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 if (!selectedImages.isEmpty()) {
                     // Call the method in MainActivity to start the SlideshowActivity
                     if (getActivity() instanceof MainActivity) {
-                        ((MainActivity)getActivity()).startSlideshowActivity(selectedImages);
+                        ((MainActivity) getActivity()).startSlideshowActivity(selectedImages);
                     }
                 }
             }
@@ -260,6 +262,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         return linearLayout;
     }
+
     //AT
     private void deleteImage(String imagePath) {
         File deleteImage = new File(imagePath);
@@ -327,7 +330,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 Log.d(TAG, "onClick: delete image");
 
                 ArrayList<String> selectedImages = adapter.getSelectedImages();
-                Log.d(TAG,"selectedImages size " + adapter.getSelectedImages().size() );
+                Log.d(TAG, "selectedImages size " + adapter.getSelectedImages().size());
                 // Define variables to track the number of successfully deleted images
                 for (String imagePath : selectedImages) {
                     deleteImage(imagePath);
@@ -337,7 +340,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 adapter.setMultiSelectMode(multiSelectMode);
                 adapter.clearSelection();
                 Log.d("selected images: ", adapter.getSelectedImages().toString());
-                multiSelectButton.setText("Multi select");
+                multiSelectButton.setText("Select");
             }
         });
         // click no
@@ -349,7 +352,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         dialog.show();
-    };
+    }
+
+    ;
+
     //AT When click button Multi Select, it shows Delete Button
     private void toggleButtonsOfMultiSelectMode(Boolean isMultiSelectMode) {
         if (isMultiSelectMode) {
@@ -360,6 +366,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             slideshowButton.setVisibility(View.INVISIBLE);
         }
     }
+
     // Method to update the delete button's state
     // Implement the onSelectionChanged method from the SelectionChangeListener interface
     @Override
@@ -396,20 +403,32 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         cursor.moveToPosition(i);
                         int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
                         String path = cursor.getString(columnindex);
-                        Image newImage=new Image(path,"",0);
-                        images.add(newImage);
 
-                        rowValues.clear();
-                        rowValues.put("path", path);
-                        rowValues.put("description", "");
-                        rowValues.put("isFavored", 0);
-                        MainActivity.db.insert("Image", null, rowValues);
+                        String[] args = {path};
+                        Cursor cursor1 = MainActivity.db.rawQuery("SELECT isFavored FROM Image WHERE path = ?", args);
+                        int isFavored = -1;
+                        while (cursor1.moveToNext()) {
+                            int favorColumn = cursor1.getColumnIndex("isFavored");
+                            isFavored = cursor1.getInt(favorColumn);
+                        }
+                        if (isFavored == -1) {
+                            isFavored = 0;
+                            rowValues.clear();
+                            rowValues.put("path", path);
+                            rowValues.put("description", "");
+                            rowValues.put("isFavored", isFavored);
+                            long rowID = MainActivity.db.insert("Image", null, rowValues);
+                        }
+
+                        Image newImage = new Image(path, "", isFavored);
+                        images.add(newImage);
                     }
                 }
             });
             insertThread.start();
         }
     }
+
     private boolean checkAndRequestPermissions() {
         int permissionSendMessage = ContextCompat.checkSelfPermission(mainActivity,
                 Manifest.permission.SEND_SMS);
@@ -427,7 +446,6 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         }
         return true;
     }
-
 
 
     private void askForPermissions(ArrayList<String> permissionsList) {
@@ -464,10 +482,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     private boolean hasPermission(Context context, String permissionStr) {
         return ContextCompat.checkSelfPermission(context, permissionStr) == PackageManager.PERMISSION_GRANTED;
     }
+
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
-    {
-        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0) {
             boolean accepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
             if (accepted) {
@@ -509,6 +527,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         }
     }
+
     //Just a comment to change message when commit
     private ActivityResultLauncher<String> request_permission_launcher_storage_images =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
@@ -524,8 +543,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
                     });
-    public void sendToSettingDialog()
-    {
+
+    public void sendToSettingDialog() {
         new AlertDialog.Builder(mainActivity)
                 .setTitle("Alert for permission")
                 .setMessage("Go to settings for Permissions")
@@ -534,7 +553,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Intent rIntent = new Intent();
                         rIntent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        Uri uri= Uri.fromParts("package",mainActivity.getPackageName(),null);
+                        Uri uri = Uri.fromParts("package", mainActivity.getPackageName(), null);
                         rIntent.setData(uri);
                         startActivity(rIntent);
                         alertDialog.dismiss();
@@ -548,32 +567,32 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 });
     }
 
-   /* private void openCamera() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(mainActivity.getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        } else {
-            Toast.makeText(getContext(), "Camera not available", Toast.LENGTH_SHORT).show();
-        }
-    }
+    /* private void openCamera() {
+         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+         if (takePictureIntent.resolveActivity(mainActivity.getPackageManager()) != null) {
+             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+         } else {
+             Toast.makeText(getContext(), "Camera not available", Toast.LENGTH_SHORT).show();
+         }
+     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+     @Override
+     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
+         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+             Bundle extras = data.getExtras();
+             Bitmap imageBitmap = (Bitmap) extras.get("data");
 
-            // Save the captured image to external storage
-            String imageFilePath = saveImageToExternalStorage(imageBitmap);
-            if (imageFilePath != null) {
-                Toast.makeText(getContext(), "Save image successfully", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }*/
+             // Save the captured image to external storage
+             String imageFilePath = saveImageToExternalStorage(imageBitmap);
+             if (imageFilePath != null) {
+                 Toast.makeText(getContext(), "Save image successfully", Toast.LENGTH_SHORT).show();
+             } else {
+                 Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+             }
+         }
+     }*/
     /*private void openCamera() {
         mainActivity.requestPermissionManageExternalStorage();
         mainActivity.requestPermissionCamera();
@@ -595,37 +614,37 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         }
 
     }*/
-   private void triggerMediaScan(Uri imageUri) {
-       File tempFile = new File(imageUri.toString());
+    private void triggerMediaScan(Uri imageUri) {
+        File tempFile = new File(imageUri.toString());
 //       String[] filePaths = {imageUri.getPath()};
-       String[] filePaths = {tempFile.getAbsolutePath()};
-       MediaScannerConnection.scanFile(
-               mainActivity,
-               filePaths,
-               null,
-               new MediaScannerConnection.OnScanCompletedListener() {
-                   @Override
-                   public void onScanCompleted(String path, Uri uri) {
+        String[] filePaths = {tempFile.getAbsolutePath()};
+        MediaScannerConnection.scanFile(
+                mainActivity,
+                filePaths,
+                null,
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    @Override
+                    public void onScanCompleted(String path, Uri uri) {
 
 
-                   }
-               }
-       );
-       Image newImage = new Image(imageUri.getPath(),"captured image",0);
-       images.add(0,newImage);
-       //adapter.addImage(newImage);
-       adapter.notifyDataSetChanged();
-       adapter.notifyItemInserted(0);
-       adapter.notifyItemRangeInserted(0,10);
-   }
+                    }
+                }
+        );
+        Image newImage = new Image(imageUri.getPath(), "captured image", 0);
+        images.add(0, newImage);
+        //adapter.addImage(newImage);
+        adapter.notifyDataSetChanged();
+        adapter.notifyItemInserted(0);
+        adapter.notifyItemRangeInserted(0, 10);
+    }
 
     protected void openCamera() {
         ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE,"Custom album group 9");
-        imageUri =mainActivity.getContentResolver().insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);
+        values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
+        imageUri = mainActivity.getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
         launcher_for_camera.launch(cameraIntent);
         /*Image newImage = new Image(imageUri.getPath(),"captured image",0);
         images.add(0,newImage);
@@ -636,10 +655,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
     private static final int REQUEST_CAMERA_PERMISSION = 1;
+
     private void requestCameraPermission() {
         ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
     }
-
 
 
     @Override
@@ -651,10 +670,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             Bitmap imageBitmap = (Bitmap) extras.get("data");
 
             // Save the captured image to external storage
-           // String imageFilePath = saveImageToExternalStorage(imageBitmap);
+            // String imageFilePath = saveImageToExternalStorage(imageBitmap);
             //String imageFilePath  = saveImageToMediaStore(imageBitmap);
             //String imageFilePath  = saveImageToMediaStore2(imageBitmap);
-            String imageFilePath  = saveImageToMediaStore3(imageBitmap);
+            String imageFilePath = saveImageToMediaStore3(imageBitmap);
             if (imageFilePath != null) {
                 // Image saved successfully, do something with the file path
                 // ...
@@ -684,7 +703,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         return null;
     }
 
-    private String saveImageToMediaStore(Bitmap imageBitmap)  {
+    private String saveImageToMediaStore(Bitmap imageBitmap) {
         String imageFileName = "ALBUM_GROUP_9_IMG_" + System.currentTimeMillis() + ".jpg";
         /*ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
@@ -704,8 +723,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         try {
             outputStream = new FileOutputStream(imageFile);
 
-            if (outputStream!=null) {
-                imageBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+            if (outputStream != null) {
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
                 //Toast.makeText(mainActivity, "Image saved to MediaStore successfully", Toast.LENGTH_SHORT).show();
                 final ContentResolver contentResolver = mainActivity.getContentResolver();
                 ContentValues values = new ContentValues();
@@ -715,7 +734,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
                 values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
                 contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                MediaScannerConnection.scanFile(mainActivity,new String[]{imageFile.getAbsolutePath()},null,null);
+                MediaScannerConnection.scanFile(mainActivity, new String[]{imageFile.getAbsolutePath()}, null, null);
 
             }
         } catch (FileNotFoundException e) {
@@ -725,7 +744,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             e.printStackTrace();
         } finally {
             try {
-                if (outputStream!=null) {
+                if (outputStream != null) {
                     outputStream.close();
                 }
                 return imageFileName;
@@ -734,11 +753,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             }
         }
 
-       return null;
+        return null;
     }
+
     public String saveImageToMediaStore2(Bitmap imageBitmap) {
 
-        String imageFileName = "ALBUM_G9_IMG_" + System.currentTimeMillis()  + ".jpg";
+        String imageFileName = "ALBUM_G9_IMG_" + System.currentTimeMillis() + ".jpg";
 
         File storageDir = Environment.getExternalStorageDirectory();
 
@@ -768,7 +788,6 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             if (outputStream != null) {
                 // Compress the bitmap and write it to the output stream
                 imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -787,9 +806,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         MediaScannerConnection.scanFile(mainActivity, new String[]{imageUri.getPath()}, null, null);
         return imageFileName;
     }
+
     public String saveImageToMediaStore3(Bitmap imageBitmap) {
 
-        String imageFileName = "ALBUM_G9_IMG_" + System.currentTimeMillis()  + ".jpg";
+        String imageFileName = "ALBUM_G9_IMG_" + System.currentTimeMillis() + ".jpg";
 
         // Create the content values for the image file
         ContentValues values = new ContentValues();
@@ -824,9 +844,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 }*/
                 //albumDir.mkdirs();
                 File destination = new File(storageDir, imageFileName);
-                Toast.makeText(mainActivity, destination.toString(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(mainActivity, destination.toString(), Toast.LENGTH_SHORT).show();
                 if (mainActivity.hasManageExternalStoragePermission()) {
-                    Toast.makeText(mainActivity, "Can access external memory",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mainActivity, "Can access external memory", Toast.LENGTH_SHORT).show();
                     if (imageFile.renameTo(destination)) {
                         // Update the imageUri with the new file path
                         values.put(MediaStore.Images.Media.DATA, destination.getAbsolutePath());
@@ -836,7 +856,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     MediaScannerConnection.scanFile(mainActivity, new String[]{destination.getAbsolutePath()}, null, null);
 
                 } else {
-                    Toast.makeText(mainActivity, "Can't access external memory",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mainActivity, "Can't access external memory", Toast.LENGTH_SHORT).show();
                 }
 
             }
