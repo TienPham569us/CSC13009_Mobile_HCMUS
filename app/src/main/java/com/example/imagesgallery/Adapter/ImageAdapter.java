@@ -32,7 +32,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     MainActivity mainActivity;
     ImageFragment imageFragment = new ImageFragment();
     private Context context;
-    private ActivityResultLauncher<Intent> activityLauncher;
     private ArrayList<Image> images_list;
 
     //AT: check if there is selected mode
@@ -85,14 +84,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     public ImageAdapter(Context context, ArrayList<Image> images_list, ClickListener listener) {
         this.context = context;
-        this.images_list = images_list;
-        this.listener = listener;
-        this.selectedImages = new ArrayList<>(); //For multi select
-    }
-
-    public ImageAdapter(Context context, ActivityResultLauncher<Intent> activityLauncher, ArrayList<Image> images_list, ClickListener listener) {
-        this.context = context;
-        this.activityLauncher = activityLauncher;
         this.images_list = images_list;
         this.listener = listener;
         this.selectedImages = new ArrayList<>(); //For multi select

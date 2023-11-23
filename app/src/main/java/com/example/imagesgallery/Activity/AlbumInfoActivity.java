@@ -104,6 +104,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
             slideshowButton.setVisibility(View.INVISIBLE);
         }
     }
+
     private void deleteImage(String imagePath) {
         File deleteImage = new File(imagePath);
         if (deleteImage.exists()) {
@@ -164,7 +165,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
     public void createDialogDeleteImage() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         if (adapter.getSelectedImages().size() == 0) {
-            Toast.makeText(this,"You have not chosen any images", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You have not chosen any images", Toast.LENGTH_SHORT).show();
             return;
         }
         builder.setMessage("Are you sure you want to delete these images ?");
@@ -175,7 +176,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 Log.d(TAG, "onClick: delete image");
 
                 ArrayList<String> selectedImages = adapter.getSelectedImages();
-                Log.d(TAG,"selectedImages size " + adapter.getSelectedImages().size() );
+                Log.d(TAG, "selectedImages size " + adapter.getSelectedImages().size());
                 // Define variables to track the number of successfully deleted images
                 for (String imagePath : selectedImages) {
                     deleteImage(imagePath);
@@ -197,7 +198,9 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         dialog.show();
-    };
+    }
+
+    ;
     //AT
 
     @Override
@@ -250,15 +253,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (adapter.getSelectedImages().size() <= 1) {
-                    Toast.makeText(AlbumInfoActivity.this,"You have to choose more than one image", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AlbumInfoActivity.this, "You have to choose more than one image", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 ArrayList<String> selectedImages = adapter.getSelectedImages();
                 if (!selectedImages.isEmpty()) {
                     // Call the method in MainActivity to start the SlideshowActivity
-                        Intent slideshowIntent = new Intent(AlbumInfoActivity.this, SlideshowActivity.class);
-                        slideshowIntent.putStringArrayListExtra("selectedImages", selectedImages);
-                        startActivity(slideshowIntent);
+                    Intent slideshowIntent = new Intent(AlbumInfoActivity.this, SlideshowActivity.class);
+                    slideshowIntent.putStringArrayListExtra("selectedImages", selectedImages);
+                    startActivity(slideshowIntent);
                 }
             }
         });
@@ -298,7 +301,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         // init to prepare load images to album
         images = new ArrayList<>();
         album.setListImage(images);
-        adapter = new ImageAdapter(AlbumInfoActivity.this, startIntentSeeImageInfo, images, clickListener);
+        adapter = new ImageAdapter(AlbumInfoActivity.this, images, clickListener);
         GridLayoutManager manager = new GridLayoutManager(AlbumInfoActivity.this, 3);
         recyclerView.setLayoutManager(manager);
         recyclerView.setAdapter(adapter);
@@ -434,7 +437,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
             cursor.close();
         }
 
-        String sqlContainImages = "SELECT * FROM Album_Contain_Images Contain, Image I " +
+        String sqlContainImages = "SELECT * FROM Album_Contain_Images AS Contain, Image AS I " +
                 "WHERE id_album = ? AND Contain.path = I.path AND Contain.id <= ? ORDER BY id DESC LIMIT ? OFFSET ?";
         String[] argsContainImages = {String.valueOf(album.getId()), String.valueOf(IdMaxWhenStartingLoadData), String.valueOf(ItemsPerLoading), String.valueOf(CurrentMaxPosition)};
         Cursor cursorContainImages = null;
@@ -641,8 +644,14 @@ public class AlbumInfoActivity extends AppCompatActivity {
                         // if user choose delete image
                         if (pathDeleted != null) {
                             // delete images in album
-                            images.remove(clickPosition);
-                            adapter.notifyItemRemoved(clickPosition);
+                            /*TODO: sửa thành xóa 1 image nếu trong tương lai update ko có trùng ảnh trong album*/
+                            for (int i = 0; i < images.size(); i++) {
+                                if (images.get(i).getPath().equals(pathDeleted)) {
+                                    images.remove(i);
+                                    adapter.notifyItemRemoved(i);
+                                    i--;
+                                }
+                            }
 
                             if (album.getCover().getPath().equals(pathDeleted)) {
                                 // change cover if deleting image used as cover
@@ -657,8 +666,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
                             adapter.notifyItemRemoved(clickPosition);
                         }
 
-                        // update favorite of image
-                        images.get(clickPosition).setIsFavored(isFavored);
+                        if (pathRemoved == null && pathDeleted == null) {
+                            // update favorite of image
+                            images.get(clickPosition).setIsFavored(isFavored);
+                        }
                     }
                 }
             }
