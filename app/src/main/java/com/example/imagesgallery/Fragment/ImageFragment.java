@@ -167,6 +167,11 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         public void click(int index) {
             // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
         }
+
+        @Override
+        public void longClick(int index) {
+
+        }
     };
 
 

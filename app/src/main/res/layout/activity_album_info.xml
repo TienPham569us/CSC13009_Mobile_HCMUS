@@ -93,47 +93,47 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <Button
-                    android:id="@+id/slideshowBtnAlbum"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Slideshow"
-                    android:visibility="invisible"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="20dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/deleteBtnAlbum"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintWidth_percent="0.17"
-                    android:layout_marginRight="10dp"
-                    android:background="@drawable/multiselect_cancel_btn"/>
-                <Button
-                    android:id="@+id/deleteBtnAlbum"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="invisible"
-                    android:text="Delete"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="20dp"
-                    android:layout_marginRight="10dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/multiSelectBtnAlbum"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintWidth_percent="0.17"
-                    android:background="@drawable/multiselect_cancel_btn"/>
-                <Button
-                    android:id="@+id/multiSelectBtnAlbum"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="20dp"
+<!--                <Button-->
+<!--                    android:id="@+id/slideshowBtnAlbum"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Slideshow"-->
+<!--                    android:visibility="invisible"-->
+<!--                    android:textColor="@color/black"-->
+<!--                    android:layout_marginBottom="20dp"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toStartOf="@+id/deleteBtnAlbum"-->
+<!--                    app:layout_constraintDimensionRatio="1:1"-->
+<!--                    app:layout_constraintWidth_percent="0.17"-->
+<!--                    android:layout_marginRight="10dp"-->
+<!--                    android:background="@drawable/multiselect_cancel_btn"/>-->
+<!--                <Button-->
+<!--                    android:id="@+id/deleteBtnAlbum"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:visibility="invisible"-->
+<!--                    android:text="Delete"-->
+<!--                    android:textColor="@color/black"-->
+<!--                    android:layout_marginBottom="20dp"-->
+<!--                    android:layout_marginRight="10dp"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toStartOf="@+id/multiSelectBtnAlbum"-->
+<!--                    app:layout_constraintDimensionRatio="1:1"-->
+<!--                    app:layout_constraintWidth_percent="0.17"-->
+<!--                    android:background="@drawable/multiselect_cancel_btn"/>-->
+<!--                <Button-->
+<!--                    android:id="@+id/multiSelectBtnAlbum"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Select"-->
+<!--                    android:textColor="@color/black"-->
+<!--                    android:layout_marginBottom="20dp"-->
 
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/btnAddImage_album"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintWidth_percent="0.17"
-                    android:background="@drawable/multiselect_cancel_btn"/>
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toStartOf="@+id/btnAddImage_album"-->
+<!--                    app:layout_constraintDimensionRatio="1:1"-->
+<!--                    app:layout_constraintWidth_percent="0.17"-->
+<!--                    android:background="@drawable/multiselect_cancel_btn"/>-->
 
                 <ImageButton
                     android:id="@+id/btnAddImage_album"

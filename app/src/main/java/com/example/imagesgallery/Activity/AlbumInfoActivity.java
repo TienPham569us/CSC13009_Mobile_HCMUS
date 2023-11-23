@@ -57,11 +57,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
     ImageButton btnAddImage;
     ImageAdapter adapter;
     ArrayList<Image> images;
-
+    boolean isLongClick = false;
     //AT: Add button multiSelectButton
-    Button multiSelectButton; //id: multiSelectBtnAlbum
-    Button deleteButton;
-    Button slideshowButton;
+//    Button multiSelectButton; //id: multiSelectBtnAlbum
+//    Button deleteButton;
+//    Button slideshowButton;
     boolean multiSelectMode = false;
     ArrayList<Image> deletedImagesArrayList;
     int OrderInDatabase;
@@ -91,18 +91,27 @@ public class AlbumInfoActivity extends AppCompatActivity {
             intent.putExtra("OrderInDatabase", OrderInDatabase);
             startIntentSeeImageInfo.launch(intent);
         }
+
+        @Override
+        public void longClick(int index) {
+            // change toolbar
+            isLongClick = true;
+            invalidateOptionsMenu();
+            // Enter multi-select mode
+            enterMultiselectMode(index);
+        }
     };
 
     //AT
-    private void toggleButtonsOfMultiSelectMode(Boolean isMultiSelectMode) {
-        if (isMultiSelectMode) {
-            deleteButton.setVisibility(View.VISIBLE);
-            slideshowButton.setVisibility(View.VISIBLE);
-        } else {
-            deleteButton.setVisibility(View.INVISIBLE);
-            slideshowButton.setVisibility(View.INVISIBLE);
-        }
-    }
+//    private void toggleButtonsOfMultiSelectMode(Boolean isMultiSelectMode) {
+//        if (isMultiSelectMode) {
+//            deleteButton.setVisibility(View.VISIBLE);
+//            slideshowButton.setVisibility(View.VISIBLE);
+//        } else {
+//            deleteButton.setVisibility(View.INVISIBLE);
+//            slideshowButton.setVisibility(View.INVISIBLE);
+//        }
+//    }
 
     public void createDialogDeleteImage() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
@@ -123,14 +132,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 for (String imagePath : selectedImages) {
                     deleteImagesInAlbum(imagePath);
                 }
-                toggleButtonsOfMultiSelectMode(multiSelectMode);
-                multiSelectMode = false;
-                deleteButton.setVisibility(View.GONE);
-                slideshowButton.setVisibility(View.GONE);
-                adapter.setMultiSelectMode(multiSelectMode);
-                adapter.clearSelection();
+                //toggleButtonsOfMultiSelectMode(multiSelectMode);
+                //multiSelectMode = false;
+                //deleteButton.setVisibility(View.GONE);
+                //slideshowButton.setVisibility(View.GONE);
+                //adapter.setMultiSelectMode(multiSelectMode);
+                //adapter.clearSelection();
+                exitMultiselectMode();
                 Log.d("selected images: ", adapter.getSelectedImages().toString());
-                multiSelectButton.setText("Select");
+                //multiSelectButton.setText("Select");
             }
         });
         // click no
@@ -153,62 +163,71 @@ public class AlbumInfoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_album_info);
 
         deletedImagesArrayList = new ArrayList<>();
-        multiSelectButton = findViewById(R.id.multiSelectBtnAlbum);
-        deleteButton = findViewById(R.id.deleteBtnAlbum);
-        slideshowButton = findViewById(R.id.slideshowBtnAlbum);
-        multiSelectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (multiSelectMode) {
-                    multiSelectMode = false;
-                    adapter.setMultiSelectMode(multiSelectMode);
-                    adapter.clearSelection();
-                    multiSelectButton.setText("Select");
-
-                    // Handle actions in multi-select mode
-                } else {
-                    // Enter multi-select mode
-                    multiSelectMode = true;
-                    adapter.setMultiSelectMode(multiSelectMode);
-                    // Update UI, e.g., change button text
-                    multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
-                }
-                toggleButtonsOfMultiSelectMode(multiSelectMode);
-            }
-        });
-
-        deleteButton.setEnabled(true);
-        slideshowButton.setEnabled(true);
-        // Set state for buttons when in multi-select mode
-//        adapter.setSelectionChangeListener(this);
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                createDialogDeleteImage();
-//                manager = new GridLayoutManager(mainActivity, 3);
-//                recycler.setLayoutManager(manager);
-//                loadImages();
-
-                // Handle actions in multi-select mode
-            }
-        });
-
-        slideshowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (adapter.getSelectedImages().size() <= 1) {
-                    Toast.makeText(AlbumInfoActivity.this, "You have to choose more than one image", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                ArrayList<String> selectedImages = adapter.getSelectedImages();
-                if (!selectedImages.isEmpty()) {
-                    // Call the method in MainActivity to start the SlideshowActivity
-                    Intent slideshowIntent = new Intent(AlbumInfoActivity.this, SlideshowActivity.class);
-                    slideshowIntent.putStringArrayListExtra("selectedImages", selectedImages);
-                    startActivity(slideshowIntent);
-                }
-            }
-        });
+//        multiSelectButton = findViewById(R.id.multiSelectBtnAlbum);
+//        deleteButton = findViewById(R.id.deleteBtnAlbum);
+//        slideshowButton = findViewById(R.id.slideshowBtnAlbum);
+//        multiSelectButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (multiSelectMode) {
+//                    multiSelectMode = false;
+//                    adapter.setMultiSelectMode(multiSelectMode);
+//                    adapter.clearSelection();
+//                    multiSelectButton.setText("Select");
+//
+//                    // Handle actions in multi-select mode
+//                } else {
+//                    // Enter multi-select mode
+//                    multiSelectMode = true;
+//                    adapter.setMultiSelectMode(multiSelectMode);
+//                    // Update UI, e.g., change button text
+//                    multiSelectButton.setText("Cancel"); // Optionally, you can change the button label
+//                }
+//                toggleButtonsOfMultiSelectMode(multiSelectMode);
+//            }
+//        });
+//
+//        multiSelectButton.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View view) {
+//                isLongClick = true;
+//                invalidateOptionsMenu();
+//                return true;
+//            }
+//        });
+//
+//        deleteButton.setEnabled(true);
+//        slideshowButton.setEnabled(true);
+//        // Set state for buttons when in multi-select mode
+////        adapter.setSelectionChangeListener(this);
+//        deleteButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                createDialogDeleteImage();
+////                manager = new GridLayoutManager(mainActivity, 3);
+////                recycler.setLayoutManager(manager);
+////                loadImages();
+//
+//                // Handle actions in multi-select mode
+//            }
+//        });
+//
+//        slideshowButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (adapter.getSelectedImages().size() <= 1) {
+//                    Toast.makeText(AlbumInfoActivity.this, "You have to choose more than one image", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//                ArrayList<String> selectedImages = adapter.getSelectedImages();
+//                if (!selectedImages.isEmpty()) {
+//                    // Call the method in MainActivity to start the SlideshowActivity
+//                    Intent slideshowIntent = new Intent(AlbumInfoActivity.this, SlideshowActivity.class);
+//                    slideshowIntent.putStringArrayListExtra("selectedImages", selectedImages);
+//                    startActivity(slideshowIntent);
+//                }
+//            }
+//        });
 
         //AT
 
@@ -263,7 +282,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finishActivity();
+                if (!isLongClick){
+                    finishActivity(); // return to album tab
+                } else{
+                    // cancel multi select mode
+                    exitMultiselectMode();
+                }
             }
         });
 
@@ -327,6 +351,20 @@ public class AlbumInfoActivity extends AppCompatActivity {
         });
     }
 
+    private void exitMultiselectMode(){
+        isLongClick = false;
+        invalidateOptionsMenu();
+        multiSelectMode = false;
+        adapter.setMultiSelectMode(multiSelectMode);
+        adapter.clearSelection();
+    }
+
+    private void enterMultiselectMode(int index){
+        multiSelectMode = true;
+        adapter.setMultiSelectMode(multiSelectMode);
+        adapter.toggleSelection(index);
+    }
+
     private void deleteImagesInAlbum(String path) {
         File deleteImage = new File(path);
         if (deleteImage.exists()) {
@@ -344,8 +382,8 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 });
 
                 // change arrayList image in album
-                for (int i=0;i<images.size();i++){
-                    if (images.get(i).getPath().equals(path)){
+                for (int i = 0; i < images.size(); i++) {
+                    if (images.get(i).getPath().equals(path)) {
                         images.remove(i);
                         break;
                     }
@@ -476,14 +514,20 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_album_info, menu);
-        int isFavored = album.getIsFavored();
-        if (isFavored == 1) {
-            menu.findItem(R.id.removeFavorites).setVisible(true);
-            menu.findItem(R.id.addFavorites).setVisible(false);
-        } else if (isFavored == 0) {
-            menu.findItem(R.id.removeFavorites).setVisible(false);
-            menu.findItem(R.id.addFavorites).setVisible(true);
+        if (isLongClick) {
+            getMenuInflater().inflate(R.menu.menu_album_info_long_click, menu);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.close_icon);
+        } else {
+            getMenuInflater().inflate(R.menu.menu_album_info, menu);
+            getSupportActionBar().setHomeAsUpIndicator(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+            int isFavored = album.getIsFavored();
+            if (isFavored == 1) {
+                menu.findItem(R.id.removeFavorites).setVisible(true);
+                menu.findItem(R.id.addFavorites).setVisible(false);
+            } else if (isFavored == 0) {
+                menu.findItem(R.id.removeFavorites).setVisible(false);
+                menu.findItem(R.id.addFavorites).setVisible(true);
+            }
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -505,8 +549,26 @@ public class AlbumInfoActivity extends AppCompatActivity {
         } else if (itemID == R.id.removeFavorites) {
             removeAlbumFromFavorites();
             invalidateOptionsMenu();
+        } else if (itemID==R.id.deleteImages){
+            createDialogDeleteImage();
+        } else if (itemID==R.id.slideshow){
+            slideshowImages();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void slideshowImages(){
+        if (adapter.getSelectedImages().size() <= 1) {
+            Toast.makeText(AlbumInfoActivity.this, "You have to choose more than one image", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ArrayList<String> selectedImages = adapter.getSelectedImages();
+        if (!selectedImages.isEmpty()) {
+            // Call the method in MainActivity to start the SlideshowActivity
+            Intent slideshowIntent = new Intent(AlbumInfoActivity.this, SlideshowActivity.class);
+            slideshowIntent.putStringArrayListExtra("selectedImages", selectedImages);
+            startActivity(slideshowIntent);
+        }
     }
 
     private void addAlbumToFavorites() {

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,7 +28,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
-
     MainActivity mainActivity;
     ImageFragment imageFragment = new ImageFragment();
     private Context context;
@@ -36,7 +36,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     //AT: check if there is selected mode
     private boolean isMultiSelectMode = false;
     private ArrayList<Integer> selectedPositions = new ArrayList<>();
-
     private ArrayList<String> selectedImages; // New list to track selected images
 
     public interface SelectionChangeListener {
@@ -100,6 +99,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         } else {
             selectedImages.add(imagePath);
         }
+
+        if (selectedPositions.contains(position)) {
+            selectedPositions.remove(Integer.valueOf(position));
+        } else {
+            selectedPositions.add(position);
+        }
+
         if (selectionChangeListener != null) {
             selectionChangeListener.onSelectionChanged(!selectedImages.isEmpty());
         }
@@ -142,7 +148,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             holder.checkBox.setChecked(true);
         }*/
         if (selectedPositions.contains(position)) {
-            holder.checkBox.setVisibility(View.VISIBLE);
+;            holder.checkBox.setVisibility(View.VISIBLE);
             holder.checkBox.setChecked(true);
         } else {
             holder.checkBox.setVisibility(View.GONE);
@@ -158,13 +164,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
                 // Get the position of the image
                 int position = holder.getAdapterPosition();
                 if (isMultiSelectMode) {
-                    if (selectedPositions.contains(position)) {
-                        selectedPositions.remove(Integer.valueOf(position));
-                    } else {
-                        selectedPositions.add(position);
-                    }
                     toggleSelection(position);
-
                     // Notify the adapter that the data set has changed
                     notifyDataSetChanged();
                     Log.d("selected images array ", selectedImages.toString());
@@ -198,11 +198,11 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                return false;
+                int position = holder.getAdapterPosition();
+                listener.longClick(position);
+                return true;
             }
         });
-
-
     }
 
     @Override
