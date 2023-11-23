@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Adapter.ImageAdapter;
+import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
@@ -62,9 +63,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
     Button deleteButton;
     Button slideshowButton;
     boolean multiSelectMode = false;
-    //AT
-
-
+    ArrayList<Image> deletedImagesArrayList;
     int OrderInDatabase;
     boolean isLoading = false, isAllItemsLoaded = false;
     private final int ItemsPerLoading = 21;
@@ -105,63 +104,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
         }
     }
 
-    private void deleteImage(String imagePath) {
-        File deleteImage = new File(imagePath);
-        if (deleteImage.exists()) {
-            if (deleteImage.delete()) {
-                // change database
-                String[] args = {imagePath};
-                long rowID = MainActivity.db.delete("Image", "path = ?", args);
-                long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
-
-                if (rowID > 0 && rowID2 > 0) {
-                    Toast.makeText(this, "Delete success", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
-                }
-
-                // After deleting the file, notify MediaScanner to update the photo library
-                MediaScannerConnection.scanFile(this, new String[]{imagePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
-                    @Override
-                    public void onScanCompleted(String path, Uri uri) {
-                        // Handle the completion if needed
-                    }
-                });
-
-                String PreviousActivity = null;
-
-                Intent activityIntent = getIntent();
-                if (activityIntent != null) {
-                    PreviousActivity = activityIntent.getStringExtra("PreviousActivity");
-                }
-                if (Objects.equals(PreviousActivity, "AlbumInfoActivity")) {
-                    // return to the previous activity
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("ImageDeleted", imagePath);
-                    setResult(Activity.RESULT_OK, resultIntent);
-                    finish();
-                } else {
-                    // Start the launcher activity
-                    Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-                    if (intent != null) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    }
-                }
-
-                // Update the album object's list of images
-                for (int i = 0; i < images.size(); i++) {
-                    if (images.get(i).getPath().equals(imagePath)) {
-                        images.remove(i);
-                        album.setListImage(images);
-                        adapter.notifyDataSetChanged();
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     public void createDialogDeleteImage() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         if (adapter.getSelectedImages().size() == 0) {
@@ -179,10 +121,12 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 Log.d(TAG, "selectedImages size " + adapter.getSelectedImages().size());
                 // Define variables to track the number of successfully deleted images
                 for (String imagePath : selectedImages) {
-                    deleteImage(imagePath);
+                    deleteImagesInAlbum(imagePath);
                 }
                 toggleButtonsOfMultiSelectMode(multiSelectMode);
                 multiSelectMode = false;
+                deleteButton.setVisibility(View.GONE);
+                slideshowButton.setVisibility(View.GONE);
                 adapter.setMultiSelectMode(multiSelectMode);
                 adapter.clearSelection();
                 Log.d("selected images: ", adapter.getSelectedImages().toString());
@@ -208,7 +152,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_album_info);
 
-        //AT
+        deletedImagesArrayList = new ArrayList<>();
         multiSelectButton = findViewById(R.id.multiSelectBtnAlbum);
         deleteButton = findViewById(R.id.deleteBtnAlbum);
         slideshowButton = findViewById(R.id.slideshowBtnAlbum);
@@ -381,6 +325,33 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void deleteImagesInAlbum(String path) {
+        File deleteImage = new File(path);
+        if (deleteImage.exists()) {
+            if (deleteImage.delete()) {
+                // change database
+                String[] args = {path};
+                long rowID = MainActivity.db.delete("Image", "path = ?", args);
+                long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
+
+                // Sau khi xóa tệp tin, thông báo cho MediaScanner cập nhật thư viện ảnh
+                MediaScannerConnection.scanFile(getApplicationContext(), new String[]{path}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                    @Override
+                    public void onScanCompleted(String path, Uri uri) {
+                    }
+                });
+
+                // change arrayList image in album
+                for (int i=0;i<images.size();i++){
+                    if (images.get(i).getPath().equals(path)){
+                        images.remove(i);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     // activity launcher of adding image to album

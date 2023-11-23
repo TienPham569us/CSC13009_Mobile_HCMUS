@@ -16,6 +16,7 @@ import android.provider.MediaStore;
 import android.view.View;
 
 import com.example.imagesgallery.Adapter.ChooseImageAdapter;
+import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
@@ -28,6 +29,7 @@ public class ChooseImageActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     ArrayList<Image> imageArrayList;
     ChooseImageAdapter chooseImageAdapter;
+    Album album;
 
     @SuppressLint("NotifyDataSetChanged")
     @Override
@@ -36,6 +38,7 @@ public class ChooseImageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_choose_image);
 
         init();
+        album = (Album) getIntent().getSerializableExtra("album");
         imageArrayList = new ArrayList<>();
         chooseImageAdapter = new ChooseImageAdapter(ChooseImageActivity.this, imageArrayList);
         recyclerView.setLayoutManager(new GridLayoutManager(ChooseImageActivity.this, 3));
@@ -63,8 +66,8 @@ public class ChooseImageActivity extends AppCompatActivity {
     }
 
     private void loadImages() {
-        Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Image",null);
-        while (cursor.moveToNext()){
+        Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Image", null);
+        while (cursor.moveToNext()) {
             int pathColumnIndex = cursor.getColumnIndex("path");
             int descriptionColumnIndex = cursor.getColumnIndex("description");
             int favorColumnIndex = cursor.getColumnIndex("isFavored");
@@ -72,7 +75,15 @@ public class ChooseImageActivity extends AppCompatActivity {
             String path = cursor.getString(pathColumnIndex);
             String description = cursor.getString(descriptionColumnIndex);
             int isFavored = cursor.getInt(favorColumnIndex);
-            imageArrayList.add(new Image(path,description,isFavored));
+            imageArrayList.add(new Image(path, description, isFavored));
+        }
+
+        for (int i = 0; i < imageArrayList.size(); i++) {
+            for (int j = 0; j < album.getListImage().size(); j++) {
+                if (imageArrayList.get(i).getPath().equals(album.getListImage().get(j).getPath())){
+                    imageArrayList.get(i).setCanAddToCurrentAlbum(false);
+                }
+            }
         }
         cursor.close();
     }

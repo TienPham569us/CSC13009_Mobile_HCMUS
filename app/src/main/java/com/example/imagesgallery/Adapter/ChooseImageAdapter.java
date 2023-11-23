@@ -57,6 +57,11 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
             Glide.with(context).load(image_file).into(holder.imageView);
         }
 
+        if (!imageArrayList.get(position).isCanAddToCurrentAlbum()){
+            // disable image and fade it if it is in current album
+            holder.imageView.setEnabled(false);
+            holder.imageView.setAlpha(0.5f);
+        }
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -83,6 +88,5 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
             imageView = (ImageView) itemView.findViewById(R.id.gallery_item);
         }
     }
-
 
 }
