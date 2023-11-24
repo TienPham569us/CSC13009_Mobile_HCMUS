@@ -78,10 +78,13 @@ public class ChooseImageActivity extends AppCompatActivity {
             imageArrayList.add(new Image(path, description, isFavored));
         }
 
-        for (int i = 0; i < imageArrayList.size(); i++) {
-            for (int j = 0; j < album.getListImage().size(); j++) {
-                if (imageArrayList.get(i).getPath().equals(album.getListImage().get(j).getPath())){
-                    imageArrayList.get(i).setCanAddToCurrentAlbum(false);
+        int action = getIntent().getIntExtra("action",0);
+        if (action==AlbumInfoActivity.ACTION_ADD_IMAGE){
+            for (int i = 0; i < imageArrayList.size(); i++) {
+                for (int j = 0; j < album.getListImage().size(); j++) {
+                    if (imageArrayList.get(i).getPath().equals(album.getListImage().get(j).getPath())){
+                        imageArrayList.get(i).setCanAddToCurrentAlbum(false);
+                    }
                 }
             }
         }
