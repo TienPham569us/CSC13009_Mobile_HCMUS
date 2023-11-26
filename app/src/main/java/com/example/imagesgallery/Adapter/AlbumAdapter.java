@@ -9,10 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.imagesgallery.Activity.AddFavoriteAlbumActivity;
 import com.example.imagesgallery.Activity.AlbumInfoActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Model.Album;
@@ -63,6 +65,7 @@ public class AlbumAdapter extends BaseAdapter {
     private class ViewHolder {
         TextView AlbumName;
         ImageView AlbumCover;
+        CheckBox checkBox;
     }
 
     @Override
@@ -74,6 +77,7 @@ public class AlbumAdapter extends BaseAdapter {
             view = inflater.inflate(R.layout.album_item, null);
             viewHolder.AlbumName = (TextView) view.findViewById(R.id.nameAlbum);
             viewHolder.AlbumCover = (ImageView) view.findViewById(R.id.imageCoverAlbum);
+            viewHolder.checkBox = (CheckBox) view.findViewById(R.id.checkboxAlbum);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
@@ -87,6 +91,14 @@ public class AlbumAdapter extends BaseAdapter {
             Glide.with(context).load(coverPath).into(viewHolder.AlbumCover);
         }
         viewHolder.AlbumName.setText(album.getName());
+
+        if (context instanceof AddFavoriteAlbumActivity && album.getIsFavored() == 1) {
+            viewHolder.checkBox.setVisibility(View.VISIBLE);
+            viewHolder.checkBox.setChecked(true);
+            view.setEnabled(false);
+            viewHolder.AlbumCover.setEnabled(false);
+            viewHolder.AlbumCover.setAlpha(0.5f);
+        }
 
         return view;
     }

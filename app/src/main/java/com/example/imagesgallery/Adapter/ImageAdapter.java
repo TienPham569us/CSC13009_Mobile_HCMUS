@@ -78,6 +78,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public ArrayList<Integer> getSelectedPositions() {
         return selectedPositions;
     }
+
+    public void setSelectedPositions(ArrayList<Integer> selectedPositions) {
+        this.selectedPositions = selectedPositions;
+    }
+
+    public void setSelectedImages(ArrayList<String> selectedImages) {
+        this.selectedImages = selectedImages;
+    }
+
     //AT
 
     public ImageAdapter(Context context, ArrayList<Image> images_list, ClickListener listener) {

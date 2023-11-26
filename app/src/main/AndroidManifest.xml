@@ -36,6 +36,12 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".Activity.TestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.AddFavoriteAlbumActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activity.FavoriteImagesActivity"
             android:exported="false" />
         <activity

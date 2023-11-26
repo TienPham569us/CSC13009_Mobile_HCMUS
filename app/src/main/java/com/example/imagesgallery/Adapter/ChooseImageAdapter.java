@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -58,9 +59,11 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         }
 
         if (!imageArrayList.get(position).isCanAddToCurrentAlbum()){
-            // disable image and fade it if it is in current album
+            // disable image and change its appearance if it is in current album
             holder.imageView.setEnabled(false);
             holder.imageView.setAlpha(0.5f);
+            holder.checkBox.setVisibility(View.VISIBLE);
+            holder.checkBox.setChecked(true);
         }
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,10 +85,12 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
+        CheckBox checkBox;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = (ImageView) itemView.findViewById(R.id.gallery_item);
+            checkBox = (CheckBox) itemView.findViewById(R.id.checkBox);
         }
     }
 

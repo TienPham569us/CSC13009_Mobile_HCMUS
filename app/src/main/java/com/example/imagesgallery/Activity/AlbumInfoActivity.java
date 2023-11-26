@@ -359,12 +359,14 @@ public class AlbumInfoActivity extends AppCompatActivity {
         multiSelectMode = false;
         adapter.setMultiSelectMode(multiSelectMode);
         adapter.clearSelection();
+        //btnAddImage.setVisibility(View.VISIBLE);
     }
 
     private void enterMultiselectMode(int index) {
         multiSelectMode = true;
         adapter.setMultiSelectMode(multiSelectMode);
         adapter.toggleSelection(index);
+        //btnAddImage.setVisibility(View.GONE);
     }
 
     private void deleteImagesInAlbum(String path) {
@@ -408,6 +410,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                     if (data != null) {
                         Image image = (Image) data.getSerializableExtra("image");
                         if (image != null) {
+                            // add image to album
                             images.add(0, image);
                             album.setListImage(images);
                             adapter.notifyDataSetChanged();
@@ -415,6 +418,13 @@ public class AlbumInfoActivity extends AppCompatActivity {
                             contentValues.put("id_album", album.getId());
                             contentValues.put("path", image.getPath());
                             long rowID = MainActivity.db.insert("Album_Contain_Images", null, contentValues);
+
+                            // change selection index after add image to album
+                            ArrayList<Integer> selectedPositions = adapter.getSelectedPositions();
+                            for (int i = 0; i < selectedPositions.size(); i++) {
+                                selectedPositions.set(i, selectedPositions.get(i) + 1);
+                            }
+                            adapter.setSelectedPositions(selectedPositions);
                         }
                     }
                 }
@@ -439,7 +449,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
         String sql = "";
         Cursor cursor = null;
         if (IdMaxWhenStartingLoadData == 0) {
-            String[] argsAlbum = {String.valueOf(ItemsPerLoading), String.valueOf(CurrentMaxPosition)};
             try {
                 sql = "SELECT MAX(id) FROM Album_Contain_Images";
                 cursor = MainActivity.db.rawQuery(sql, null);
@@ -511,6 +520,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         resultIntent.putExtra("description", album.getDescription());
         resultIntent.putExtra("images", images);
         resultIntent.putExtra("isFavored", album.getIsFavored());
+        resultIntent.putExtra("PreviousActivity", "FavoriteAlbumActivity");
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }

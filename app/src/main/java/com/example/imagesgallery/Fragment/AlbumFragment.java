@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -38,6 +37,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -45,7 +45,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.imagesgallery.Activity.AddFavoriteAlbumActivity;
 import com.example.imagesgallery.Activity.AlbumInfoActivity;
+import com.example.imagesgallery.Activity.FavoriteAlbumsActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.AlbumAdapter;
 import com.example.imagesgallery.Model.Album;
@@ -71,12 +73,15 @@ public class AlbumFragment extends Fragment {
     TextView txtTitleDialog;
     Dialog dialog;
     MainActivity mainActivity;
+    Context context;
     ConstraintLayout constraintLayoutAlbum;
     ContentValues rowValues;
-    int clickPosition = -1, DefaultAlbumClickPosition = -1;
+    // Default: default album (not found through search)
+    // Search: albums are found through search
+    // Current: current album (default, search)
+    int CurrentClickPosition = -1, DefaultAlbumClickPosition = -1;
     ImageView imgCheckAlbum;
     Toolbar toolbar;
-    Handler handler;
     private final int ItemsPerLoading = 10;
     boolean isLoading = false;
     private final int[] DefaultCurrentMaxPosition = {0}, SearchCurrentMaxPosition = {0};
@@ -85,11 +90,15 @@ public class AlbumFragment extends Fragment {
     private final String DefaultSearchName = "";
     private String SearchName = DefaultSearchName;
     SearchView searchView;
+    AppCompatActivity activity;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainActivity = (MainActivity) getActivity();
+        context = getContext();
+        if (context instanceof MainActivity) {
+            mainActivity = (MainActivity) getActivity();
+        }
 
         setHasOptionsMenu(true);
     }
@@ -101,27 +110,38 @@ public class AlbumFragment extends Fragment {
         DefaultAlbumArrayList = new ArrayList<>();
         SearchAlbumArrayList = new ArrayList<>();
         CurrentAlbumArrayList = DefaultAlbumArrayList;
-        albumAdapter = new AlbumAdapter(mainActivity, DefaultAlbumArrayList);
+        albumAdapter = new AlbumAdapter(context, DefaultAlbumArrayList);
         rowValues = new ContentValues();
         gridView.setAdapter(albumAdapter);
 
-        mainActivity.setSupportActionBar(toolbar);
-        Objects.requireNonNull(mainActivity.getSupportActionBar()).setTitle("");
+        if (context instanceof AddFavoriteAlbumActivity) {
+            btnAddAlbum.setVisibility(View.GONE);
+        }
 
-        handler = new Handler();
+        // set toolbar
+        activity = (AppCompatActivity) getActivity();
+        activity.setSupportActionBar(toolbar);
+        if (context instanceof MainActivity) {
+            Objects.requireNonNull(activity.getSupportActionBar()).setTitle("");
+        } else {
+            if (context instanceof FavoriteAlbumsActivity) {
+                Objects.requireNonNull(activity.getSupportActionBar()).setTitle("Favorite albums");
+            } else if (context instanceof AddFavoriteAlbumActivity) {
+                Objects.requireNonNull(activity.getSupportActionBar()).setTitle("Add album to favorites");
+            }
+            Objects.requireNonNull(activity.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    activity.finish();
+                }
+            });
+        }
 
         // need to set them when load data to album tab the second time or more
         DefaultCurrentMaxPosition[0] = 0;
         isAllItemsDefaultLoaded[0] = false;
         IdMaxWhenStartingLoadDataDefault[0] = 0;
-
-        // when click button add of activity
-        btnAddAlbum.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDialog();
-            }
-        });
 
         // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
         ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
@@ -133,24 +153,24 @@ public class AlbumFragment extends Fragment {
                             String path = data.getStringExtra("CoverPath");
                             String description = data.getStringExtra("description");
                             long isDelete = data.getLongExtra("isDelete", 0);
-                            int isFavored = data.getIntExtra("isFavored",0);
+                            int isFavored = data.getIntExtra("isFavored", 0);
                             ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
 
                             // change images in album if user choose button add image or delete image in album
                             if (imageArrayListAfterChange != null) {
-                                CurrentAlbumArrayList.get(clickPosition).setListImage(imageArrayListAfterChange);
+                                CurrentAlbumArrayList.get(CurrentClickPosition).setListImage(imageArrayListAfterChange);
                                 if (CurrentAlbumArrayList == SearchAlbumArrayList) {
                                     DefaultAlbumArrayList.get(DefaultAlbumClickPosition).setListImage(imageArrayListAfterChange);
                                 }
                             }
                             // remove data if user choose delete album
                             if (isDelete != 0) {
-                                CurrentAlbumArrayList.remove(clickPosition);
+                                CurrentAlbumArrayList.remove(CurrentClickPosition);
                                 if (CurrentAlbumArrayList == SearchAlbumArrayList) {
                                     DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
                                 }
-                            } else { // change data if user change cover or description
-                                Album album = CurrentAlbumArrayList.get(clickPosition);
+                            } else { // change data of album if user change cover or description
+                                Album album = CurrentAlbumArrayList.get(CurrentClickPosition);
                                 if (path != null) {
                                     Image image = album.getCover();
                                     image.setPath(path);
@@ -161,9 +181,19 @@ public class AlbumFragment extends Fragment {
                                 }
                                 album.setIsFavored(isFavored);
 
-                                CurrentAlbumArrayList.set(clickPosition, album);
-                                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                                    DefaultAlbumArrayList.set(DefaultAlbumClickPosition, album);
+                                if (context instanceof FavoriteAlbumsActivity && isFavored == 0) {
+                                    // if user remove album from Favorites, remove it from arrayList
+                                    CurrentAlbumArrayList.remove(CurrentClickPosition);
+                                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                        DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
+                                    }
+
+                                } else if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity){
+                                    // update changes of album to arrayList
+                                    CurrentAlbumArrayList.set(CurrentClickPosition, album);
+                                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                        DefaultAlbumArrayList.set(DefaultAlbumClickPosition, album);
+                                    }
                                 }
                             }
 
@@ -173,21 +203,58 @@ public class AlbumFragment extends Fragment {
                 }
         );
 
+        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        ActivityResultLauncher<Intent> startIntentAddAlbumToFavorites = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            Album addedAlbum = (Album) data.getSerializableExtra("AlbumAddedToFavorites");
+                            CurrentAlbumArrayList.add(0, addedAlbum);
+                            albumAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+        );
+
+
+        // when click button add of activity
+        btnAddAlbum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (context instanceof MainActivity) { // add new album
+                    showDialog();
+                } else if (context instanceof FavoriteAlbumsActivity) { // add an exist album to favorites
+                    Intent intent = new Intent(context, AddFavoriteAlbumActivity.class);
+                    startIntentAddAlbumToFavorites.launch(intent);
+                }
+            }
+        });
+
         // when click item of girdview
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(mainActivity, AlbumInfoActivity.class);
-                clickPosition = i;
-                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                    for (int index = 0; index < DefaultAlbumArrayList.size(); index++) {
-                        if (DefaultAlbumArrayList.get(index).getId() == CurrentAlbumArrayList.get(clickPosition).getId()) {
-                            DefaultAlbumClickPosition = index;
+                CurrentClickPosition = i;
+                if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
+                    // see information of album
+                    Intent intent = new Intent(context, AlbumInfoActivity.class);
+
+                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                        for (int index = 0; index < DefaultAlbumArrayList.size(); index++) {
+                            if (DefaultAlbumArrayList.get(index).getId() == CurrentAlbumArrayList.get(CurrentClickPosition).getId()) {
+                                DefaultAlbumClickPosition = index;
+                            }
                         }
                     }
+
+                    intent.putExtra("album", (Serializable) CurrentAlbumArrayList.get(CurrentClickPosition));
+                    startIntentAlbumInfo.launch(intent);
+                } else if (context instanceof AddFavoriteAlbumActivity) {
+                    // add clicked album to favorites
+                    addAlbumToFavorites(CurrentClickPosition);
                 }
-                intent.putExtra("album", (Serializable) CurrentAlbumArrayList.get(clickPosition));
-                startIntentAlbumInfo.launch(intent);
             }
         });
 
@@ -206,7 +273,7 @@ public class AlbumFragment extends Fragment {
                 if (!isLoading && absListView.getLastVisiblePosition() == totalItemCount - 1 && !isAllItemLoaded) {
                     isLoading = true;
                     // Create an executor that executes tasks in the main thread and background thread
-                    Executor mainExecutor = ContextCompat.getMainExecutor(mainActivity);
+                    Executor mainExecutor = ContextCompat.getMainExecutor(context);
                     ScheduledExecutorService backgroundExecutor = Executors.newSingleThreadScheduledExecutor();
 
                     // Load data in the background thread.
@@ -235,6 +302,27 @@ public class AlbumFragment extends Fragment {
         return constraintLayoutAlbum;
     }
 
+    private void addAlbumToFavorites(int clickPos) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 1);
+        String[] args = {String.valueOf(CurrentAlbumArrayList.get(clickPos).getId())};
+        long rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+        if (rowID > 0) {
+            CurrentAlbumArrayList.get(CurrentClickPosition).setIsFavored(1);
+            finishAddFavoriteAlbumActivity();
+        } else {
+            Toast.makeText(context, "Add failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void finishAddFavoriteAlbumActivity() {
+        Intent resultIntent = new Intent();
+        Album album = CurrentAlbumArrayList.get(CurrentClickPosition);
+        resultIntent.putExtra("AlbumAddedToFavorites", album);
+        activity.setResult(Activity.RESULT_OK, resultIntent);
+        activity.finish();
+    }
+
     // Load album from database and add to arraylist
     private void loadDataFromDatabase(String SearchName, ArrayList<Album> albumArrayList, int[] currentMaxPosition, boolean[] isAllItemsLoaded, int[] IdMaxWhenStartingLoadData) {
         String sql = "";
@@ -255,9 +343,14 @@ public class AlbumFragment extends Fragment {
         }
         String[] argsAlbum = {String.valueOf(IdMaxWhenStartingLoadData[0]), "%" + SearchName + "%", String.valueOf(ItemsPerLoading), String.valueOf(currentMaxPosition[0])};
         try {
-            sql = "SELECT * FROM Album WHERE id_album <= ? AND name LIKE ? ORDER BY id_album DESC LIMIT ? OFFSET ?";
+            if (context instanceof MainActivity || context instanceof AddFavoriteAlbumActivity) {
+                sql = "SELECT * FROM Album WHERE id_album <= ? AND name LIKE ? ORDER BY id_album DESC LIMIT ? OFFSET ?";
+            } else if (context instanceof FavoriteAlbumsActivity) {
+                sql = "SELECT * FROM Album WHERE isFavored = 1 AND id_album <= ? AND name LIKE ? ORDER BY id_album DESC LIMIT ? OFFSET ?";
+            }
             cursor = MainActivity.db.rawQuery(sql, argsAlbum);
         } catch (Exception exception) {
+            Toast.makeText(context, "Some errors have occured while loading data", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -317,7 +410,7 @@ public class AlbumFragment extends Fragment {
 
     // show dialog when click button add album
     private void showDialog() {
-        dialog = new Dialog(mainActivity);
+        dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_add_album);
 
         btnAdd = (Button) dialog.findViewById(R.id.buttonAdd);
@@ -331,7 +424,7 @@ public class AlbumFragment extends Fragment {
             public void onClick(View view) {
                 String name = edtNameAlbum.getText().toString();
                 if (name.equals("")) {
-                    Toast.makeText(mainActivity, "Please enter the name of album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Please enter the name of album", Toast.LENGTH_SHORT).show();
                 } else {
                     rowValues.clear();
                     rowValues.put("description", "");
@@ -361,8 +454,8 @@ public class AlbumFragment extends Fragment {
     // resize the dialog to fit the screen size
     private void resizeDialog() {
         // resize dialog size
-        Display display = ((WindowManager) mainActivity.getSystemService(mainActivity.getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
-        int width = mainActivity.getApplicationContext().getResources().getDisplayMetrics().widthPixels;
+        Display display = ((WindowManager) context.getSystemService(mainActivity.getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
+        int width = context.getApplicationContext().getResources().getDisplayMetrics().widthPixels;
         Objects.requireNonNull(dialog.getWindow()).setLayout((6 * width) / 7, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // get screen size
@@ -383,7 +476,7 @@ public class AlbumFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        mainActivity.getMenuInflater().inflate(R.menu.menu_album_home_page, menu);
+        requireActivity().getMenuInflater().inflate(R.menu.menu_album_home_page, menu);
         MenuItem menuItemSearch = menu.findItem(R.id.search_album);
         searchView = (SearchView) menuItemSearch.getActionView();
         searchView.setMaxWidth(Integer.MAX_VALUE);
@@ -394,7 +487,9 @@ public class AlbumFragment extends Fragment {
             public boolean onQueryTextSubmit(String query) {
                 // hide other views
                 btnAddAlbum.setVisibility(View.GONE);
-                mainActivity.hideBottomNavigationView();
+                if (context instanceof MainActivity) {
+                    mainActivity.hideBottomNavigationView();
+                }
 
                 // load data
                 SearchName = query;
@@ -427,8 +522,12 @@ public class AlbumFragment extends Fragment {
             @Override
             public boolean onMenuItemActionCollapse(@NonNull MenuItem menuItem) {
                 // show other views
-                btnAddAlbum.setVisibility(View.VISIBLE);
-                mainActivity.showBottomNavigationView();
+                if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
+                    btnAddAlbum.setVisibility(View.VISIBLE);
+                }
+                if (context instanceof MainActivity) {
+                    mainActivity.showBottomNavigationView();
+                }
 
                 // load data
                 SearchName = "";
