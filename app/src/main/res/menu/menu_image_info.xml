@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/addImage"
-        android:title="Add image"
-        android:icon="@android:drawable/bottom_bar" />
     <item android:id="@+id/deleteImage"
         android:title="Delete image"
         android:icon="@android:drawable/bottom_bar" />
@@ -23,5 +20,8 @@
         android:icon="@android:drawable/bottom_bar" />
     <item android:id="@+id/removeFavorites"
         android:title="Remove from favorites"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/seeDescription"
+        android:title="See description"
         android:icon="@android:drawable/bottom_bar" />
 </menu>

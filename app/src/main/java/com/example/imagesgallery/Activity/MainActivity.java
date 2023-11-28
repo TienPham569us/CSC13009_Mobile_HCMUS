@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -388,7 +389,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, FavoriteAlbumsActivity.class);
-                startActivity(intent);
+                Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
+                if (fragment instanceof AlbumFragment){
+                    Log.d("aaaaa", "album");
+                    AlbumFragment AlbumFragment = (AlbumFragment) fragment;
+                    AlbumFragment.startIntentSeeFavoriteAlbums.launch(intent);
+                } else{
+                    Log.d("aaaaa", "image");
+                    startActivity(intent);
+                }
             }
         });
 

@@ -91,6 +91,8 @@ public class AlbumFragment extends Fragment {
     private String SearchName = DefaultSearchName;
     SearchView searchView;
     AppCompatActivity activity;
+    private ActivityResultLauncher<Intent> startIntentAlbumInfo, startIntentAddAlbumToFavorites;
+    public ActivityResultLauncher<Intent> startIntentSeeFavoriteAlbums;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -101,6 +103,7 @@ public class AlbumFragment extends Fragment {
         }
 
         setHasOptionsMenu(true);
+        initActivityResultLauncher();
     }
 
     @Override
@@ -142,81 +145,6 @@ public class AlbumFragment extends Fragment {
         DefaultCurrentMaxPosition[0] = 0;
         isAllItemsDefaultLoaded[0] = false;
         IdMaxWhenStartingLoadDataDefault[0] = 0;
-
-        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
-        ActivityResultLauncher<Intent> startIntentAlbumInfo = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null) {
-                            String path = data.getStringExtra("CoverPath");
-                            String description = data.getStringExtra("description");
-                            long isDelete = data.getLongExtra("isDelete", 0);
-                            int isFavored = data.getIntExtra("isFavored", 0);
-                            ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
-
-                            // change images in album if user choose button add image or delete image in album
-                            if (imageArrayListAfterChange != null) {
-                                CurrentAlbumArrayList.get(CurrentClickPosition).setListImage(imageArrayListAfterChange);
-                                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                                    DefaultAlbumArrayList.get(DefaultAlbumClickPosition).setListImage(imageArrayListAfterChange);
-                                }
-                            }
-                            // remove data if user choose delete album
-                            if (isDelete != 0) {
-                                CurrentAlbumArrayList.remove(CurrentClickPosition);
-                                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                                    DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
-                                }
-                            } else { // change data of album if user change cover or description
-                                Album album = CurrentAlbumArrayList.get(CurrentClickPosition);
-                                if (path != null) {
-                                    Image image = album.getCover();
-                                    image.setPath(path);
-                                    album.setCover(image);
-                                }
-                                if (description != null) {
-                                    album.setDescription(description);
-                                }
-                                album.setIsFavored(isFavored);
-
-                                if (context instanceof FavoriteAlbumsActivity && isFavored == 0) {
-                                    // if user remove album from Favorites, remove it from arrayList
-                                    CurrentAlbumArrayList.remove(CurrentClickPosition);
-                                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                                        DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
-                                    }
-
-                                } else if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity){
-                                    // update changes of album to arrayList
-                                    CurrentAlbumArrayList.set(CurrentClickPosition, album);
-                                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                                        DefaultAlbumArrayList.set(DefaultAlbumClickPosition, album);
-                                    }
-                                }
-                            }
-
-                            albumAdapter.notifyDataSetChanged();
-                        }
-                    }
-                }
-        );
-
-        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
-        ActivityResultLauncher<Intent> startIntentAddAlbumToFavorites = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null) {
-                            Album addedAlbum = (Album) data.getSerializableExtra("AlbumAddedToFavorites");
-                            CurrentAlbumArrayList.add(0, addedAlbum);
-                            albumAdapter.notifyDataSetChanged();
-                        }
-                    }
-                }
-        );
 
 
         // when click button add of activity
@@ -325,6 +253,7 @@ public class AlbumFragment extends Fragment {
 
     // Load album from database and add to arraylist
     private void loadDataFromDatabase(String SearchName, ArrayList<Album> albumArrayList, int[] currentMaxPosition, boolean[] isAllItemsLoaded, int[] IdMaxWhenStartingLoadData) {
+        Log.d("aaaa", "before: " + CurrentAlbumArrayList.size());
         String sql = "";
         Cursor cursor = null;
         if (IdMaxWhenStartingLoadData[0] == 0) {
@@ -400,6 +329,7 @@ public class AlbumFragment extends Fragment {
 
         cursor.close();
         currentMaxPosition[0] += ItemsPerLoading;
+        Log.d("aaaa", "after: " + CurrentAlbumArrayList.size());
     }
 
     private void init() {
@@ -539,5 +469,94 @@ public class AlbumFragment extends Fragment {
             }
         });
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void initActivityResultLauncher() {
+        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        startIntentAlbumInfo = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            String path = data.getStringExtra("CoverPath");
+                            String description = data.getStringExtra("description");
+                            long isDelete = data.getLongExtra("isDelete", 0);
+                            int isFavored = data.getIntExtra("isFavored", 0);
+                            ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
+
+                            // change images in album if user choose button add image or delete image in album
+                            if (imageArrayListAfterChange != null) {
+                                CurrentAlbumArrayList.get(CurrentClickPosition).setListImage(imageArrayListAfterChange);
+                                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                    DefaultAlbumArrayList.get(DefaultAlbumClickPosition).setListImage(imageArrayListAfterChange);
+                                }
+                            }
+                            // remove data if user choose delete album
+                            if (isDelete != 0) {
+                                CurrentAlbumArrayList.remove(CurrentClickPosition);
+                                if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                    DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
+                                }
+                            } else { // change data of album if user change cover or description
+                                Album album = CurrentAlbumArrayList.get(CurrentClickPosition);
+                                if (path != null) {
+                                    Image image = album.getCover();
+                                    image.setPath(path);
+                                    album.setCover(image);
+                                }
+                                if (description != null) {
+                                    album.setDescription(description);
+                                }
+                                album.setIsFavored(isFavored);
+
+                                if (context instanceof FavoriteAlbumsActivity && isFavored == 0) {
+                                    // if user remove album from Favorites, remove it from arrayList
+                                    CurrentAlbumArrayList.remove(CurrentClickPosition);
+                                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                        DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
+                                    }
+
+                                } else if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity){
+                                    // update changes of album to arrayList
+                                    CurrentAlbumArrayList.set(CurrentClickPosition, album);
+                                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                                        DefaultAlbumArrayList.set(DefaultAlbumClickPosition, album);
+                                    }
+                                }
+                            }
+
+                            albumAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+        );
+
+        // after choosing an album to add to favorites and finish AddFavoriteAlbumActivity
+        startIntentAddAlbumToFavorites = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            Album addedAlbum = (Album) data.getSerializableExtra("AlbumAddedToFavorites");
+                            CurrentAlbumArrayList.add(0, addedAlbum);
+                            albumAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+        );
+
+        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        startIntentSeeFavoriteAlbums = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    CurrentAlbumArrayList.clear();
+                    DefaultCurrentMaxPosition[0] = 0;
+                    isAllItemsDefaultLoaded[0] = false;
+                    IdMaxWhenStartingLoadDataDefault[0] = 0;
+                    albumAdapter.notifyDataSetChanged();
+                }
+        );
     }
 }

@@ -2,6 +2,8 @@ package com.example.imagesgallery.Activity;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -26,7 +28,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -42,7 +43,6 @@ import com.example.imagesgallery.R;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -65,7 +65,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
 //    Button slideshowButton;
     boolean multiSelectMode = false;
     ArrayList<Image> deletedImagesArrayList;
-    int OrderInDatabase;
     boolean isLoading = false, isAllItemsLoaded = false;
     private final int ItemsPerLoading = 21;
     private int CurrentMaxPosition = 0, IdMaxWhenStartingLoadData = 0;
@@ -76,21 +75,13 @@ public class AlbumInfoActivity extends AppCompatActivity {
         public void click(int index) {
             clickPosition = index;
             int id_album = album.getId();
-            OrderInDatabase = 1;  // Order of image among identical images in the same album
             ArrayList<Image> listImage = album.getListImage();
-            String pathImage = listImage.get(index).getPath();
-            for (int i = 0; i < index; i++) {
-                if (listImage.get(i).getPath().equals(pathImage)) {
-                    OrderInDatabase++;
-                }
-            }
 
             Intent intent = new Intent(AlbumInfoActivity.this, ImageInfoActivity.class);
             intent.putExtra("PreviousActivity", "AlbumInfoActivity");
             intent.putExtra("id_album", id_album);
             intent.putExtra("position", index);
             intent.putExtra("image", (Serializable) listImage.get(index));
-            intent.putExtra("OrderInDatabase", OrderInDatabase);
             startIntentSeeImageInfo.launch(intent);
         }
 

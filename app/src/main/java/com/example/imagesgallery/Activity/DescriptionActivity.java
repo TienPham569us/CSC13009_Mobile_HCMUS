@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -16,8 +17,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.imagesgallery.Model.Album;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class DescriptionActivity extends AppCompatActivity {
@@ -25,6 +28,7 @@ public class DescriptionActivity extends AppCompatActivity {
     Toolbar toolbar;
     EditText edtDescription;
     Album album;
+    Image image;
     long rowID = 0;
 
     @Override
@@ -34,11 +38,31 @@ public class DescriptionActivity extends AppCompatActivity {
 
         init();
 
-        // set description of album
+        // set description (album)
         album = (Album) getIntent().getSerializableExtra("album");
         if (album != null) {
             edtDescription.setText(album.getDescription());
         }
+
+        // set description (image)
+        image = (Image) getIntent().getSerializableExtra("image");
+        if (image != null) {
+            /*TODO: edtDescription.setText(image.getDescription());*/
+
+            String[] args = {image.getPath()};
+            Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+            while (cursor.moveToNext()) {
+                int descriptionColumn = cursor.getColumnIndex("description");
+                String description = cursor.getString(descriptionColumn);
+                if (description != null) {
+                    image.setDescription(description);
+                } else {
+                    image.setDescription("");
+                }
+                edtDescription.setText(image.getDescription());
+            }
+        }
+
         edtDescription.setFocusableInTouchMode(false);
         edtDescription.setFocusable(false);
 
@@ -92,8 +116,16 @@ public class DescriptionActivity extends AppCompatActivity {
 
                 ContentValues contentValues = new ContentValues();
                 contentValues.put("description", description_changed);
-                String[] args = {String.valueOf(album.getId())};
-                rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+                String[] args = {""};
+
+                if (album != null) {
+                    args[0] = String.valueOf(album.getId());
+                    rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+                } else if (image != null) {
+                    args[0] = image.getPath();
+                    rowID = MainActivity.db.update("Image", contentValues, "path = ?", args);
+                }
+
                 if (rowID > 0) {
                     edtDescription.setText(description_changed);
                 } else {

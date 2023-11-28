@@ -20,6 +20,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +37,7 @@ import com.example.imagesgallery.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -123,12 +126,10 @@ public class ImageInfoActivity extends AppCompatActivity {
             Toast.makeText(this, "Them hinh", Toast.LENGTH_SHORT).show();
 
         } else if (itemID == R.id.deleteImage) {
-            //Toast.makeText(this, "Xoa anh", Toast.LENGTH_SHORT).show();
             createDialogDeleteImage();
 
             //Glide.with(this).load(nextImageTemp).into(imageView);
         } else if (itemID == R.id.infomation) {
-            //Toast.makeText(this, "Thong tin", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(ImageInfoActivity.this, DetailImageActivity.class);
             Bundle bundle = new Bundle();
             bundle.putInt("position", imagePosition);
@@ -146,9 +147,17 @@ public class ImageInfoActivity extends AppCompatActivity {
         } else if (itemID == R.id.removeFavorites) {
             removeAlbumFromFavorites();
             invalidateOptionsMenu();
+        } else if (itemID == R.id.seeDescription) {
+            seeDescriptionImage();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void seeDescriptionImage() {
+        Intent intent = new Intent(ImageInfoActivity.this, DescriptionActivity.class);
+        intent.putExtra("image", (Serializable) image);
+        startIntentSeeeDescription.launch(intent);
     }
 
     private void addImageToFavorites() {
@@ -294,10 +303,9 @@ public class ImageInfoActivity extends AppCompatActivity {
 
     private void RemoveImageFromAlbum() {
         int id_album = getIntent().getIntExtra("id_album", -1);
-        int OrderInDatabase = getIntent().getIntExtra("OrderInDatabase", 1);
 
-        String[] args = {String.valueOf(id_album), image.getPath(), String.valueOf(OrderInDatabase - 1)};
-        String sql = "DELETE FROM Album_Contain_Images WHERE id = (SELECT id FROM Album_Contain_Images WHERE id_album = ? AND path = ? LIMIT 1 OFFSET ?)";
+        String[] args = {String.valueOf(id_album), image.getPath()};
+        String sql = "DELETE FROM Album_Contain_Images WHERE id_album = ? AND path = ?";
         MainActivity.db.execSQL(sql, args);
 
         Intent resultIntent = new Intent();
@@ -305,5 +313,20 @@ public class ImageInfoActivity extends AppCompatActivity {
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
+
+    // when click button back in toolbar or in smartphone to finish DescriptionActivity
+    ActivityResultLauncher<Intent> startIntentSeeeDescription = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        // get result from DescriptionActivity and change description
+                        String description = data.getStringExtra("description");
+                        image.setDescription(description);
+                    }
+                }
+            }
+    );
 }
 

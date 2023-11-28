@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
@@ -22,10 +23,13 @@ import java.util.ArrayList;
 public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.ViewHolder> {
     private Context context;
     private ArrayList<Image> imageArrayList;
+    ClickListener clickListener;
 
-    public ChooseImageAdapter(Context context, ArrayList<Image> imageArrayList) {
+    public ChooseImageAdapter(Context context, ArrayList<Image> imageArrayList, ClickListener clickListener) {
         this.context = context;
         this.imageArrayList = imageArrayList;
+        this.selectedImages = new ArrayList<>(); //For multi select
+        this.clickListener = clickListener;
     }
 
     public Context getContext() {
@@ -44,6 +48,70 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         this.imageArrayList = imageArrayList;
     }
 
+    private boolean isMultiSelectMode = false;
+    private ArrayList<Integer> selectedPositions = new ArrayList<>();
+    private ArrayList<Image> selectedImages; // New list to track selected images
+
+    public interface SelectionChangeListener {
+        void onSelectionChanged(boolean hasSelection);
+    }
+
+    private ImageAdapter.SelectionChangeListener selectionChangeListener;
+
+    public void setSelectionChangeListener(ImageAdapter.SelectionChangeListener listener) {
+        this.selectionChangeListener = listener;
+    }
+
+    public void setMultiSelectMode(boolean multiSelectMode) {
+        this.isMultiSelectMode = multiSelectMode;
+    }
+
+    public ArrayList<Image> getSelectedImages() {
+        return selectedImages;
+    }
+
+    public ArrayList<Integer> getSelectedPositions() {
+        return selectedPositions;
+    }
+
+    public void setSelectedPositions(ArrayList<Integer> selectedPositions) {
+        this.selectedPositions = selectedPositions;
+    }
+
+    public void setSelectedImages(ArrayList<Image> selectedImages) {
+        this.selectedImages = selectedImages;
+    }
+
+    public void toggleSelection(int position) {
+        Image image = imageArrayList.get(position);
+        if (selectedImages.contains(image)) {
+            selectedImages.remove(image);
+        } else {
+            selectedImages.add(image);
+        }
+
+        if (selectedPositions.contains(position)) {
+            selectedPositions.remove(Integer.valueOf(position));
+        } else {
+            selectedPositions.add(position);
+        }
+
+        if (selectionChangeListener != null) {
+            selectionChangeListener.onSelectionChanged(!selectedImages.isEmpty());
+        }
+        notifyDataSetChanged(); // Update the UI to reflect the selection
+    }
+
+    //AT Clear the selection
+    public void clearSelection() {
+        selectedImages.clear();
+        selectedPositions.clear();
+        notifyDataSetChanged(); // Update the UI to clear selection
+        if (selectionChangeListener != null) {
+            selectionChangeListener.onSelectionChanged(false);
+        }
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -53,12 +121,23 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int pos = position;
-        File image_file = new File(imageArrayList.get(position).getPath());
+        File image_file = new File(imageArrayList.get(pos).getPath());
         if (image_file.exists()) {
             Glide.with(context).load(image_file).into(holder.imageView);
         }
 
-        if (!imageArrayList.get(position).isCanAddToCurrentAlbum()){
+        boolean isSelected = selectedImages.contains(imageArrayList.get(pos));
+        holder.itemView.setSelected(isSelected);
+
+        if (selectedPositions.contains(pos)) {
+            holder.checkBox.setVisibility(View.VISIBLE);
+            holder.checkBox.setChecked(true);
+        } else {
+            holder.checkBox.setVisibility(View.GONE);
+            holder.checkBox.setChecked(false);
+        }
+
+        if (!imageArrayList.get(pos).isCanAddToCurrentAlbum()) {
             // disable image and change its appearance if it is in current album
             holder.imageView.setEnabled(false);
             holder.imageView.setAlpha(0.5f);
@@ -68,12 +147,26 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("image", imageArrayList.get(pos));
-                if (context instanceof Activity) {
-                    ((Activity) context).setResult(Activity.RESULT_OK, resultIntent);
-                    ((Activity) context).finish();
+                if (isMultiSelectMode){
+                    toggleSelection(pos);
+                    notifyDataSetChanged();
+                } else{
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("image", imageArrayList.get(pos));
+                    if (context instanceof Activity) {
+                        ((Activity) context).setResult(Activity.RESULT_OK, resultIntent);
+                        ((Activity) context).finish();
+                    }
                 }
+            }
+        });
+
+        holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                int position = holder.getAdapterPosition();
+                clickListener.longClick(position);
+                return true;
             }
         });
     }
