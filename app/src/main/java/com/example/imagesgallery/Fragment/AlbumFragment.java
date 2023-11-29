@@ -93,6 +93,7 @@ public class AlbumFragment extends Fragment {
     AppCompatActivity activity;
     private ActivityResultLauncher<Intent> startIntentAlbumInfo, startIntentAddAlbumToFavorites;
     public ActivityResultLauncher<Intent> startIntentSeeFavoriteAlbums;
+    boolean isLongClick = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,6 +111,7 @@ public class AlbumFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         constraintLayoutAlbum = (ConstraintLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
+        isLongClick = false;
         DefaultAlbumArrayList = new ArrayList<>();
         SearchAlbumArrayList = new ArrayList<>();
         CurrentAlbumArrayList = DefaultAlbumArrayList;
@@ -133,13 +135,23 @@ public class AlbumFragment extends Fragment {
                 Objects.requireNonNull(activity.getSupportActionBar()).setTitle("Add album to favorites");
             }
             Objects.requireNonNull(activity.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+        }
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isLongClick) {
+                    isLongClick = false;
+                    if (context instanceof MainActivity){
+                        mainActivity.showBottomNavigationView();
+                    }
+                    btnAddAlbum.setVisibility(View.VISIBLE);
+                    activity.invalidateOptionsMenu();
+                } else {
                     activity.finish();
                 }
-            });
-        }
+            }
+        });
 
         // need to set them when load data to album tab the second time or more
         DefaultCurrentMaxPosition[0] = 0;
@@ -183,6 +195,19 @@ public class AlbumFragment extends Fragment {
                     // add clicked album to favorites
                     addAlbumToFavorites(CurrentClickPosition);
                 }
+            }
+        });
+
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                isLongClick = true;
+                if (context instanceof MainActivity){
+                    mainActivity.hideBottomNavigationView();
+                }
+                btnAddAlbum.setVisibility(View.GONE);
+                activity.invalidateOptionsMenu();
+                return true;
             }
         });
 
@@ -406,69 +431,89 @@ public class AlbumFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        requireActivity().getMenuInflater().inflate(R.menu.menu_album_home_page, menu);
-        MenuItem menuItemSearch = menu.findItem(R.id.search_album);
-        searchView = (SearchView) menuItemSearch.getActionView();
-        searchView.setMaxWidth(Integer.MAX_VALUE);
+        if (isLongClick) {
+            requireActivity().getMenuInflater().inflate(R.menu.menu_album_home_page_long_click, menu);
+            Objects.requireNonNull(activity.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+            Objects.requireNonNull(activity.getSupportActionBar()).setHomeAsUpIndicator(R.drawable.close_icon);
+        } else {
+            requireActivity().getMenuInflater().inflate(R.menu.menu_album_home_page, menu);
+            if (context instanceof MainActivity) {
+                Objects.requireNonNull(activity.getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
+            } else {
+                Objects.requireNonNull(activity.getSupportActionBar()).setHomeAsUpIndicator(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+            }
+            MenuItem menuItemSearch = menu.findItem(R.id.search_album);
+            searchView = (SearchView) menuItemSearch.getActionView();
+            searchView.setMaxWidth(Integer.MAX_VALUE);
 
-        // when click enter to search
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                // hide other views
-                btnAddAlbum.setVisibility(View.GONE);
-                if (context instanceof MainActivity) {
-                    mainActivity.hideBottomNavigationView();
+            // when click enter to search
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    // hide other views
+                    btnAddAlbum.setVisibility(View.GONE);
+                    if (context instanceof MainActivity) {
+                        mainActivity.hideBottomNavigationView();
+                    }
+
+                    // load data
+                    SearchName = query;
+                    SearchCurrentMaxPosition[0] = 0;
+                    isAllItemsSearchLoaded[0] = false;
+                    IdMaxWhenStartingLoadDataSearch[0] = 0;
+                    SearchAlbumArrayList.clear();
+                    CurrentAlbumArrayList = SearchAlbumArrayList;
+                    albumAdapter.setAlbumArrayList(CurrentAlbumArrayList);
+                    loadDataFromDatabase(SearchName, CurrentAlbumArrayList, SearchCurrentMaxPosition, isAllItemsSearchLoaded, IdMaxWhenStartingLoadDataSearch);
+                    searchView.clearFocus();
+                    return true;
                 }
 
-                // load data
-                SearchName = query;
-                SearchCurrentMaxPosition[0] = 0;
-                isAllItemsSearchLoaded[0] = false;
-                IdMaxWhenStartingLoadDataSearch[0] = 0;
-                SearchAlbumArrayList.clear();
-                CurrentAlbumArrayList = SearchAlbumArrayList;
-                albumAdapter.setAlbumArrayList(CurrentAlbumArrayList);
-                loadDataFromDatabase(SearchName, CurrentAlbumArrayList, SearchCurrentMaxPosition, isAllItemsSearchLoaded, IdMaxWhenStartingLoadDataSearch);
-                searchView.clearFocus();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });
-
-
-        menuItemSearch.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-            // when click search button
-            @Override
-            public boolean onMenuItemActionExpand(@NonNull MenuItem menuItem) {
-                return true;
-            }
-
-            // when click button back on SearchView
-            @Override
-            public boolean onMenuItemActionCollapse(@NonNull MenuItem menuItem) {
-                // show other views
-                if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
-                    btnAddAlbum.setVisibility(View.VISIBLE);
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    return false;
                 }
-                if (context instanceof MainActivity) {
-                    mainActivity.showBottomNavigationView();
+            });
+
+
+            menuItemSearch.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                // when click search button
+                @Override
+                public boolean onMenuItemActionExpand(@NonNull MenuItem menuItem) {
+                    return true;
                 }
 
-                // load data
-                SearchName = "";
-                SearchAlbumArrayList.clear();
-                CurrentAlbumArrayList = DefaultAlbumArrayList;
-                albumAdapter.setAlbumArrayList(CurrentAlbumArrayList);
-                albumAdapter.notifyDataSetChanged();
-                return true;
-            }
-        });
+                // when click button back on SearchView
+                @Override
+                public boolean onMenuItemActionCollapse(@NonNull MenuItem menuItem) {
+                    // show other views
+                    if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
+                        btnAddAlbum.setVisibility(View.VISIBLE);
+                    }
+                    if (context instanceof MainActivity) {
+                        mainActivity.showBottomNavigationView();
+                    }
+
+                    // load data
+                    SearchName = "";
+                    SearchAlbumArrayList.clear();
+                    CurrentAlbumArrayList = DefaultAlbumArrayList;
+                    albumAdapter.setAlbumArrayList(CurrentAlbumArrayList);
+                    albumAdapter.notifyDataSetChanged();
+                    return true;
+                }
+            });
+        }
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemID = item.getItemId();
+        if (itemID == R.id.deleteAlbums) {
+            Toast.makeText(context, "delete", Toast.LENGTH_SHORT).show();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void initActivityResultLauncher() {
@@ -517,7 +562,7 @@ public class AlbumFragment extends Fragment {
                                         DefaultAlbumArrayList.remove(DefaultAlbumClickPosition);
                                     }
 
-                                } else if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity){
+                                } else if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
                                     // update changes of album to arrayList
                                     CurrentAlbumArrayList.set(CurrentClickPosition, album);
                                     if (CurrentAlbumArrayList == SearchAlbumArrayList) {

@@ -392,36 +392,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
         }
     }
 
-    // activity launcher of adding image to album
-    ActivityResultLauncher<Intent> startIntentAddImage = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    Intent data = result.getData();
-                    if (data != null) {
-                        Image image = (Image) data.getSerializableExtra("image");
-                        if (image != null) {
-                            // add image to album
-                            images.add(0, image);
-                            album.setListImage(images);
-                            adapter.notifyDataSetChanged();
-                            ContentValues contentValues = new ContentValues();
-                            contentValues.put("id_album", album.getId());
-                            contentValues.put("path", image.getPath());
-                            long rowID = MainActivity.db.insert("Album_Contain_Images", null, contentValues);
-
-                            // change selection index after add image to album
-                            ArrayList<Integer> selectedPositions = adapter.getSelectedPositions();
-                            for (int i = 0; i < selectedPositions.size(); i++) {
-                                selectedPositions.set(i, selectedPositions.get(i) + 1);
-                            }
-                            adapter.setSelectedPositions(selectedPositions);
-                        }
-                    }
-                }
-            }
-    );
-
     private void moveToChangeDescriptionScreen() {
         Intent intent = new Intent(AlbumInfoActivity.this, DescriptionActivity.class);
         intent.putExtra("album", (Serializable) album);
@@ -432,7 +402,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         Intent intent = new Intent(AlbumInfoActivity.this, ChooseImageActivity.class);
         intent.putExtra("album", (Serializable) album);
         intent.putExtra("action", ACTION_ADD_IMAGE);
-        startIntentAddImage.launch(intent);
+        startIntentAddImages.launch(intent);
     }
 
     private void loadDataFromDatabase() {
@@ -512,6 +482,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         resultIntent.putExtra("images", images);
         resultIntent.putExtra("isFavored", album.getIsFavored());
         resultIntent.putExtra("PreviousActivity", "FavoriteAlbumActivity");
+        resultIntent.putExtra("isDelete", 1);
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
@@ -673,10 +644,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         String[] args = {String.valueOf(album.getId())};
         long rowID = MainActivity.db.delete("Album", "id_album = ?", args);
         if (rowID > 0) {
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("isDelete", rowID);
-            setResult(Activity.RESULT_OK, resultIntent);
-            finish();
+            finishActivity();
         } else {
             Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
         }
@@ -694,10 +662,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
                         if (image != null) {
                             album.setCover(image);
                             Glide.with(AlbumInfoActivity.this).load(album.getCover().getPath()).into(imgCoverAlbum);
-                            ContentValues contentValues = new ContentValues();
-                            contentValues.put("cover", image.getPath());
-                            String[] args2 = {String.valueOf(album.getId())};
-                            MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
                         }
                     }
                 }
@@ -752,6 +716,39 @@ public class AlbumInfoActivity extends AppCompatActivity {
                         if (pathRemoved == null && pathDeleted == null) {
                             // update favorite of image
                             images.get(clickPosition).setIsFavored(isFavored);
+                        }
+                    }
+                }
+            }
+    );
+
+    // activity launcher of adding images to album
+    ActivityResultLauncher<Intent> startIntentAddImages = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        Image image = (Image) data.getSerializableExtra("image");
+                        ArrayList<Image> addedImageArrayList = (ArrayList<Image>) data.getSerializableExtra("selectedImages");
+
+                        if (image != null) {
+                            // add image to album
+                            images.add(0, image);
+                            album.setListImage(images);
+                            adapter.notifyItemInserted(0);
+
+                            // change selection index after add image to album
+                            ArrayList<Integer> selectedPositions = adapter.getSelectedPositions();
+                            selectedPositions.replaceAll(integer -> integer + 1);
+                            adapter.setSelectedPositions(selectedPositions);
+                        }
+
+                        if (addedImageArrayList != null) {
+                            for (int i = 0; i < addedImageArrayList.size(); i++) {
+                                images.add(0, addedImageArrayList.get(i));
+                            }
+                            adapter.notifyItemRangeChanged(0, addedImageArrayList.size());
                         }
                     }
                 }

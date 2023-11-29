@@ -8,9 +8,13 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -46,10 +50,42 @@ public class ChooseImageActivity extends AppCompatActivity {
     private final int ItemsPerLoading = 21;
     boolean multiSelectMode = false;
     boolean isLongClick = false;
+    int clickPosition = -1;
     ClickListener clickListener = new ClickListener() {
         @Override
         public void click(int index) {
+            clickPosition = index;
+            if (chooseImageAdapter.isInMultiSelectMode()) { // if this activity is in multi select mode
+                // set chosen image checked
+                chooseImageAdapter.toggleSelection(index);
+                chooseImageAdapter.notifyDataSetChanged();
+            } else { // if this activity is not in multi select mode
+                int action = getIntent().getIntExtra("action", 0);
+                ContentValues contentValues = new ContentValues();
+                long rowID = 0;
 
+                // change database
+                if (action == AlbumInfoActivity.ACTION_ADD_IMAGE) { // if user choose adding an image to album
+                    contentValues.put("id_album", album.getId());
+                    contentValues.put("path", imageArrayList.get(index).getPath());
+                    rowID = MainActivity.db.insert("Album_Contain_Images", null, contentValues);
+                } else if (action == AlbumInfoActivity.ACTION_CHANGE_COVER) { // if user choose changing cover
+                    contentValues.put("cover", imageArrayList.get(index).getPath());
+                    String[] args2 = {String.valueOf(album.getId())};
+                    rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args2);
+                }
+
+                if (rowID > 0) {
+                    finishActivity();
+                } else {
+                    // show error
+                    if (action == AlbumInfoActivity.ACTION_CHANGE_COVER) {
+                        Toast.makeText(ChooseImageActivity.this, "Change cover failed", Toast.LENGTH_SHORT).show();
+                    } else if (action == AlbumInfoActivity.ACTION_ADD_IMAGE) {
+                        Toast.makeText(ChooseImageActivity.this, "Add image to album failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
         }
 
         @Override
@@ -152,19 +188,44 @@ public class ChooseImageActivity extends AppCompatActivity {
         }
 
         ArrayList<Image> selectedImages = chooseImageAdapter.getSelectedImages();
-        // Define variables to track the number of successfully deleted images
-        for (int i = 0; i < selectedImages.size(); i++) {
-            Log.d("aaaa", selectedImages.get(i).getPath());
+
+        // change database
+        MainActivity.db.beginTransaction();
+        try {
+            for (int i = 0; i < selectedImages.size(); i++) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("id_album", album.getId());
+                contentValues.put("path", selectedImages.get(i).getPath());
+                MainActivity.db.insert("Album_Contain_Images", null, contentValues);
+            }
+            MainActivity.db.setTransactionSuccessful();
+        } catch (SQLiteException e) {
+            Toast.makeText(this, "Insert failed", Toast.LENGTH_SHORT).show();
+        } finally {
+            MainActivity.db.endTransaction();
+            finishActivity();
         }
-
-        /*TODO: finish activity*/
-
     }
 
     private void init() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         recyclerView = (RecyclerView) findViewById(R.id.listImageToAdd);
         btnAddImages = (ImageButton) findViewById(R.id.btnAddImages_album);
+    }
+
+    private void finishActivity() {
+        if (!chooseImageAdapter.isInMultiSelectMode()){ // if user only choose 1 image in normal mode
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("image", imageArrayList.get(clickPosition));
+            setResult(Activity.RESULT_OK, resultIntent);
+            finish();
+        } else { // if user only choose images in multi select mode
+            ArrayList<Image> selectedImages = chooseImageAdapter.getSelectedImages();
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("selectedImages", selectedImages);
+            setResult(Activity.RESULT_OK, resultIntent);
+            finish();
+        }
     }
 
     private void loadImages() {
@@ -234,36 +295,5 @@ public class ChooseImageActivity extends AppCompatActivity {
             Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
             btnAddImages.setVisibility(View.GONE);
         }
-    }
-
-    public void createDialogDeleteImage() {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        if (chooseImageAdapter.getSelectedImages().size() == 0) {
-            Toast.makeText(this, "You have not chosen any images", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        builder.setMessage("Are you sure you want to delete these images ?");
-
-        // click yes
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-
-                ArrayList<Image> selectedImages = chooseImageAdapter.getSelectedImages();
-                // Define variables to track the number of successfully deleted images
-                for (Image imagePath : selectedImages) {
-                    //deleteImagesInAlbum(imagePath);
-                }
-                exitMultiselectMode();
-            }
-        });
-        // click no
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.dismiss();
-            }
-        });
-
-        androidx.appcompat.app.AlertDialog dialog = builder.create();
-        dialog.show();
     }
 }

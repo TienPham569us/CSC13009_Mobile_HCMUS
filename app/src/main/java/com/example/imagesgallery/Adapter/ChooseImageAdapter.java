@@ -66,6 +66,10 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         this.isMultiSelectMode = multiSelectMode;
     }
 
+    public boolean isInMultiSelectMode() {
+        return isMultiSelectMode;
+    }
+
     public ArrayList<Image> getSelectedImages() {
         return selectedImages;
     }
@@ -147,17 +151,8 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isMultiSelectMode){
-                    toggleSelection(pos);
-                    notifyDataSetChanged();
-                } else{
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("image", imageArrayList.get(pos));
-                    if (context instanceof Activity) {
-                        ((Activity) context).setResult(Activity.RESULT_OK, resultIntent);
-                        ((Activity) context).finish();
-                    }
-                }
+                int position = holder.getAdapterPosition();
+                clickListener.click(position);
             }
         });
 
