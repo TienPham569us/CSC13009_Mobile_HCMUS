@@ -5,4 +5,8 @@
         android:title="Delete albums"
         android:icon="@android:drawable/ic_menu_delete"
         app:showAsAction="always"/>
+    <item android:id="@+id/removeAlbumsFromFavorites"
+        android:title="Remove albums from favorite"
+        android:icon="@drawable/remove_favorites"
+        app:showAsAction="always" />
 </menu>

@@ -109,11 +109,11 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         int isFavored = image.getIsFavored();
         if (isFavored == 1) {
-            menu.findItem(R.id.removeFavorites).setVisible(true);
-            menu.findItem(R.id.addFavorites).setVisible(false);
+            menu.findItem(R.id.removeImageFromFavorites).setVisible(true);
+            menu.findItem(R.id.addImageToFavorites).setVisible(false);
         } else if (isFavored == 0) {
-            menu.findItem(R.id.removeFavorites).setVisible(false);
-            menu.findItem(R.id.addFavorites).setVisible(true);
+            menu.findItem(R.id.removeImageFromFavorites).setVisible(false);
+            menu.findItem(R.id.addImageToFavorites).setVisible(true);
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -141,10 +141,10 @@ public class ImageInfoActivity extends AppCompatActivity {
             setAsWallpaper();
         } else if (itemID == R.id.shareImage) {
             shareImage();
-        } else if (itemID == R.id.addFavorites) {
+        } else if (itemID == R.id.addImageToFavorites) {
             addImageToFavorites();
             invalidateOptionsMenu();
-        } else if (itemID == R.id.removeFavorites) {
+        } else if (itemID == R.id.removeImageFromFavorites) {
             removeAlbumFromFavorites();
             invalidateOptionsMenu();
         } else if (itemID == R.id.seeDescription) {

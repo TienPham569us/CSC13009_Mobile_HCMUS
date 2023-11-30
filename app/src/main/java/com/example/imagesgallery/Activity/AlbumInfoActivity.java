@@ -58,12 +58,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
     ImageButton btnAddImage;
     ImageAdapter adapter;
     ArrayList<Image> images;
-    boolean isLongClick = false;
     //AT: Add button multiSelectButton
 //    Button multiSelectButton; //id: multiSelectBtnAlbum
 //    Button deleteButton;
 //    Button slideshowButton;
-    boolean multiSelectMode = false;
     ArrayList<Image> deletedImagesArrayList;
     boolean isLoading = false, isAllItemsLoaded = false;
     private final int ItemsPerLoading = 21;
@@ -88,7 +86,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         @Override
         public void longClick(int index) {
             // change toolbar
-            isLongClick = true;
+            adapter.setMultiSelectMode(true);
             invalidateOptionsMenu();
             // Enter multi-select mode
             enterMultiselectMode(index);
@@ -275,7 +273,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isLongClick) {
+                if (!adapter.isInMultiSelectMode()) {
                     finishActivity(); // return to album tab
                 } else {
                     // cancel multi select mode
@@ -345,19 +343,16 @@ public class AlbumInfoActivity extends AppCompatActivity {
     }
 
     private void exitMultiselectMode() {
-        isLongClick = false;
         invalidateOptionsMenu();
-        multiSelectMode = false;
-        adapter.setMultiSelectMode(multiSelectMode);
+        adapter.setMultiSelectMode(false);
         adapter.clearSelection();
-        //btnAddImage.setVisibility(View.VISIBLE);
+        btnAddImage.setVisibility(View.VISIBLE);
     }
 
     private void enterMultiselectMode(int index) {
-        multiSelectMode = true;
-        adapter.setMultiSelectMode(multiSelectMode);
+        adapter.setMultiSelectMode(true);
         adapter.toggleSelection(index);
-        //btnAddImage.setVisibility(View.GONE);
+        btnAddImage.setVisibility(View.GONE);
     }
 
     private void deleteImagesInAlbum(String path) {
@@ -482,7 +477,6 @@ public class AlbumInfoActivity extends AppCompatActivity {
         resultIntent.putExtra("images", images);
         resultIntent.putExtra("isFavored", album.getIsFavored());
         resultIntent.putExtra("PreviousActivity", "FavoriteAlbumActivity");
-        resultIntent.putExtra("isDelete", 1);
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
@@ -496,7 +490,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (isLongClick) {
+        if (adapter.isInMultiSelectMode()) {
             getMenuInflater().inflate(R.menu.menu_album_info_long_click, menu);
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.close_icon);
         } else {
@@ -504,11 +498,11 @@ public class AlbumInfoActivity extends AppCompatActivity {
             getSupportActionBar().setHomeAsUpIndicator(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
             int isFavored = album.getIsFavored();
             if (isFavored == 1) {
-                menu.findItem(R.id.removeFavorites).setVisible(true);
-                menu.findItem(R.id.addFavorites).setVisible(false);
+                menu.findItem(R.id.removeAnAlbumFromFavorites).setVisible(true);
+                menu.findItem(R.id.addAnAlbumToFavorites).setVisible(false);
             } else if (isFavored == 0) {
-                menu.findItem(R.id.removeFavorites).setVisible(false);
-                menu.findItem(R.id.addFavorites).setVisible(true);
+                menu.findItem(R.id.removeAnAlbumFromFavorites).setVisible(false);
+                menu.findItem(R.id.addAnAlbumToFavorites).setVisible(true);
             }
         }
         return super.onCreateOptionsMenu(menu);
@@ -525,10 +519,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
             createDialogDeleteAlbum();
         } else if (itemID == R.id.changeDescription) {
             moveToChangeDescriptionScreen();
-        } else if (itemID == R.id.addFavorites) {
+        } else if (itemID == R.id.addAnAlbumToFavorites) {
             addAlbumToFavorites();
             invalidateOptionsMenu();
-        } else if (itemID == R.id.removeFavorites) {
+        } else if (itemID == R.id.removeAnAlbumFromFavorites) {
             removeAlbumFromFavorites();
             invalidateOptionsMenu();
         } else if (itemID == R.id.deleteImages) {
@@ -644,7 +638,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
         String[] args = {String.valueOf(album.getId())};
         long rowID = MainActivity.db.delete("Album", "id_album = ?", args);
         if (rowID > 0) {
-            finishActivity();
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("isDelete", 1);
+            setResult(Activity.RESULT_OK, resultIntent);
+            finish();
         } else {
             Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
         }
@@ -739,9 +736,9 @@ public class AlbumInfoActivity extends AppCompatActivity {
                             adapter.notifyItemInserted(0);
 
                             // change selection index after add image to album
-                            ArrayList<Integer> selectedPositions = adapter.getSelectedPositions();
-                            selectedPositions.replaceAll(integer -> integer + 1);
-                            adapter.setSelectedPositions(selectedPositions);
+//                            ArrayList<Integer> selectedPositions = adapter.getSelectedPositions();
+//                            selectedPositions.replaceAll(integer -> integer + 1);
+//                            adapter.setSelectedPositions(selectedPositions);
                         }
 
                         if (addedImageArrayList != null) {

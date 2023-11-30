@@ -71,6 +71,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         this.isMultiSelectMode = multiSelectMode;
     }
 
+    public boolean isInMultiSelectMode(){
+        return isMultiSelectMode;
+    }
+
     public ArrayList<String> getSelectedImages() {
         return selectedImages;
     }

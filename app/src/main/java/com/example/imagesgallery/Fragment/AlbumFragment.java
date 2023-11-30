@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -37,6 +39,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
@@ -50,6 +53,7 @@ import com.example.imagesgallery.Activity.AlbumInfoActivity;
 import com.example.imagesgallery.Activity.FavoriteAlbumsActivity;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.AlbumAdapter;
+import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
@@ -93,7 +97,45 @@ public class AlbumFragment extends Fragment {
     AppCompatActivity activity;
     private ActivityResultLauncher<Intent> startIntentAlbumInfo, startIntentAddAlbumToFavorites;
     public ActivityResultLauncher<Intent> startIntentSeeFavoriteAlbums;
-    boolean isLongClick = false;
+
+    ClickListener clickListener = new ClickListener() {
+        @Override
+        public void click(int index) {
+            if (albumAdapter.isInMultiSelectMode()) {
+                // set chosen album checked
+                albumAdapter.toggleSelection(index);
+                albumAdapter.notifyDataSetChanged();
+            } else {
+                CurrentClickPosition = index;
+                if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
+                    // see information of album
+                    Intent intent = new Intent(context, AlbumInfoActivity.class);
+
+                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
+                        for (int i = 0; i < DefaultAlbumArrayList.size(); i++) {
+                            if (DefaultAlbumArrayList.get(i).getId() == CurrentAlbumArrayList.get(CurrentClickPosition).getId()) {
+                                DefaultAlbumClickPosition = i;
+                            }
+                        }
+                    }
+
+                    intent.putExtra("album", (Serializable) CurrentAlbumArrayList.get(CurrentClickPosition));
+                    startIntentAlbumInfo.launch(intent);
+                } else if (context instanceof AddFavoriteAlbumActivity) {
+                    // add clicked album to favorites
+                    addAlbumToFavorites(CurrentClickPosition);
+                }
+            }
+        }
+
+        @Override
+        public void longClick(int index) {
+            if (CurrentAlbumArrayList == DefaultAlbumArrayList) {
+                albumAdapter.setMultiSelectMode(true);
+                enterMultiselectMode(index);
+            }
+        }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -111,11 +153,10 @@ public class AlbumFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         constraintLayoutAlbum = (ConstraintLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
-        isLongClick = false;
         DefaultAlbumArrayList = new ArrayList<>();
         SearchAlbumArrayList = new ArrayList<>();
         CurrentAlbumArrayList = DefaultAlbumArrayList;
-        albumAdapter = new AlbumAdapter(context, DefaultAlbumArrayList);
+        albumAdapter = new AlbumAdapter(context, DefaultAlbumArrayList, clickListener);
         rowValues = new ContentValues();
         gridView.setAdapter(albumAdapter);
 
@@ -140,13 +181,11 @@ public class AlbumFragment extends Fragment {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isLongClick) {
-                    isLongClick = false;
-                    if (context instanceof MainActivity){
-                        mainActivity.showBottomNavigationView();
-                    }
-                    btnAddAlbum.setVisibility(View.VISIBLE);
-                    activity.invalidateOptionsMenu();
+                if (albumAdapter.isInMultiSelectMode()) {
+                    albumAdapter.setMultiSelectMode(false);
+                    changeUI();
+                    // cancel multi select mode
+                    exitMultiselectMode();
                 } else {
                     activity.finish();
                 }
@@ -168,46 +207,9 @@ public class AlbumFragment extends Fragment {
                 } else if (context instanceof FavoriteAlbumsActivity) { // add an exist album to favorites
                     Intent intent = new Intent(context, AddFavoriteAlbumActivity.class);
                     startIntentAddAlbumToFavorites.launch(intent);
+                } else if (context instanceof AddFavoriteAlbumActivity) { // add chosen albums to favorites
+                    addAlbumsToFavorites();
                 }
-            }
-        });
-
-        // when click item of girdview
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                CurrentClickPosition = i;
-                if (context instanceof MainActivity || context instanceof FavoriteAlbumsActivity) {
-                    // see information of album
-                    Intent intent = new Intent(context, AlbumInfoActivity.class);
-
-                    if (CurrentAlbumArrayList == SearchAlbumArrayList) {
-                        for (int index = 0; index < DefaultAlbumArrayList.size(); index++) {
-                            if (DefaultAlbumArrayList.get(index).getId() == CurrentAlbumArrayList.get(CurrentClickPosition).getId()) {
-                                DefaultAlbumClickPosition = index;
-                            }
-                        }
-                    }
-
-                    intent.putExtra("album", (Serializable) CurrentAlbumArrayList.get(CurrentClickPosition));
-                    startIntentAlbumInfo.launch(intent);
-                } else if (context instanceof AddFavoriteAlbumActivity) {
-                    // add clicked album to favorites
-                    addAlbumToFavorites(CurrentClickPosition);
-                }
-            }
-        });
-
-        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                isLongClick = true;
-                if (context instanceof MainActivity){
-                    mainActivity.hideBottomNavigationView();
-                }
-                btnAddAlbum.setVisibility(View.GONE);
-                activity.invalidateOptionsMenu();
-                return true;
             }
         });
 
@@ -270,8 +272,13 @@ public class AlbumFragment extends Fragment {
 
     private void finishAddFavoriteAlbumActivity() {
         Intent resultIntent = new Intent();
-        Album album = CurrentAlbumArrayList.get(CurrentClickPosition);
-        resultIntent.putExtra("AlbumAddedToFavorites", album);
+        if (albumAdapter.isInMultiSelectMode()) {
+            ArrayList<Album> selectedAlbums = albumAdapter.getSelectedAlbums();
+            resultIntent.putExtra("AlbumsAddedToFavorites", selectedAlbums);
+        } else {
+            Album album = CurrentAlbumArrayList.get(CurrentClickPosition);
+            resultIntent.putExtra("AlbumAddedToFavorites", album);
+        }
         activity.setResult(Activity.RESULT_OK, resultIntent);
         activity.finish();
     }
@@ -429,12 +436,79 @@ public class AlbumFragment extends Fragment {
         btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
     }
 
+    private void exitMultiselectMode() {
+        albumAdapter.setMultiSelectMode(false);
+        albumAdapter.clearSelection();
+        changeUI();
+    }
+
+    private void enterMultiselectMode(int index) {
+        albumAdapter.setMultiSelectMode(true);
+        albumAdapter.toggleSelection(index);
+        changeUI();
+    }
+
+    // change UI of activity when enter or exit multi selection mode
+    private void changeUI() {
+        if (albumAdapter.isInMultiSelectMode()) {
+            if (context instanceof MainActivity) {
+                mainActivity.hideBottomNavigationView();
+            }
+            if (context instanceof AddFavoriteAlbumActivity) {
+                btnAddAlbum.setVisibility(View.VISIBLE);
+            } else {
+                btnAddAlbum.setVisibility(View.GONE);
+            }
+            activity.invalidateOptionsMenu();
+        } else {
+            if (context instanceof MainActivity) {
+                mainActivity.showBottomNavigationView();
+            }
+            if (context instanceof AddFavoriteAlbumActivity) {
+                btnAddAlbum.setVisibility(View.GONE);
+            } else {
+                btnAddAlbum.setVisibility(View.VISIBLE);
+            }
+            activity.invalidateOptionsMenu();
+        }
+    }
+
+    private void addAlbumsToFavorites() {
+        ArrayList<Album> selectedAlbums = albumAdapter.getSelectedAlbums();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 1);
+
+        // change database
+        MainActivity.db.beginTransaction();
+        try {
+            for (int i = 0; i < selectedAlbums.size(); i++) {
+                String[] args = {String.valueOf(selectedAlbums.get(i).getId())};
+                MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+            }
+            MainActivity.db.setTransactionSuccessful();
+        } catch (SQLiteException e) {
+            Toast.makeText(context, "Update failed", Toast.LENGTH_SHORT).show();
+        } finally {
+            MainActivity.db.endTransaction();
+            for (int i = 0; i < selectedAlbums.size(); i++) {
+                selectedAlbums.get(i).setIsFavored(1);
+            }
+            finishAddFavoriteAlbumActivity();
+        }
+    }
+
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        if (isLongClick) {
+        if (albumAdapter.isInMultiSelectMode()) {
             requireActivity().getMenuInflater().inflate(R.menu.menu_album_home_page_long_click, menu);
             Objects.requireNonNull(activity.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
             Objects.requireNonNull(activity.getSupportActionBar()).setHomeAsUpIndicator(R.drawable.close_icon);
+            if (context instanceof MainActivity) {
+                menu.findItem(R.id.removeAlbumsFromFavorites).setVisible(false);
+            } else if (context instanceof AddFavoriteAlbumActivity) {
+                menu.findItem(R.id.removeAlbumsFromFavorites).setVisible(false);
+                menu.findItem(R.id.deleteAlbums).setVisible(false);
+            }
         } else {
             requireActivity().getMenuInflater().inflate(R.menu.menu_album_home_page, menu);
             if (context instanceof MainActivity) {
@@ -466,6 +540,7 @@ public class AlbumFragment extends Fragment {
                     albumAdapter.setAlbumArrayList(CurrentAlbumArrayList);
                     loadDataFromDatabase(SearchName, CurrentAlbumArrayList, SearchCurrentMaxPosition, isAllItemsSearchLoaded, IdMaxWhenStartingLoadDataSearch);
                     searchView.clearFocus();
+                    albumAdapter.notifyDataSetChanged();
                     return true;
                 }
 
@@ -511,9 +586,115 @@ public class AlbumFragment extends Fragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemID = item.getItemId();
         if (itemID == R.id.deleteAlbums) {
-            Toast.makeText(context, "delete", Toast.LENGTH_SHORT).show();
+            createDialogDeleteAlbums();
+        } else if (itemID == R.id.removeAlbumsFromFavorites) {
+            createDialogRemoveAlbums();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void createDialogRemoveAlbums() {
+        if (albumAdapter.getSelectedAlbums().size() == 0) {
+            Toast.makeText(context, "You have not chosen any albums", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Are you sure you want to remove these albums from favorites?");
+
+        // click yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                removeAlbumsFromFavorites();
+            }
+        });
+        // click no
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void removeAlbumsFromFavorites() {
+        ArrayList<Album> selectedAlbums = albumAdapter.getSelectedAlbums();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("isFavored", 0);
+        String[] args = {""};
+        // change database
+        MainActivity.db.beginTransaction();
+        try {
+            for (int i = 0; i < selectedAlbums.size(); i++) {
+                args[0] = String.valueOf(selectedAlbums.get(i).getId());
+                MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+            }
+            MainActivity.db.setTransactionSuccessful();
+        } catch (SQLiteException e) {
+            Toast.makeText(context, "Remove failed", Toast.LENGTH_SHORT).show();
+        } finally {
+            MainActivity.db.endTransaction();
+
+            for (Album selectedAlbum : selectedAlbums) {
+                CurrentAlbumArrayList.remove(selectedAlbum);
+            }
+            albumAdapter.notifyDataSetChanged();
+            exitMultiselectMode();
+        }
+    }
+
+    public void createDialogDeleteAlbums() {
+        if (albumAdapter.getSelectedAlbums().size() == 0) {
+            Toast.makeText(context, "You have not chosen any albums", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Are you sure you want to deletes these albums ?");
+
+        // click yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                deleteAlbums();
+            }
+        });
+        // click no
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void deleteAlbums() {
+        ArrayList<Album> selectedAlbums = albumAdapter.getSelectedAlbums();
+        String[] args = {""};
+        // change database
+        MainActivity.db.beginTransaction();
+        try {
+            for (int i = 0; i < selectedAlbums.size(); i++) {
+                ContentValues contentValues = new ContentValues();
+                args[0] = String.valueOf(selectedAlbums.get(i).getId());
+                MainActivity.db.delete("Album", "id_album = ?", args);
+                MainActivity.db.delete("Album_Contain_Images", "id_album = ?", args);
+            }
+            MainActivity.db.setTransactionSuccessful();
+        } catch (SQLiteException e) {
+            Toast.makeText(context, "Delete failed", Toast.LENGTH_SHORT).show();
+        } finally {
+            MainActivity.db.endTransaction();
+
+            for (Album selectedAlbum : selectedAlbums) {
+                CurrentAlbumArrayList.remove(selectedAlbum);
+            }
+            albumAdapter.notifyDataSetChanged();
+            exitMultiselectMode();
+        }
     }
 
     public void initActivityResultLauncher() {
@@ -526,7 +707,7 @@ public class AlbumFragment extends Fragment {
                         if (data != null) {
                             String path = data.getStringExtra("CoverPath");
                             String description = data.getStringExtra("description");
-                            long isDelete = data.getLongExtra("isDelete", 0);
+                            int isDelete = data.getIntExtra("isDelete", 0);
                             int isFavored = data.getIntExtra("isFavored", 0);
                             ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
 
@@ -570,7 +751,6 @@ public class AlbumFragment extends Fragment {
                                     }
                                 }
                             }
-
                             albumAdapter.notifyDataSetChanged();
                         }
                     }
@@ -585,14 +765,21 @@ public class AlbumFragment extends Fragment {
                         Intent data = result.getData();
                         if (data != null) {
                             Album addedAlbum = (Album) data.getSerializableExtra("AlbumAddedToFavorites");
-                            CurrentAlbumArrayList.add(0, addedAlbum);
-                            albumAdapter.notifyDataSetChanged();
+                            ArrayList<Album> addedAlbums = (ArrayList<Album>) data.getSerializableExtra("AlbumsAddedToFavorites");
+                            if (addedAlbum != null) {
+                                CurrentAlbumArrayList.add(0, addedAlbum);
+                                albumAdapter.notifyDataSetChanged();
+                            }
+                            if (addedAlbums != null) {
+                                CurrentAlbumArrayList.addAll(addedAlbums);
+                                albumAdapter.notifyDataSetChanged();
+                            }
                         }
                     }
                 }
         );
 
-        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        // when click button back in toolbar or in smartphone to finish FavoriteAlbum
         startIntentSeeFavoriteAlbums = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {

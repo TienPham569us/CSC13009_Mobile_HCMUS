@@ -15,10 +15,10 @@
     <item
         android:id="@+id/shareImage"
         android:title="Share Image"/>
-    <item android:id="@+id/addFavorites"
+    <item android:id="@+id/addImageToFavorites"
         android:title="Add to favorites"
         android:icon="@android:drawable/bottom_bar" />
-    <item android:id="@+id/removeFavorites"
+    <item android:id="@+id/removeImageFromFavorites"
         android:title="Remove from favorites"
         android:icon="@android:drawable/bottom_bar" />
     <item android:id="@+id/seeDescription"

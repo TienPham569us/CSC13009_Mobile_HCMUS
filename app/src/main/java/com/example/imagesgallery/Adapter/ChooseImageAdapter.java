@@ -106,7 +106,6 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         notifyDataSetChanged(); // Update the UI to reflect the selection
     }
 
-    //AT Clear the selection
     public void clearSelection() {
         selectedImages.clear();
         selectedPositions.clear();
@@ -129,9 +128,6 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
         if (image_file.exists()) {
             Glide.with(context).load(image_file).into(holder.imageView);
         }
-
-        boolean isSelected = selectedImages.contains(imageArrayList.get(pos));
-        holder.itemView.setSelected(isSelected);
 
         if (selectedPositions.contains(pos)) {
             holder.checkBox.setVisibility(View.VISIBLE);

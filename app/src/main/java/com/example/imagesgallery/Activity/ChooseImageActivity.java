@@ -48,8 +48,6 @@ public class ChooseImageActivity extends AppCompatActivity {
     boolean isLoading = false, isAllItemsLoaded = false;
     private int CurrentMaxPosition = 0;
     private final int ItemsPerLoading = 21;
-    boolean multiSelectMode = false;
-    boolean isLongClick = false;
     int clickPosition = -1;
     ClickListener clickListener = new ClickListener() {
         @Override
@@ -92,7 +90,7 @@ public class ChooseImageActivity extends AppCompatActivity {
         public void longClick(int index) {
             int action = getIntent().getIntExtra("action", 0);
             if (action == AlbumInfoActivity.ACTION_ADD_IMAGE) { // Enter multi-select mode if user choose adding images to album
-                isLongClick = true;
+                chooseImageAdapter.setMultiSelectMode(true);
                 enterMultiselectMode(index);
             }
         }
@@ -130,7 +128,7 @@ public class ChooseImageActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isLongClick) {
+                if (!chooseImageAdapter.isInMultiSelectMode()) {
                     finish(); // return to album tab
                 } else {
                     // cancel multi select mode
@@ -273,22 +271,19 @@ public class ChooseImageActivity extends AppCompatActivity {
     }
 
     private void exitMultiselectMode() {
-        isLongClick = false;
-        multiSelectMode = false;
-        chooseImageAdapter.setMultiSelectMode(multiSelectMode);
+        chooseImageAdapter.setMultiSelectMode(false);
         chooseImageAdapter.clearSelection();
         changeUI();
     }
 
     private void enterMultiselectMode(int index) {
-        multiSelectMode = true;
-        chooseImageAdapter.setMultiSelectMode(multiSelectMode);
+        chooseImageAdapter.setMultiSelectMode(true);
         chooseImageAdapter.toggleSelection(index);
         changeUI();
     }
 
     private void changeUI() {
-        if (isLongClick) {
+        if (chooseImageAdapter.isInMultiSelectMode()) {
             Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.close_icon);
             btnAddImages.setVisibility(View.VISIBLE);
         } else {
