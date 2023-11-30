@@ -49,7 +49,7 @@ public class SlideshowActivity extends AppCompatActivity {
                     }
                 });
             }
-        }, 1000, 1000); // Change images every 5 seconds (adjust as needed)
+        }, 2000, 2000); // Change images every 5 seconds (adjust as needed)
     }
 
     // Ensure you cancel the timer when the activity is destroyed

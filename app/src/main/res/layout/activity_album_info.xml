@@ -27,7 +27,7 @@
                 android:theme="?attr/actionBarTheme"
                 tools:layout_editor_absoluteX="0dp"
                 tools:layout_editor_absoluteY="0dp"
-                android:backgroundTint="@color/white"/>
+                style="@style/Toolbar"/>
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -39,41 +39,43 @@
             app:layout_constraintGuide_percent=".3" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:background="@color/white"
+            android:id="@+id/ConstriantLayout_CoverDescription"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:id="@+id/ConstriantLayout_CoverDescription"
-            app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+            style="@style/AlbumCoverDescription"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="@id/guideline_hor"
             app:layout_constraintStart_toStartOf="parent"
-            android:orientation="horizontal">
+            app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+            app:layout_constraintVertical_bias="0.0">
 
             <ImageView
                 android:id="@+id/imgCoverAlbum"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_marginLeft="15dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginBottom="15dp"
-                android:layout_marginLeft="15dp"
-                android:scaleType="fitXY"
                 android:background="@drawable/no_image"
                 android:foreground="?android:attr/selectableItemBackground"
+                android:scaleType="fitXY"
                 app:layout_constraintDimensionRatio="h,1:1"
-                app:layout_constraintTop_toTopOf="@id/ConstriantLayout_CoverDescription"
-                app:layout_constraintLeft_toLeftOf="@id/ConstriantLayout_CoverDescription"/>
+                app:layout_constraintLeft_toLeftOf="@id/ConstriantLayout_CoverDescription"
+                app:layout_constraintTop_toTopOf="@id/ConstriantLayout_CoverDescription" />
 
             <TextView
                 android:id="@+id/txtAlbumDescription"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_margin="15dp"
-                android:ellipsize="end"
-                android:textSize="20sp"
                 android:background="?android:attr/selectableItemBackground"
-                app:layout_constraintTop_toTopOf="@id/ConstriantLayout_CoverDescription"
+                android:ellipsize="end"
+                android:text="description"
+                style="@style/TextColor"
+                android:textSize="20sp"
                 app:layout_constraintLeft_toRightOf="@id/imgCoverAlbum"
                 app:layout_constraintRight_toRightOf="@id/ConstriantLayout_CoverDescription"
-                android:text="description"/>
+                app:layout_constraintTop_toTopOf="@id/ConstriantLayout_CoverDescription" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
