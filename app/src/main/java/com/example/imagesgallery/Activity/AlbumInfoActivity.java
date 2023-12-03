@@ -23,6 +23,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -253,10 +254,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
         }
 
         // init to prepare load images to album
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
+        int imageWidth = 110; // size of an image
+        int desiredColumnCount = (int)screenWidthInDp / imageWidth; // the number of images in a row
+
         images = new ArrayList<>();
         album.setListImage(images);
         adapter = new ImageAdapter(AlbumInfoActivity.this, images, clickListener);
-        GridLayoutManager manager = new GridLayoutManager(AlbumInfoActivity.this, 3);
+        GridLayoutManager manager = new GridLayoutManager(AlbumInfoActivity.this, desiredColumnCount);
         recyclerView.setLayoutManager(manager);
         recyclerView.setAdapter(adapter);
 

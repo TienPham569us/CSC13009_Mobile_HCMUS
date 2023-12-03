@@ -18,6 +18,7 @@ import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -107,11 +108,16 @@ public class ChooseImageActivity extends AppCompatActivity {
         isAllItemsLoaded = false;
         CurrentMaxPosition = 0;
 
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
+        int imageWidth = 110; // size of an image
+        int desiredColumnCount = (int)screenWidthInDp / imageWidth; // the number of images in a row
+
         album = (Album) getIntent().getSerializableExtra("album");
         imageArrayList = new ArrayList<>();
         addedImagesArrayList = new ArrayList<>();
         chooseImageAdapter = new ChooseImageAdapter(ChooseImageActivity.this, imageArrayList, clickListener);
-        recyclerView.setLayoutManager(new GridLayoutManager(ChooseImageActivity.this, 3));
+        recyclerView.setLayoutManager(new GridLayoutManager(ChooseImageActivity.this, desiredColumnCount));
         recyclerView.setAdapter(chooseImageAdapter);
         loadImages();
         chooseImageAdapter.notifyDataSetChanged();

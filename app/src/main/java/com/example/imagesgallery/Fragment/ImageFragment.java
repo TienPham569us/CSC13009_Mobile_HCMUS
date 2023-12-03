@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -197,8 +198,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
 
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
+        int imageWidth = 110; // size of an image
+        int desiredColumnCount = (int)screenWidthInDp / imageWidth; // the number of images in a row
+
         adapter = new ImageAdapter(mainActivity, images, clickListener);
-        manager = new GridLayoutManager(mainActivity, 3);
+        manager = new GridLayoutManager(mainActivity, desiredColumnCount);
         totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
         recycler.setAdapter(adapter);
