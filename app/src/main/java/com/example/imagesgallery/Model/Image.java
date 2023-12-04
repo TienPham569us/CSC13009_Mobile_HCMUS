@@ -2,16 +2,17 @@ package com.example.imagesgallery.Model;
 
 import java.io.Serializable;
 
-// class tạo tạm thời do chưa load được hình ảnh từ csdl
 public class Image implements Serializable {
     private String path;
     private String description;
     private int isFavored;
+    private boolean canAddToCurrentAlbum;
 
     public Image(String path, String description, int isFavored) {
         this.path = path;
         this.description = description;
         this.isFavored = isFavored;
+        canAddToCurrentAlbum = true;
     }
 
     public String getPath() {
@@ -36,5 +37,13 @@ public class Image implements Serializable {
 
     public void setIsFavored(int isFavored) {
         this.isFavored = isFavored;
+    }
+
+    public boolean isCanAddToCurrentAlbum() {
+        return canAddToCurrentAlbum;
+    }
+
+    public void setCanAddToCurrentAlbum(boolean canAddToCurrentAlbum) {
+        this.canAddToCurrentAlbum = canAddToCurrentAlbum;
     }
 }

@@ -41,35 +41,31 @@
             android:layout_width="48dp"
             android:layout_height="50dp"
             android:layout_marginStart="10dp"
-            android:background="@drawable/camera_btn"
-            android:importantForAccessibility="no" />
-        <!-- Add button multi select -->
+            style="@style/CameraButton"
+            android:importantForAccessibility="no"/>
         <Button
             android:id="@+id/multiSelectButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Select"
-            android:textColor="@color/black"
-            android:background="@drawable/multiselect_cancel_btn"
+            style="@style/SelectButton"
             android:layout_marginLeft="5dp" />
         <Button
             android:id="@+id/deleteButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Delete"
-            android:textColor="@color/black"
+            style="@style/SelectButton"
             android:layout_marginLeft="5dp"
-            android:background="@drawable/multiselect_cancel_btn"
             android:visibility="invisible" /> <!-- Initially set to GONE -->
         <Button
             android:id="@+id/slideshowButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Slideshow"
-            android:textColor="@color/black"
             android:layout_marginLeft="5dp"
             android:visibility="invisible"
-            android:background="@drawable/multiselect_cancel_btn"
+            style="@style/SelectButton"
             android:onClick="startSlideshow"/>
 
     </LinearLayout>
@@ -80,7 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="All Photos"
-        android:textColor="@color/black"
+        style="@style/TextColor"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="@+id/imageView"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
@@ -90,6 +86,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
+        style="@style/TextColor"
         android:text="Total items: 0"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@+id/textView3"

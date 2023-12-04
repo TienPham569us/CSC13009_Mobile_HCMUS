@@ -21,12 +21,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -37,18 +37,16 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.imagesgallery.Activity.ClickListener;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
+import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.Model.Image;
@@ -60,7 +58,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +76,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     private ActivityResultLauncher<Intent> launcher_for_camera;
     LinearLayout linearLayout;
     ArrayList<String> permissionsList;
+    private ActivityResultLauncher<Intent> startIntentSeeImageInfo;
     String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_AUDIO,
@@ -165,6 +163,19 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
                 );
+
+        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        startIntentSeeImageInfo = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+
+                        }
+                    }
+                }
+        );
     }
 
     ClickListener clickListener = new ClickListener() {
@@ -172,8 +183,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         public void click(int index) {
             // Toast.makeText(mainActivity,"clicked item index is "+index,Toast.LENGTH_LONG).show();
         }
-    };
 
+        @Override
+        public void longClick(int index) {
+
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -183,8 +198,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         images = new ArrayList<>();
 
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
+        int imageWidth = 110; // size of an image
+        int desiredColumnCount = (int)screenWidthInDp / imageWidth; // the number of images in a row
+
         adapter = new ImageAdapter(mainActivity, images, clickListener);
-        manager = new GridLayoutManager(mainActivity, 3);
+        manager = new GridLayoutManager(mainActivity, desiredColumnCount);
         totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
         recycler.setAdapter(adapter);
@@ -404,23 +424,28 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
                         String path = cursor.getString(columnindex);
 
+                        int isFavored = 0;
+                        String description = "";
                         String[] args = {path};
-                        Cursor cursor1 = MainActivity.db.rawQuery("SELECT isFavored FROM Image WHERE path = ?", args);
-                        int isFavored = -1;
-                        while (cursor1.moveToNext()) {
-                            int favorColumn = cursor1.getColumnIndex("isFavored");
-                            isFavored = cursor1.getInt(favorColumn);
-                        }
-                        if (isFavored == -1) {
-                            isFavored = 0;
+                        Cursor cursor1 = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+
+                        if (!cursor1.moveToFirst()) {
                             rowValues.clear();
                             rowValues.put("path", path);
                             rowValues.put("description", "");
                             rowValues.put("isFavored", isFavored);
                             long rowID = MainActivity.db.insert("Image", null, rowValues);
+                        } else {
+                            cursor1.moveToPosition(-1);
+                            while (cursor1.moveToNext()) {
+                                int favorColumn = cursor1.getColumnIndex("isFavored");
+                                int descriptionColumn = cursor1.getColumnIndex("description");
+                                isFavored = cursor1.getInt(favorColumn);
+                                description = cursor1.getString(descriptionColumn);
+                            }
                         }
 
-                        Image newImage = new Image(path, "", isFavored);
+                        Image newImage = new Image(path, description, isFavored);
                         images.add(newImage);
                     }
                 }

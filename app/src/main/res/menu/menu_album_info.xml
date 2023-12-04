@@ -13,10 +13,10 @@
     <item android:id="@+id/changeDescription"
         android:title="Change description"
         android:icon="@android:drawable/bottom_bar" />
-    <item android:id="@+id/addFavorites"
+    <item android:id="@+id/addAnAlbumToFavorites"
         android:title="Add to favorites"
         android:icon="@android:drawable/bottom_bar" />
-    <item android:id="@+id/removeFavorites"
+    <item android:id="@+id/removeAnAlbumFromFavorites"
         android:title="Remove from favorites"
         android:icon="@android:drawable/bottom_bar" />
 </menu>

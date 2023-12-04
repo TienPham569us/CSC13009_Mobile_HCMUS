@@ -1,45 +1,52 @@
 package com.example.imagesgallery.Activity;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.example.imagesgallery.Adapter.AlbumAdapter;
+import com.example.imagesgallery.Fragment.AlbumFragment;
 import com.example.imagesgallery.Model.Album;
+import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class FavoriteAlbumsActivity extends AppCompatActivity {
 
-    GridView gridView;
-    ArrayList<Album> albumArrayList;
-    AlbumAdapter albumAdapter;
+    AlbumFragment albumFragment;
     Toolbar toolbar;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorite_albums);
 
-        init();
-
-        // using toolbar as ActionBar
-        setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Favorite albums");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-
-        albumArrayList = new ArrayList<>();
-        albumAdapter = new AlbumAdapter(FavoriteAlbumsActivity.this,albumArrayList);
-        gridView.setAdapter(albumAdapter);
-    }
-
-    private void init(){
-        gridView = (GridView) findViewById(R.id.gridview_FavoriteAlbums);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        albumFragment = new AlbumFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, albumFragment).commit();
     }
 }
