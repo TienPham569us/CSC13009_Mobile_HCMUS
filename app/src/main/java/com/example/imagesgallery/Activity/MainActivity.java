@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // Login Facebook
@@ -354,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     Button btnDownloadImage;
-
+    Button btnOpenSettings;
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
         dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
@@ -364,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonDownload);
         btnFavoriteAlbums = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteAlbums);
-        btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteImages);
+        btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -400,19 +401,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        /*btnAdd = (Button) dialogNavBottom.findViewById(R.id.buttonAdd);
-        btnCancel = (Button) dialogNavBottom.findViewById(R.id.buttonCancel);
-
-
-        // when click button add of dialog
-        btnAdd.setOnClickListener(new View.OnClickListener() {
+        btnOpenSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "add",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
             }
-        });*/
+        });
 
-        // when click button cancel of dialog
 
 
         dialogNavBottom.show();

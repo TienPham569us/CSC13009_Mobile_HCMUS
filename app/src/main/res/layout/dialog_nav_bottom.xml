@@ -72,6 +72,21 @@
                 android:text="Download image "
                 android:textColor="@color/black" />
         </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginBottom="0dp">
+
+            <Button
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settings"
+                android:textColor="@color/black"/>
+
+        </TableRow>
     </TableLayout>
 
 </LinearLayout>

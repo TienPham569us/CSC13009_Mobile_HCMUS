@@ -7,6 +7,11 @@
 
     <style name="Theme.ImagesGallery" parent="Base.Theme.ImagesGallery" />
 
+    <style name="AppTheme.Dark" parent="Theme.MaterialComponents">
+        <!-- Dark mode theme attributes -->
+        <item name="android:windowBackground">@color/dark_background</item>
+
+    </style>
     <style name="rounded_image" parent="">
         <item name="cornerSize">25dp</item>
         <item name="cornerFamily">rounded</item>

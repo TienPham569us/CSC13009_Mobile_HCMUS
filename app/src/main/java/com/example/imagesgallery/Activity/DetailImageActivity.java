@@ -35,6 +35,7 @@ public class DetailImageActivity extends AppCompatActivity {
     TextView txtViewDate;
     TextView txtViewImageExif;
     TextView txtViewTag;
+    String extensionName = "null";
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -83,6 +84,7 @@ public class DetailImageActivity extends AppCompatActivity {
             //Toast.makeText(getApplicationContext(),imageUri.toString(),Toast.LENGTH_SHORT).show();
             getImageExif(imageLink);
             cursor.close();
+            getImageExtensionName(imageLink);
 
         }
     }
@@ -116,6 +118,11 @@ public class DetailImageActivity extends AppCompatActivity {
             sb.append("\nLatitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
             sb.append("\nLongitude: "+ exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE));
             imageExif+=sb.toString();
+
+
+                // Fallback to getting the extension from the file path
+
+
             /*imageExif+="x"+exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
             imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS);
             imageExif+=" | "+exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
@@ -133,6 +140,24 @@ public class DetailImageActivity extends AppCompatActivity {
         }
 
 
+    }
+    private void getImageExtensionName(String imageLink) {
+        File imageFile=null;
+        try {
+
+            imageFile = new File(imageLink);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (imageFile!=null) {
+            int dotIndex = imageFile.getAbsolutePath().lastIndexOf('.');
+            if (dotIndex >= 0 && dotIndex < imageLink.length() - 1) {
+                extensionName = imageFile.getAbsolutePath().substring(dotIndex + 1);
+            }
+            Toast.makeText(getApplicationContext(), "Type: " + extensionName, Toast.LENGTH_LONG).show();
+        }
     }
 
 
