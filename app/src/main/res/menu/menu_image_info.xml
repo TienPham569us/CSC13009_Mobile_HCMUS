@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/addImage"
+        android:title="Add image"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/deleteImage"
+        android:title="Delete image"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/infomation"
+        android:title="Infomation"
+        android:icon="@android:drawable/bottom_bar" />
+    <item
+        android:id="@+id/RemoveImage"
+        android:title="Remove from album"/>
+    <item
+        android:id="@+id/setAsWallpaper"
+        android:title="Set as wallpaper"/>
+    <item
+        android:id="@+id/shareImage"
+        android:title="Share Image"/>
+    <item android:id="@+id/addFavorites"
+        android:title="Add to favorites"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/removeFavorites"
+        android:title="Remove from favorites"
+        android:icon="@android:drawable/bottom_bar" />
+</menu>
