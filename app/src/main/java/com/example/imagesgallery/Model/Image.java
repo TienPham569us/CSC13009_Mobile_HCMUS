@@ -1,18 +1,57 @@
 package com.example.imagesgallery.Model;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class Image implements Serializable {
     private String path;
     private String description;
     private int isFavored;
+    private Date date;
+    private long size;
+
+    private String type;
     private boolean canAddToCurrentAlbum;
+
+
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public Image(String path, String description, int isFavored) {
         this.path = path;
         this.description = description;
         this.isFavored = isFavored;
         canAddToCurrentAlbum = true;
+    }
+    public Image(String path, String description, int isFavored, Date date, long size, String type) {
+        this.path = path;
+        this.description = description;
+        this.isFavored = isFavored;
+        this.date = date;
+        this.size = size;
+        this.type = type;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 
     public String getPath() {

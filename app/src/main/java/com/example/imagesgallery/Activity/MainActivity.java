@@ -81,7 +81,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
@@ -131,7 +130,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Login Facebook
-        FacebookSdk.sdkInitialize(getApplicationContext());
+        //Comment tam thoi
+        /*FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this.getApplication());
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
@@ -152,29 +152,7 @@ public class MainActivity extends AppCompatActivity {
             public void onError(FacebookException exception) {
                 // App code
             }
-        });
-
-        /*callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().registerCallback(callbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        // App code
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        // App code
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-                        // App code
-                    }
-                });
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));*/
+        });*/
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
@@ -220,7 +198,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public static void printHashKey(Context pContext) {
+    //Login facebook
+    //Comment tam thoi
+   /* public static void printHashKey(Context pContext) {
         try {
             PackageInfo info = pContext.getPackageManager().getPackageInfo(pContext.getPackageName(), PackageManager.GET_SIGNATURES);
             for (Signature signature : info.signatures) {
@@ -234,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "printHashKey()", e);
         }
-    }
+    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -606,34 +586,7 @@ public class MainActivity extends AppCompatActivity {
             // Handle any errors that occurred during the download process
         }
     }
-    public void downLoadImage3(String imageUrl) {
-        OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://example.com/") // Set the base URL of your API
-                .client(httpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        DownloadService imageApiService = retrofit.create(DownloadService.class);
-        Call<ResponseBody> call = imageApiService.downloadFileFromUrl(imageUrl);
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    // Save the image to a file
-                    saveImageToFile(response.body());
-                } else {
-                    // Handle unsuccessful response
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                // Handle failure
-            }
-        });
-    }
 
     private void saveImageToFile(ResponseBody responseBody) {
         try {

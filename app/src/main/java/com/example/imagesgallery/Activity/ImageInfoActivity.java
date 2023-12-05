@@ -92,7 +92,21 @@ public class ImageInfoActivity extends AppCompatActivity {
         });
 
 
-        //Glide.with(this).load(nextImageTemp).into(imageView);
+        /*// Lấy Intent từ Activity gọi đến
+        Intent intent = getIntent();
+        // Lấy Bundle từ Intent
+        Bundle bundle = intent.getExtras();
+        if (bundle != null) {
+            // Lấy dữ liệu từ Bundle
+            int receivedData = bundle.getInt("CountImage");
+
+            // Hiển thị dữ liệu trong Fragment
+            ImageFragment fragment = new ImageFragment();
+            fragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, fragment)
+                    .commit();
+        }*/
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
