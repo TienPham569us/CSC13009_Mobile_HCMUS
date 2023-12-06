@@ -144,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //AT
+//        setTheme(android.R.style.Theme_Material_Dialog);
         switchMode = findViewById(R.id.switchMode);
         sharedPreferences = getSharedPreferences("MODE",Context.MODE_PRIVATE);
         nightMode = sharedPreferences.getBoolean("nightMode", false);

@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
@@ -283,6 +285,8 @@ public class ImageInfoActivity extends AppCompatActivity {
 
 
     public void createDialogDeleteImage() {
+//        setTheme(android.R.style.Theme_Material_Dialog);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Are you sure you want to delete these images ?");
 
@@ -298,8 +302,16 @@ public class ImageInfoActivity extends AppCompatActivity {
                 dialog.dismiss();
             }
         });
-
         AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button noButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button yesButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                yesButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender));
+                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+            }
+        });
         dialog.show();
     }
 
