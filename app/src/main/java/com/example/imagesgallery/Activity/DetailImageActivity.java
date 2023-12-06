@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
 public class DetailImageActivity extends AppCompatActivity {
     private int imagePosition=-1;
     private String imageLink="...";
@@ -52,6 +51,7 @@ public class DetailImageActivity extends AppCompatActivity {
         loadImageInformation();
         txtViewLink.setText(imageLink);
 
+        Toast.makeText(this,"detail: "+dateTaken,Toast.LENGTH_LONG).show();
         Date date = new Date(dateTaken);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
         String formattedDate = dateFormat.format(date);

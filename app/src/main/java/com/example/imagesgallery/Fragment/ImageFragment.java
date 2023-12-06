@@ -14,7 +14,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
+import android.net.ParseException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,6 +43,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -51,6 +54,7 @@ import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
+import com.example.imagesgallery.Utility.FileUtility;
 
 import android.content.Context;
 
@@ -59,16 +63,19 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
 
 public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
     RecyclerView recycler;
-    ArrayList<Image> images;
-    ImageAdapter adapter;
+    public ArrayList<Image> images= new ArrayList<>();;
+    public ImageAdapter adapter;
     GridLayoutManager manager;
     TextView totalimages;
     MainActivity mainActivity;
@@ -196,7 +203,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
-        images = new ArrayList<>();
+       // images = new ArrayList<>();
 
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
@@ -208,7 +215,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
         recycler.setAdapter(adapter);
+        getEditorImage();
         loadImages();
+
         recycler.getAdapter().notifyDataSetChanged();
 
 
@@ -281,6 +290,61 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
         return linearLayout;
+    }
+
+    private void getEditorImage(){
+
+        // The edit image activity completed successfully
+        // Perform any necessary actions
+        String internalFolder = Environment.getExternalStorageDirectory()+"/Pictures";;
+        String editorPhotoFolder = internalFolder+"/DS_Photo_Editor";
+        //Toast.makeText(mainActivity,"internal: "+internalFolder,Toast.LENGTH_SHORT).show();
+        //Toast.makeText(mainActivity,"editor: "+editorPhotoFolder,Toast.LENGTH_SHORT).show();
+
+               /* String internalFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/Pictures";;
+                String editorPhotoFolder = internalFolder+"/DS_Photo_Editor";*/
+
+        ArrayList<File> resultFiles = FileUtility.moveAllImagesInAFolderToAnotherFolder(editorPhotoFolder,internalFolder);
+        if (resultFiles!=null) {
+            for (File file: resultFiles)
+            {
+                Uri imageUri = FileProvider.getUriForFile(mainActivity,"com.example.imagesgallery.Utility.fileprovider",file);
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, imageUri.getPath() );
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/"+FileUtility.getFileExtension(file));
+
+
+                try {
+                    ExifInterface exifInterface = new ExifInterface(file.getAbsolutePath());
+                    String dateTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault());
+                    Date dateTaken = dateFormat.parse(dateTime);
+
+                    long dateTakenMillis = System.currentTimeMillis(); //dateTaken.getTime();
+                    Toast.makeText(mainActivity,"date taken: "+dateTaken,Toast.LENGTH_LONG).show();
+                    //Toast.makeText(this,"date taken: "+dateTakenMillis,Toast.LENGTH_LONG).show();
+                    values.put(MediaStore.Images.Media.DATE_TAKEN, dateTakenMillis);
+                    Toast.makeText(mainActivity,"success: "+dateTakenMillis,Toast.LENGTH_LONG).show();
+                } catch (IOException | ParseException | java.text.ParseException e) {
+                    e.printStackTrace();
+                    // Handle the exception as needed
+                }
+
+
+                ContentResolver contentResolver = getContext().getContentResolver();
+                Uri imageUriInserted = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);
+                if (imageUriInserted!=null) {
+                    Toast.makeText(mainActivity,"editor success",Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(mainActivity,"editor fail",Toast.LENGTH_SHORT).show();
+
+                }
+
+            }
+
+        }
+        recycler.getAdapter().notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
     }
 
     //AT
@@ -373,8 +437,6 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         dialog.show();
     }
-
-    ;
 
     //AT When click button Multi Select, it shows Delete Button
     private void toggleButtonsOfMultiSelectMode(Boolean isMultiSelectMode) {

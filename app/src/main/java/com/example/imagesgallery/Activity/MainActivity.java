@@ -105,7 +105,8 @@ public class MainActivity extends AppCompatActivity {
     CallbackManager callbackManager;
     ProgressDialog progressDialog;
     Dialog dialogNavBottom;
-    Button btnFavoriteAlbums, btnFavoriteImages;
+    Button btnFavoriteAlbums;
+    Button btnFavoriteImages;
 
     //AT
     Switch switchMode;
@@ -391,6 +392,7 @@ public class MainActivity extends AppCompatActivity {
 
     Button btnDownloadImage;
     Button btnOpenSettings;
+
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
         dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
@@ -400,6 +402,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonDownload);
         btnFavoriteAlbums = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteAlbums);
+        btnFavoriteImages = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteImages);
         btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -433,6 +436,14 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("aaaaa", "image");
                     startActivity(intent);
                 }
+            }
+        });
+
+        btnFavoriteImages.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this,FavoriteImagesActivity.class);
+                startActivity((intent));
             }
         });
 
@@ -546,6 +557,7 @@ public class MainActivity extends AppCompatActivity {
                 if (outputstream != null) {
                     outputstream.close();
                 }
+
 
                 File readLocation = new File(Environment.getExternalStoragePublicDirectory(
                         Environment.DIRECTORY_DOWNLOADS) + "/" + nameOfFile);

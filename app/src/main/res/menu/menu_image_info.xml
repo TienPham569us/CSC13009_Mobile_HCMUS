@@ -24,4 +24,7 @@
     <item android:id="@+id/seeDescription"
         android:title="See description"
         android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/editImage"
+        android:title="Edit Image"
+        android:icon="@android:drawable/bottom_bar" />
 </menu>

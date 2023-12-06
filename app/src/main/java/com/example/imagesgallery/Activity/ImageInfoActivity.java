@@ -2,16 +2,22 @@ package com.example.imagesgallery.Activity;
 
 import android.app.Activity;
 import android.app.WallpaperManager;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
+import android.net.ParseException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,9 +43,17 @@ import com.example.imagesgallery.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
+
+import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
+import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
+import com.example.imagesgallery.Utility.FileUtility;
 
 public class ImageInfoActivity extends AppCompatActivity {
     public String imageTemp;
@@ -59,6 +73,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_image);
 
+        imageFragment = new ImageFragment();
         // Get the path to the image from the intent
         imagePath = getIntent().getStringExtra("image_path");
         String nextImagePath = getIntent().getStringExtra("next_image_path");
@@ -149,11 +164,47 @@ public class ImageInfoActivity extends AppCompatActivity {
             invalidateOptionsMenu();
         } else if (itemID == R.id.seeDescription) {
             seeDescriptionImage();
+        } else if (itemID == R.id.editImage) {
+            editImage();
+
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    int EDIT_IMAGE_REQUEST_CODE = 69;
+    private void editImage() {
+        Intent editIntent = new Intent(ImageInfoActivity.this, DsPhotoEditorActivity.class);
+        // Set data
+        editIntent.setData(Uri.fromFile(new File(imagePath)));
+        // Set output directory
+        //String location = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Pictures";
+        editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, "");//"Images Gallery"
+        // Set toolbar color
+        editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+        // Set background color
+        editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+        /*editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_TOOLS_TO_HIDE,new int[]{
+                DsPhotoEditorActivity.TOOL_WARMTH,
+                DsPhotoEditorActivity.TOOL_PIXELATE});*/
+        // Start activity
+        startActivityForResult(editIntent,EDIT_IMAGE_REQUEST_CODE );
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == EDIT_IMAGE_REQUEST_CODE) {
+            // Handle the result of the edit image activity here
+            if (resultCode == RESULT_OK) {
+
+
+            } else if (resultCode == RESULT_CANCELED) {
+                // The edit image activity was cancelled
+                // Handle cancellation if needed
+            }
+        }
+    }
     private void seeDescriptionImage() {
         Intent intent = new Intent(ImageInfoActivity.this, DescriptionActivity.class);
         intent.putExtra("image", (Serializable) image);

@@ -14,6 +14,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        renderscriptTargetApi  = 21
+        renderscriptSupportModeEnabled   = true
+
+
     }
 
     buildTypes {
@@ -42,7 +46,20 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.burhanrashid52:photoeditor:3.0.1")
     testImplementation("junit:junit:4.13.2")
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    // Add the AAR dependency
+    implementation(files("./libs/ds-photo-editor-sdk-v10.aar"))
+
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    implementation("androidx.appcompat:appcompat:1.1.0")
+
+    implementation("io.reactivex.rxjava2:rxjava:2.1.0")
+
+    implementation("io.reactivex.rxjava2:rxandroid:2.0.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
 }
