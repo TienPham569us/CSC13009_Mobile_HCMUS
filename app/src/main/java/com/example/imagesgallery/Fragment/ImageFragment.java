@@ -371,6 +371,15 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         });
 
         androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button noButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE);
+                Button yesButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE);
+                yesButton.setTextColor(ContextCompat.getColor(getActivity().getApplicationContext(), R.color.lavender));
+                noButton.setTextColor(ContextCompat.getColor(getActivity().getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+            }
+        });
         dialog.show();
     }
 

@@ -23,7 +23,7 @@
             android:theme="?attr/actionBarTheme"
             tools:layout_editor_absoluteX="0dp"
             tools:layout_editor_absoluteY="0dp"
-            android:backgroundTint="@color/white"/>
+            android:backgroundTint="@color/darkGrey"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

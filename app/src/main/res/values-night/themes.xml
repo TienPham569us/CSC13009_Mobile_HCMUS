@@ -21,6 +21,7 @@
     <style name="CameraButton"><item name="android:background">@drawable/camera_btn_dark_mode</item></style>
     <style name="Toolbar"><item name="android:backgroundTint">@color/darkGrey</item></style>
     <style name="AlbumCoverDescription"><item name="android:background">@color/grey</item></style>
+    <style name="FavoriteImagesToolBar"><item name="android:backgroundTint">@color/darkGrey</item></style>
 
     <style name="SelectButton">
         <item name="android:background">@drawable/multiselect_cancel_btn_dark_mode</item>
