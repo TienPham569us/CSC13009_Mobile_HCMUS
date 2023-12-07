@@ -404,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
         btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonDownload);
         btnFavoriteAlbums = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteAlbums);
         btnFavoriteImages = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteImages);
-        //btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
+        btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

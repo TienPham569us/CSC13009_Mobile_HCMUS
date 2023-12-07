@@ -5,65 +5,88 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:gravity="bottom"
-    android:layout_gravity="top|center">
+    android:gravity="bottom">
 
     <TableLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp">
-        <TableRow
-            android:layout_marginBottom="5dp">
-        <Button
-            android:backgroundTint="@color/grey"
-            android:id="@+id/buttonFavoriteAlbums"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Favorite Albums"
-            android:textColor="@color/black"
-            android:layout_marginEnd="5dp"/> <!-- Add margin to the right -->
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="0dp">
+        <TableRow>
+            <Button
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonFavoriteAlbums"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Favorite Albums"
+                android:textColor="@color/black"/>
 
-        <Button
-            android:backgroundTint="@color/grey"
-            android:id="@+id/buttonFavoriteImages"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Favortie Images"
-            android:textColor="@color/black"
-            android:layout_marginStart="5dp"/>
+            <Button
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonFavoriteImages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Favortie Images"
+                android:textColor="@color/black"/>
 
         </TableRow>
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp">
+
+            android:layout_marginBottom="0dp">
             <Button
-            android:backgroundTint="@color/grey"
-            android:id="@+id/buttonLoginFB"
-            android:layout_width="wrap_content"
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonLoginFB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Login Facebook"
+                android:textColor="@color/black"/>
+            <Button
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonSlideShow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Slide Show"
+                android:textColor="@color/black"/>
+        </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Login Facebook"
-            android:textColor="@color/black"
-                android:layout_marginEnd="5dp"/>
+
+            android:layout_marginBottom="0dp">
+
+            <Button
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonTrash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trash"
+                android:textColor="@color/black"/>
 
             <Button
                 android:id="@+id/buttonDownload"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:backgroundTint="@color/grey"
-                android:text="Download image"
+                android:backgroundTint="#AD91DD"
+                android:text="Download image "
                 android:textColor="@color/black" />
         </TableRow>
-        <Button
-            android:backgroundTint="@color/grey"
-            android:id="@+id/buttonTrash"
-            android:layout_width="wrap_content"
+        <TableRow
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Trash"
-            android:textColor="@color/black"/>
+
+            android:layout_marginBottom="0dp">
+
+            <Button
+                android:backgroundTint="#AD91DD"
+                android:id="@+id/buttonSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settings"
+                android:textColor="@color/black"/>
+
+        </TableRow>
     </TableLayout>
 
 </LinearLayout>
