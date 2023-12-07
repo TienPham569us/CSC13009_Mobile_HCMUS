@@ -137,6 +137,10 @@ public class ChooseImageAdapter extends RecyclerView.Adapter<ChooseImageAdapter.
             holder.checkBox.setChecked(false);
         }
 
+        // use these codes to avoid item in DefaultArray have same UI of item in SearchArray due to viewHolder
+        holder.imageView.setEnabled(true);
+        holder.imageView.setAlpha(1f);
+
         if (!imageArrayList.get(pos).isCanAddToCurrentAlbum()) {
             // disable image and change its appearance if it is in current album
             holder.imageView.setEnabled(false);

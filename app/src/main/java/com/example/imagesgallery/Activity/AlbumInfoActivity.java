@@ -751,7 +751,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                             for (int i = 0; i < addedImageArrayList.size(); i++) {
                                 images.add(0, addedImageArrayList.get(i));
                             }
-                            adapter.notifyItemRangeChanged(0, addedImageArrayList.size());
+                            adapter.notifyDataSetChanged();
                         }
                     }
                 }
