@@ -70,6 +70,7 @@ public class ImageInfoActivity extends AppCompatActivity {
     String imagePath = "";
     Image image;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -186,6 +187,14 @@ public class ImageInfoActivity extends AppCompatActivity {
         editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
         // Set background color
         editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+        editIntent.putExtra(MediaStore.Images.Media.DATE_TAKEN,System.currentTimeMillis());
+        /*ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        Uri tempImageUri = getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        editIntent.putExtra(MediaStore.EXTRA_OUTPUT, tempImageUri);*/
+
         /*editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_TOOLS_TO_HIDE,new int[]{
                 DsPhotoEditorActivity.TOOL_WARMTH,
                 DsPhotoEditorActivity.TOOL_PIXELATE});*/
@@ -200,11 +209,36 @@ public class ImageInfoActivity extends AppCompatActivity {
             // Handle the result of the edit image activity here
             if (resultCode == RESULT_OK) {
 
+                Uri editedImageUri = data.getData();
+                setDateTimeOriginal(editedImageUri);
 
             } else if (resultCode == RESULT_CANCELED) {
                 // The edit image activity was cancelled
                 // Handle cancellation if needed
             }
+        }
+    }
+
+    private void setDateTimeOriginal(Uri imageUri) {
+        try {
+            File newImageFile = new File(imageUri.getPath());
+
+            // Create an ExifInterface for the new image file
+            ExifInterface exifInterface = new ExifInterface(newImageFile.getAbsolutePath());
+
+            // Get the current date and time
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault());
+            String currentDateTime = dateFormat.format(new Date());
+
+            // Set the "Date Taken" attribute
+            exifInterface.setAttribute(ExifInterface.TAG_DATETIME, currentDateTime);
+            exifInterface.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime);
+
+            // Save the modified EXIF attributes
+            exifInterface.saveAttributes();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Handle any exceptions
         }
     }
     private void seeDescriptionImage() {

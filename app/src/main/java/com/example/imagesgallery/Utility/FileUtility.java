@@ -1,6 +1,13 @@
 package com.example.imagesgallery.Utility;
 
+import static java.security.AccessController.getContext;
+
+import android.content.ContentResolver;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 public class FileUtility {
@@ -37,7 +44,7 @@ public class FileUtility {
         }
         return null;
     }
-    private static boolean isImageFile(File file) {
+    public static boolean isImageFile(File file) {
         String extension = getFileExtension(file);
         return extension != null && (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")
                 || extension.equalsIgnoreCase("jpeg") || extension.equalsIgnoreCase("gif"));
@@ -50,6 +57,73 @@ public class FileUtility {
             return fileName.substring(dotIndex + 1).toLowerCase();
         }
         return null;
+    }
+    public static ArrayList<File> getAllImageInADirectory(String sourceFolderPath ) {
+        File sourceFolder = new File(sourceFolderPath);
+
+
+        // Check if the source folder exists and is a directory
+        if (sourceFolder.exists() && sourceFolder.isDirectory()) {
+
+            // Get a list of files in the source folder
+            File[] files = sourceFolder.listFiles();
+
+            if (files != null) {
+                ArrayList<File> resultFiles= new ArrayList<File>();
+                for (File file : files) {
+                    if (file.isFile()) {
+                        // Check if the file is an image (you can modify this condition as per your requirements)
+                        if (isImageFile(file)) {
+                            resultFiles.add(file);
+
+                        }
+                    }
+                }
+                return resultFiles;
+            }
+        }
+        return null;
+    }
+
+    public static void copyFilesFromFolder(String sourceFolderPath, String destinationFolderPath) {
+
+
+        // Check if the source folder exists
+
+        File sourceFolder = new File(sourceFolderPath);
+        File destinationFolder = new File(destinationFolderPath);
+        if (!sourceFolder.exists() || !sourceFolder.isDirectory()) {
+            return;
+        }
+
+        // Create the destination folder if it doesn't exist
+        if (!destinationFolder.exists()) {
+            destinationFolder.mkdirs();
+        }
+
+        // Get all files in the source folder
+        File[] files = sourceFolder.listFiles();
+        if (files == null) {
+            return;
+        }
+
+        // Get the content resolver to access MediaStore
+
+
+        // Copy each file to the destination folder
+        for (File file : files) {
+            File destinationFile = new File(destinationFolder, file.getName());
+
+            try {
+                // Copy the file
+                Files.copy(file.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Handle any exceptions
+            }
+        }
     }
 
 
