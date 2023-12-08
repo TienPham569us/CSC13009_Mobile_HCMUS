@@ -49,9 +49,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
@@ -187,7 +189,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
         // Set background color
         editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-        editIntent.putExtra(MediaStore.Images.Media.DATE_TAKEN,System.currentTimeMillis());
+        //editIntent.putExtra(MediaStore.Images.Media.DATE_TAKEN,System.currentTimeMillis());
         /*ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
@@ -232,7 +234,12 @@ public class ImageInfoActivity extends AppCompatActivity {
 
             // Set the "Date Taken" attribute
             exifInterface.setAttribute(ExifInterface.TAG_DATETIME, currentDateTime);
-            exifInterface.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime);
+           exifInterface.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime);
+
+            // Update TAG_OFFSET_TIME_ORIGINAL
+            TimeZone timeZone = TimeZone.getDefault();
+            String offsetTime = timeZone.getOffset(Calendar.getInstance().getTimeInMillis()) / 60000 + "0"; // Offset in minutes
+            exifInterface.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, offsetTime);
 
             // Save the modified EXIF attributes
             exifInterface.saveAttributes();

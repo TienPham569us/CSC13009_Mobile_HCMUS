@@ -81,7 +81,7 @@ import java.util.Objects;
 
 public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
     RecyclerView recycler;
-    public ArrayList<Image> images = new ArrayList<>();
+    public ArrayList<Image> images ;
     public ImageAdapter adapter;
     GridLayoutManager manager;
     TextView totalimages;
@@ -217,6 +217,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
 
+        images = new ArrayList<>();
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
         int imageWidth = 110; // size of an image
@@ -227,9 +228,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         totalimages = linearLayout.findViewById(R.id.gallery_total_images);
         recycler.setLayoutManager(manager);
         recycler.setAdapter(adapter);
-        getEditorImage();
+        //getDateTaken();
+        //getEditorImage();
         loadImages();
-        recycler.getAdapter().notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
+        //recycler.getAdapter().notifyDataSetChanged();
+
+
         //set tool bar
         activity = (AppCompatActivity) getActivity();
         activity.setSupportActionBar(toolbar);
@@ -298,6 +303,40 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
         return linearLayout;
+    }
+
+    private void getDateTaken() {
+        ContentResolver contentResolver = mainActivity.getContentResolver();
+        String[] projection = {
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media.DATE_TAKEN,
+                // Add other columns you need to retrieve
+        };
+
+        String sortOrder = MediaStore.Images.Media.DATE_TAKEN + " DESC"; // Sorting by date taken in descending order
+
+        Cursor cursor = contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                sortOrder
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                // Retrieve values from the cursor
+                long imageId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
+
+                // Process the retrieved values as needed
+
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
     }
 
     private void getEditorImage(){
@@ -481,7 +520,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         if (SDCard) {
             final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
             final String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN,MediaStore.Images.ImageColumns.ORIENTATION};
-            final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+            //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+            final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
             ContentResolver contentResolver = requireActivity().getContentResolver();
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, order);
             int count = cursor.getCount();
