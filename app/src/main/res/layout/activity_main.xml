@@ -24,7 +24,6 @@
         android:layout_marginRight="10dp"
         android:thumb="@drawable/thumb"
         app:track="@drawable/track"/>
-
     <FrameLayout
         android:id="@+id/container"
         android:layout_width="match_parent"

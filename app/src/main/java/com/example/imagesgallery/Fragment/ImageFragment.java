@@ -17,8 +17,8 @@ import android.graphics.Bitmap;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.ParseException;
-import android.net.Uri;
-import android.os.Build;
+    import android.net.Uri;
+    import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -26,6 +26,9 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -39,8 +42,12 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -74,7 +81,7 @@ import java.util.Objects;
 
 public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
     RecyclerView recycler;
-    public ArrayList<Image> images= new ArrayList<>();;
+    public ArrayList<Image> images = new ArrayList<>();
     public ImageAdapter adapter;
     GridLayoutManager manager;
     TextView totalimages;
@@ -136,21 +143,26 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     Button deleteButton;
     Button slideshowButton;
     boolean multiSelectMode = false;
-
     private Uri imageUri;
     private String imageUrl;
     private Bitmap thumbnail;
     //AT
-
     ImageButton imageBtnCamera;
-
     String TAG = "Permission";
+
+    AppCompatActivity activity;
+    private long dateTaken = 0;
+    private String imageLink="...";
+
+    Toolbar toolbar;
+    SearchView searchView;
     //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity = (MainActivity) getActivity();
+        setHasOptionsMenu(true);
         launcher_for_camera =
                 registerForActivityResult(
                         new ActivityResultContracts.StartActivityForResult(),
@@ -203,7 +215,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
-       // images = new ArrayList<>();
+        toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
 
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
@@ -217,9 +229,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler.setAdapter(adapter);
         getEditorImage();
         loadImages();
-
         recycler.getAdapter().notifyDataSetChanged();
-
+        //set tool bar
+        activity = (AppCompatActivity) getActivity();
+        activity.setSupportActionBar(toolbar);
 
         //AT
         // Initialize the button
@@ -256,11 +269,6 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             @Override
             public void onClick(View view) {
                 createDialogDeleteImage();
-//                manager = new GridLayoutManager(mainActivity, 3);
-//                recycler.setLayoutManager(manager);
-//                loadImages();
-
-                // Handle actions in multi-select mode
             }
         });
 
@@ -322,7 +330,6 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
                     long dateTakenMillis = System.currentTimeMillis(); //dateTaken.getTime();
                     Toast.makeText(mainActivity,"date taken: "+dateTaken,Toast.LENGTH_LONG).show();
-                    //Toast.makeText(this,"date taken: "+dateTakenMillis,Toast.LENGTH_LONG).show();
                     values.put(MediaStore.Images.Media.DATE_TAKEN, dateTakenMillis);
                     Toast.makeText(mainActivity,"success: "+dateTakenMillis,Toast.LENGTH_LONG).show();
                 } catch (IOException | ParseException | java.text.ParseException e) {
@@ -352,12 +359,6 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         File deleteImage = new File(imagePath);
         if (deleteImage.exists()) {
             if (deleteImage.delete()) {
-                // ArrayList<String> newImageList= myAdapter.getImages_list();
-                //newImageList.remove(imageTemp);
-                //myAdapter.setImages_list(newImageList);
-                //myAdapter.notifyItemRemoved(imagePosition);
-                //myAdapter.notifyDataSetChanged();
-                // change database
                 String[] args = {imagePath};
                 long rowID = MainActivity.db.delete("Image", "path = ?", args);
                 long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
@@ -479,10 +480,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         if (SDCard) {
             final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
+            final String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN,MediaStore.Images.ImageColumns.ORIENTATION};
             final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
-            //Log.d("test","6");
             ContentResolver contentResolver = requireActivity().getContentResolver();
-            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, order);
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, order);
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 
@@ -493,8 +494,43 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     for (int i = 0; i < count; i++) {
                         cursor.moveToPosition(i);
                         int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                        String path = cursor.getString(columnindex);
 
+                        imageLink = cursor.getString(columnindex);
+                        //load date
+                        try{
+                            int columnIndexDateTaken = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
+                            dateTaken = cursor.getLong(columnIndexDateTaken);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.e("testt", "run: "+e.getMessage(),e );
+                        }
+                        Date date = new Date(dateTaken);
+
+                        //Load size image,type
+                        ExifInterface exifInterface = null;
+                        File imageFile=null;
+                        String extensionName="";
+                        long imageSizeInBytes =0;
+                        long imageSizeInKB = 0;
+                        try {
+                            exifInterface = new ExifInterface(imageLink);
+                            imageFile = new File(imageLink);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        if (imageFile!=null) {
+                            imageSizeInBytes = imageFile.length();
+                            imageSizeInKB = imageSizeInBytes / 1024;
+                            int dotIndex = imageFile.getAbsolutePath().lastIndexOf('.');
+                            if (dotIndex >= 0 && dotIndex < imageLink.length() - 1) {
+                                extensionName = imageFile.getAbsolutePath().substring(dotIndex + 1);
+                            }
+                        }
+
+                        String path = cursor.getString(columnindex);
                         int isFavored = 0;
                         String description = "";
                         String[] args = {path};
@@ -516,13 +552,35 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
 
-                        Image newImage = new Image(path, description, isFavored);
+                        Image newImage = new Image(path, "", isFavored, date ,imageSizeInKB,extensionName);
                         images.add(newImage);
                     }
                 }
             });
             insertThread.start();
         }
+    }
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        requireActivity().getMenuInflater().inflate(R.menu.menu_image_home_page, menu);
+        MenuItem menuItemSearch = menu.findItem(R.id.search_image);
+        searchView = (SearchView) menuItemSearch.getActionView();
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                adapter.getFilter().filter(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     private boolean checkAndRequestPermissions() {
