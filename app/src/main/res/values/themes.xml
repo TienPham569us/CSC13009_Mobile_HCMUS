@@ -22,6 +22,8 @@
     <style name="Toolbar"><item name="android:backgroundTint">@color/white</item></style>
     <style name="AlbumCoverDescription"><item name="android:background">@color/white</item></style>
     <style name="FavoriteImagesToolBar"><item name="android:backgroundTint">@color/white</item></style>
+    <style name="ChooseImagesToolBar"><item name="android:backgroundTint">@color/white</item></style>
+    <style name="DescriptionToolBar"><item name="android:backgroundTint">@color/white</item></style>
 
     <style name="SelectButton">
         <item name="android:background">@drawable/multiselect_cancel_btn</item>

@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -25,13 +27,19 @@ import com.example.imagesgallery.R;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
-public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
+public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> implements Filterable {
     MainActivity mainActivity;
     ImageFragment imageFragment = new ImageFragment();
     private Context context;
     private ArrayList<Image> images_list;
+
+    private ArrayList<Image> images_listOld;
 
     //AT: check if there is selected mode
     private boolean isMultiSelectMode = false;
@@ -98,6 +106,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         this.images_list = images_list;
         this.listener = listener;
         this.selectedImages = new ArrayList<>(); //For multi select
+        this.images_listOld = images_list;
     }
 
     public void addImage(Image image) {
@@ -156,7 +165,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         boolean isSelected = selectedImages.contains(images_list.get(position));
         holder.itemView.setSelected(isSelected);
         // Initially set the checkbox visibility to GONE
-  /*      if (isMultiSelectMode) {
+    /*      if (isMultiSelectMode) {
             holder.checkBox.setVisibility(View.VISIBLE);
             holder.checkBox.setChecked(true);
         }*/
@@ -234,5 +243,74 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             checkBox = itemView.findViewById(R.id.checkBox);
             image = itemView.findViewById(R.id.gallery_item);
         }
+    }
+    //Search Image Exif
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                String txtSearch = constraint.toString();
+                if(txtSearch.isEmpty()){
+                    images_list = images_listOld;
+                }
+                else {
+                    ArrayList<Image> list = new ArrayList<>();
+                    for (Image image : images_listOld) {
+                        //Lay ngay
+                        Date currentDate = image.getDate();
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd", Locale.getDefault());
+                        String formattedDay ="Day" + " " + dateFormat.format(currentDate);
+
+                        //Lay thang
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.setTime(currentDate);
+                        int month = calendar.get(Calendar.MONTH);
+                        month = month + 1;
+                        String formattedMonth = "Month" + " " + month;
+
+                        //Lay nam
+                        int year = calendar.get(Calendar.YEAR);
+                        String formattedYear = "Year" + " " + year;
+
+                        //Load size
+                        long size = image.getSize();
+                        String formattedSize="Size"+ " " + size;
+
+                        //Load type
+                        String type = image.getType();
+                        String formattedType ="Type"+ " "+ type;
+
+                        if (formattedDay.toLowerCase().contains(txtSearch.toLowerCase()) ||
+                                formattedMonth.toLowerCase().contains(txtSearch.toLowerCase()) ||
+                                formattedYear.toLowerCase().contains(txtSearch.toLowerCase()) ||
+                                formattedSize.toLowerCase().contains(txtSearch.toLowerCase()) ||
+                                formattedType.toLowerCase().contains(txtSearch.toLowerCase())) {
+                            list.add(image);
+                        }
+                    }
+                    images_list = list;
+
+                }
+                /*int count = images_list.size();
+                Intent intent = new Intent(context,ImageInfoActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putInt("CountImage", count);
+                intent.putExtras(bundle);
+                context.startActivity(intent);*/
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = images_list;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                images_list = (ArrayList<Image>) results.values;
+                notifyDataSetChanged();
+
+
+            }
+        };
     }
 }

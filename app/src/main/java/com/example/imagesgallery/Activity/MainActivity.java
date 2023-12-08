@@ -169,7 +169,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Login Facebook
-        FacebookSdk.sdkInitialize(getApplicationContext());
+        //Tam comment
+        /*FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this.getApplication());
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
             public void onError(FacebookException exception) {
                 // App code
             }
-        });
+        });*/
 
         /*callbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(callbackManager,
@@ -257,8 +258,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    public static void printHashKey(Context pContext) {
+    //Tam comment
+    /*public static void printHashKey(Context pContext) {
         try {
             PackageInfo info = pContext.getPackageManager().getPackageInfo(pContext.getPackageName(), PackageManager.GET_SIGNATURES);
             for (Signature signature : info.signatures) {
@@ -272,13 +273,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "printHashKey()", e);
         }
-    }
-
-    @Override
+    }*/
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
-    }
+    }*/
 
     public void hideBottomNavigationView() {
         bottomNavigationView.setVisibility(View.GONE);

@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -143,6 +144,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
         });
 
         androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button noButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button yesButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                yesButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender));
+                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+            }
+        });
         dialog.show();
     }
 
@@ -637,6 +647,15 @@ public class AlbumInfoActivity extends AppCompatActivity {
         });
 
         AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button noButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button yesButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                yesButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender));
+                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+            }
+        });
         dialog.show();
     }
 
