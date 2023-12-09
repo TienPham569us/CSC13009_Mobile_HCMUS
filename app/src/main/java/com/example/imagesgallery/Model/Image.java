@@ -14,6 +14,7 @@ public class Image implements Serializable {
     private String type;
 
     private boolean isHidden;
+    private boolean isTrash;
 
 
 
@@ -47,13 +48,15 @@ public class Image implements Serializable {
         this.isFavored = isFavored;
         this.canAddToCurrentAlbum = true;
         this.isHidden=false;
+        this.isTrash=false;
     }
-    public Image(String path, String description, int isFavored, boolean isHidden) {
+    public Image(String path, String description, int isFavored, boolean isHidden, boolean isTrash) {
         this.path = path;
         this.description = description;
         this.isFavored = isFavored;
         this.canAddToCurrentAlbum = true;
         this.isHidden=isHidden;
+        this.isTrash=isTrash;
     }
     public Image(String path, String description, int isFavored, Date date, long size, String type) {
         this.path = path;
@@ -63,6 +66,7 @@ public class Image implements Serializable {
         this.size = size;
         this.type = type;
         this.isHidden=false;
+        this.isTrash = false;
     }
     public String getPath() {
         return path;
@@ -102,5 +106,13 @@ public class Image implements Serializable {
 
     public void setHidden(boolean hidden) {
         isHidden = hidden;
+    }
+
+    public boolean isTrash() {
+        return isTrash;
+    }
+
+    public void setTrash(boolean trash) {
+        isTrash = trash;
     }
 }

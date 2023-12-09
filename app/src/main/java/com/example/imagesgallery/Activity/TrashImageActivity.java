@@ -1,14 +1,11 @@
 package com.example.imagesgallery.Activity;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,9 +18,7 @@ import com.example.imagesgallery.Utility.FileUtility;
 import java.io.File;
 import java.util.ArrayList;
 
-public class HiddenImageActivity extends AppCompatActivity {
-    MainActivity mainActivity;
-
+public class TrashImageActivity extends AppCompatActivity {
     RecyclerView recycler;
     ArrayList<Image> images;
     ImageAdapter adapter;
@@ -43,12 +38,12 @@ public class HiddenImageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hidden_images);
+        setContentView(R.layout.activity_trash_images);
 
         //getSupportFragmentManager().beginTransaction().replace(R.id.container, albumFragment).commit();
         init();
         //linearLayout = (LinearLayout) findViewById(R.id)
-        recycler = findViewById(R.id.hidden_gallery_recycler);
+        recycler = findViewById(R.id.trash_gallery_recycler);
         images = new ArrayList<>();
 
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
@@ -77,17 +72,17 @@ public class HiddenImageActivity extends AppCompatActivity {
         if (adapter!=null)
         {
             images.clear();
-            loadHiddenImage();
+            loadTrashImage();
             adapter.notifyDataSetChanged();
         }
     }
 
-    private void loadHiddenImage() {
+    private void loadTrashImage() {
 
-        String hiddenFolderPath = Environment.getExternalStorageDirectory()+ File.separator+".hidden_image_folder";
+        String hiddenFolderPath = Environment.getExternalStorageDirectory()+ File.separator+".trash_image_folder";
         ArrayList<File> resultFile = FileUtility.getAllImageInADirectory(hiddenFolderPath);
         for (File file : resultFile) {
-            Image newImage = new Image(file.getAbsolutePath(),"",0,true,false);
+            Image newImage = new Image(file.getAbsolutePath(),"",0,false,true);
             images.add(newImage);
         }
         Log.d("hidden","oke");

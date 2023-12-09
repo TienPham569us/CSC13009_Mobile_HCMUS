@@ -135,13 +135,27 @@ public class ImageInfoActivity extends AppCompatActivity {
             menu.findItem(R.id.removeImageFromFavorites).setVisible(false);
             menu.findItem(R.id.addImageToFavorites).setVisible(true);
         }
-        boolean isHidden = image.isHidden();
-        if (isHidden==false) {
-            menu.findItem(R.id.addImageToHidden).setVisible(true);
-            menu.findItem(R.id.removeImageFromHidden).setVisible(false);
-        } else {
+        boolean isTrash = image.isTrash();
+        if (isTrash == true) {
+            menu.findItem(R.id.deleteImage).setVisible(false);
+            menu.findItem(R.id.recoverImage).setVisible(true);
+
+            //trash cannot hidden
             menu.findItem(R.id.addImageToHidden).setVisible(false);
-            menu.findItem(R.id.removeImageFromHidden).setVisible(true);
+            menu.findItem(R.id.removeImageFromHidden).setVisible(false);
+
+        } else {
+            menu.findItem(R.id.deleteImage).setVisible(true);
+            menu.findItem(R.id.recoverImage).setVisible(false);
+
+            boolean isHidden = image.isHidden();
+            if (isHidden == false) {
+                menu.findItem(R.id.addImageToHidden).setVisible(true);
+                menu.findItem(R.id.removeImageFromHidden).setVisible(false);
+            } else {
+                menu.findItem(R.id.addImageToHidden).setVisible(false);
+                menu.findItem(R.id.removeImageFromHidden).setVisible(true);
+            }
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -153,7 +167,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         if (itemID == R.id.addImage) {
             Toast.makeText(this, "Them hinh", Toast.LENGTH_SHORT).show();
 
-        } else if (itemID == R.id.deleteImage) {
+        } else if (itemID == R.id.deleteImagePermanently) {
             createDialogDeleteImage();
 
             //Glide.with(this).load(nextImageTemp).into(imageView);
@@ -185,6 +199,12 @@ public class ImageInfoActivity extends AppCompatActivity {
         } else if (itemID == R.id.removeImageFromHidden) {
             removeImageFromHiddenFolder();
             invalidateOptionsMenu();
+        } else if (itemID == R.id.deleteImage) {
+            addImageToTrashFolder();
+            invalidateOptionsMenu();
+        } else if (itemID == R.id.recoverImage) {
+            removeImageFromTrashFolder();
+            invalidateOptionsMenu();
         }
 
         return super.onOptionsItemSelected(item);
@@ -197,6 +217,23 @@ public class ImageInfoActivity extends AppCompatActivity {
         startActivity(intent);
     }
     public void removeImageFromHiddenFolder() {
+        File sourceImage = new File(imagePath);
+        String picturesFolder = Environment.getExternalStorageDirectory()+"/Pictures";
+        FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        startActivity(intent);
+        finishAndRemoveTask();
+    }
+
+    public void addImageToTrashFolder() {
+        File sourceImage = new File(imagePath);
+        String trashFolderPath = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
+        FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        startActivity(intent);
+    }
+
+    public void removeImageFromTrashFolder() {
         File sourceImage = new File(imagePath);
         String picturesFolder = Environment.getExternalStorageDirectory()+"/Pictures";
         FileUtility.moveImageToFolder(sourceImage, picturesFolder);

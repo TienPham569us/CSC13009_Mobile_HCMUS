@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/deleteImagePermanently"
+        android:title="Delete image permanently"
+        android:icon="@android:drawable/bottom_bar" />
     <item android:id="@+id/deleteImage"
         android:title="Delete image"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/recoverImage"
+        android:title="Recover image"
         android:icon="@android:drawable/bottom_bar" />
     <item android:id="@+id/infomation"
         android:title="Infomation"

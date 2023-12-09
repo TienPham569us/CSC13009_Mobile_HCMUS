@@ -76,6 +76,7 @@
         </activity>
         <activity android:name=".Activity.SettingsActivity" android:exported="true"/>
         <activity android:name=".Activity.HiddenImageActivity" android:exported="true"/>
+        <activity android:name=".Activity.TrashImageActivity" android:exported="true"/>
         <activity
             android:name=".Activity.LoadingActivity"
             android:exported="true"
