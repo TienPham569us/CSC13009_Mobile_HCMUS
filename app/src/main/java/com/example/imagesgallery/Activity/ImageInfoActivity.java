@@ -214,18 +214,20 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
     public void addImageToHiddenFolder() {
         File sourceImage = new File(imagePath);
-        String hiddenFolderPath = Environment.getExternalStorageDirectory()+File.separator+".hidden_image_folder";
+        String hiddenFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".hidden_image_folder";
         FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
-        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
         startActivity(intent);
     }
+
     public void removeImageFromHiddenFolder() {
         File sourceImage = new File(imagePath);
-        String picturesFolder = Environment.getExternalStorageDirectory()+"/Pictures";
+        String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
         FileUtility.moveImageToFolder(sourceImage, picturesFolder);
-        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
     }
@@ -247,6 +249,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         finishAndRemoveTask();
     }
 
+    int EDIT_IMAGE_REQUEST_CODE = 69;
 
     private void editImage() {
         Intent editIntent = new Intent(ImageInfoActivity.this, DsPhotoEditorActivity.class);
@@ -286,6 +289,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             startActivityForResult(editIntent, EDIT_IMAGE_REQUEST_CODE);
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -297,6 +301,13 @@ public class ImageInfoActivity extends AppCompatActivity {
 
                 Uri editedImageUri = data.getData();
                 setDateTimeOriginal(editedImageUri);
+
+                // update database
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("path", editedImageUri.getPath());
+                contentValues.put("description", "");
+                contentValues.put("isFavored", 0);
+                MainActivity.db.insert("Image", null, contentValues);
 
             } else if (resultCode == RESULT_CANCELED) {
                 // The edit image activity was cancelled
@@ -389,7 +400,7 @@ public class ImageInfoActivity extends AppCompatActivity {
 
             // Set the "Date Taken" attribute
             exifInterface.setAttribute(ExifInterface.TAG_DATETIME, currentDateTime);
-           exifInterface.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime);
+            exifInterface.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime);
 
             // Update TAG_OFFSET_TIME_ORIGINAL
             TimeZone timeZone = TimeZone.getDefault();
@@ -505,7 +516,7 @@ public class ImageInfoActivity extends AppCompatActivity {
                 Button noButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 Button yesButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 yesButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender));
-                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender)); // Change to your desired color resource
             }
         });
         dialog.show();
