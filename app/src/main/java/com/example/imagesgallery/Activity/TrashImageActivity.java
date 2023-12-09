@@ -69,23 +69,29 @@ public class TrashImageActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        if (images!=null) {
+            images.clear();
+
+            loadTrashImage();
+        }
         if (adapter!=null)
         {
-            images.clear();
-            loadTrashImage();
             adapter.notifyDataSetChanged();
         }
     }
 
     private void loadTrashImage() {
 
-        String hiddenFolderPath = Environment.getExternalStorageDirectory()+ File.separator+".trash_image_folder";
-        ArrayList<File> resultFile = FileUtility.getAllImageInADirectory(hiddenFolderPath);
-        for (File file : resultFile) {
-            Image newImage = new Image(file.getAbsolutePath(),"",0,false,true);
-            images.add(newImage);
+        String trashFolderPath = Environment.getExternalStorageDirectory()+ File.separator+".trash_image_folder";
+        ArrayList<File> resultFile = FileUtility.getAllImageInADirectory(trashFolderPath);
+        if (resultFile!=null) {
+            for (File file : resultFile) {
+                Image newImage = new Image(file.getAbsolutePath(), "", 0, false, true);
+                images.add(newImage);
+            }
+            Log.d("hidden", "oke");
         }
-        Log.d("hidden","oke");
 
     }
 }

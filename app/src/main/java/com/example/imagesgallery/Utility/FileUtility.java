@@ -128,9 +128,9 @@ public class FileUtility {
 
     public static void moveImageToFolder(File sourceImage, String folderPath) {
         // Create the hidden folder if it doesn't exist
-        File hiddenFolder = new File(folderPath);
-        if (!hiddenFolder.exists()) {
-            hiddenFolder.mkdirs();
+        File destinationFolder = new File(folderPath);
+        if (!destinationFolder.exists()) {
+            destinationFolder.mkdirs();
         }
 
         // Get the source image file name

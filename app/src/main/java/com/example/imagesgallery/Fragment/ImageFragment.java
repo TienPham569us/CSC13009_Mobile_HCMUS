@@ -230,7 +230,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler.setAdapter(adapter);
         //getDateTaken();
         //getEditorImage();
-        //loadImages();
+        loadImages();
         adapter.notifyDataSetChanged();
         //recycler.getAdapter().notifyDataSetChanged();
 
@@ -304,8 +304,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public void onResume() {
 
         super.onResume();
-        images.clear();
-        loadImagesOnResume();
+        if (images!=null) {
+            images.clear();
+            loadImagesOnResume();
+        }
         if (adapter!=null){
             Log.d("onResume","data changed");
             adapter.notifyDataSetChanged();
@@ -605,8 +607,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
 
-                        Image newImage = new Image(path, "", isFavored, date ,imageSizeInKB, extensionName);
-                        images.add(newImage);
+                        //Image newImage = new Image(path, "", isFavored, date ,imageSizeInKB, extensionName);
+                        //images.add(newImage);
                     }
                 }
             });

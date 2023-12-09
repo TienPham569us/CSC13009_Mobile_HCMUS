@@ -98,6 +98,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), "image position:" + imagePosition, Toast.LENGTH_SHORT).show();
         // Load the image into the ImageView element
         Glide.with(this).load(imagePath).into(imageView);
+        //Log.d("onResult","First: "+new File(imagePath).getAbsolutePath());
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -160,6 +161,10 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         return super.onCreateOptionsMenu(menu);
     }
+
+    int EDIT_IMAGE_REQUEST_CODE = 69;
+    int EDIT_HIDDEN_IMAGE_REQUEST_CODE = 70;
+    int EDIT_TRASH_IMAGE_REQUEST_CODE = 71;
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemID = item.getItemId();
@@ -242,7 +247,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         finishAndRemoveTask();
     }
 
-    int EDIT_IMAGE_REQUEST_CODE = 69;
+
     private void editImage() {
         Intent editIntent = new Intent(ImageInfoActivity.this, DsPhotoEditorActivity.class);
         // Set data
@@ -254,6 +259,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
         // Set background color
         editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+
         //editIntent.putExtra(MediaStore.Images.Media.DATE_TAKEN,System.currentTimeMillis());
         /*ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
@@ -265,13 +271,26 @@ public class ImageInfoActivity extends AppCompatActivity {
         /*editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_TOOLS_TO_HIDE,new int[]{
                 DsPhotoEditorActivity.TOOL_WARMTH,
                 DsPhotoEditorActivity.TOOL_PIXELATE});*/
+
+        boolean isTrash = image.isTrash();
+        boolean isHidden = image.isHidden();
+
+        //Log.d("onResult","Trash: "+isTrash+" - Hidden: "+isHidden);
         // Start activity
-        startActivityForResult(editIntent,EDIT_IMAGE_REQUEST_CODE );
+        if (isTrash==true) {
+            startActivityForResult(editIntent,EDIT_TRASH_IMAGE_REQUEST_CODE );
+        } else if (isHidden==true) {
+            startActivityForResult(editIntent,EDIT_HIDDEN_IMAGE_REQUEST_CODE );
+        } else {
+
+            startActivityForResult(editIntent, EDIT_IMAGE_REQUEST_CODE);
+        }
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        //Log.d("onResult", String.valueOf(requestCode));
         if (requestCode == EDIT_IMAGE_REQUEST_CODE) {
             // Handle the result of the edit image activity here
             if (resultCode == RESULT_OK) {
@@ -283,10 +302,81 @@ public class ImageInfoActivity extends AppCompatActivity {
                 // The edit image activity was cancelled
                 // Handle cancellation if needed
             }
+        } else if (requestCode == EDIT_TRASH_IMAGE_REQUEST_CODE) {
+            // Handle the result of the edit image activity here
+            if (resultCode == RESULT_OK) {
+
+                Uri editedImageUri = data.getData();
+                setDateTimeOriginal(editedImageUri);
+
+                //Log.d("onResult","This is trash image");
+
+                String filePath = getFilePathFromFileURI(editedImageUri);
+                if (filePath!=null) {
+                    File newFile = new File(filePath);
+                    //Log.d("onResult", "Before: " + newFile.getAbsolutePath());
+
+                    String trashFolder = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
+                    FileUtility.moveImageToFolder(newFile,trashFolder);
+
+                    //Log.d("onResult", "After:" + newFile.getAbsolutePath());
+                } else {
+                    Log.d("onResult", "File path is null");
+                }
+
+
+
+            }
+        } else if (requestCode == EDIT_HIDDEN_IMAGE_REQUEST_CODE) {
+            // Handle the result of the edit image activity here
+            if (resultCode == RESULT_OK) {
+
+                Uri editedImageUri = data.getData();
+                setDateTimeOriginal(editedImageUri);
+
+                //Log.d("onResult","This is hidden image");
+
+                String filePath = getFilePathFromFileURI(editedImageUri);
+                if (filePath!=null) {
+                    File newFile = new File(filePath);
+                    //Log.d("onResult", "Before: " + newFile.getAbsolutePath());
+
+                    String hiddenFolder = Environment.getExternalStorageDirectory() + File.separator + ".hidden_image_folder";
+                    FileUtility.moveImageToFolder(newFile, hiddenFolder);
+                    //Log.d("onResult", "After:" + newFile.getAbsolutePath());
+                } else {
+                    Log.d("onResult", "File path is null");
+                }
+
+            }
         }
     }
 
-    private void setDateTimeOriginal(Uri imageUri) {
+    public String getFilePathFromFileURI(Uri uri ) {
+        // Resolve the Uri to obtain the file path
+        String filePath = null;
+        if (uri.getScheme().equals("content")) {
+            ContentResolver contentResolver = getContentResolver();
+            Cursor cursor = contentResolver.query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                filePath = cursor.getString(columnIndex);
+                cursor.close();
+            }
+        } else if (uri.getScheme().equals("file")) {
+            filePath = uri.getPath();
+        }
+        return filePath;
+
+        /*// Create the File object from the file path
+        if (filePath != null) {
+            File file = new File(filePath);
+            // Use the file object as needed
+        } else {
+            // Handle the case where the file path is null or cannot be resolved
+        }*/
+    }
+    private void setDateTimeOriginal(@NonNull Uri imageUri) {
         try {
             File newImageFile = new File(imageUri.getPath());
 

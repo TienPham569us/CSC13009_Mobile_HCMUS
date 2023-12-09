@@ -83,9 +83,11 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (adapter!=null) {
+        if (images!=null) {
             images.clear();
             loadFavoritesImage();
+        }
+        if (adapter!=null) {
             adapter.notifyDataSetChanged();
         }
     }

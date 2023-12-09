@@ -74,10 +74,13 @@ public class HiddenImageActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (adapter!=null)
-        {
+        if (images!=null) {
             images.clear();
             loadHiddenImage();
+        }
+        if (adapter!=null)
+        {
+
             adapter.notifyDataSetChanged();
         }
     }
@@ -86,11 +89,13 @@ public class HiddenImageActivity extends AppCompatActivity {
 
         String hiddenFolderPath = Environment.getExternalStorageDirectory()+ File.separator+".hidden_image_folder";
         ArrayList<File> resultFile = FileUtility.getAllImageInADirectory(hiddenFolderPath);
-        for (File file : resultFile) {
-            Image newImage = new Image(file.getAbsolutePath(),"",0,true,false);
-            images.add(newImage);
+        if (resultFile!=null) {
+            for (File file : resultFile) {
+                Image newImage = new Image(file.getAbsolutePath(), "", 0, true, false);
+                images.add(newImage);
+            }
+            Log.d("hidden", "oke");
         }
-        Log.d("hidden","oke");
 
     }
 }
