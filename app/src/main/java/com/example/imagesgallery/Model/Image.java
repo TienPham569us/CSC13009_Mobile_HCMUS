@@ -13,6 +13,8 @@ public class Image implements Serializable {
     private long size;
     private String type;
 
+
+
     public Date getDate() {
         return date;
     }
