@@ -135,6 +135,14 @@ public class ImageInfoActivity extends AppCompatActivity {
             menu.findItem(R.id.removeImageFromFavorites).setVisible(false);
             menu.findItem(R.id.addImageToFavorites).setVisible(true);
         }
+        boolean isHidden = image.isHidden();
+        if (isHidden==false) {
+            menu.findItem(R.id.addImageToHidden).setVisible(true);
+            menu.findItem(R.id.removeImageFromHidden).setVisible(false);
+        } else {
+            menu.findItem(R.id.addImageToHidden).setVisible(false);
+            menu.findItem(R.id.removeImageFromHidden).setVisible(true);
+        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -171,10 +179,30 @@ public class ImageInfoActivity extends AppCompatActivity {
             seeDescriptionImage();
         } else if (itemID == R.id.editImage) {
             editImage();
-
+        } else if (itemID == R.id.addImageToHidden) {
+            addImageToHiddenFolder();
+            invalidateOptionsMenu();
+        } else if (itemID == R.id.removeImageFromHidden) {
+            removeImageFromHiddenFolder();
+            invalidateOptionsMenu();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    public void addImageToHiddenFolder() {
+        File sourceImage = new File(imagePath);
+        String hiddenFolderPath = Environment.getExternalStorageDirectory()+File.separator+".hidden_image_folder";
+        FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
+        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        startActivity(intent);
+    }
+    public void removeImageFromHiddenFolder() {
+        File sourceImage = new File(imagePath);
+        String picturesFolder = Environment.getExternalStorageDirectory()+"/Pictures";
+        FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        startActivity(intent);
+        finishAndRemoveTask();
     }
 
     int EDIT_IMAGE_REQUEST_CODE = 69;

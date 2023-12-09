@@ -393,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
 
     Button btnDownloadImage;
     Button btnOpenSettings;
+    Button btnOpenHiddenFolder;
 
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
@@ -405,6 +406,8 @@ public class MainActivity extends AppCompatActivity {
         btnFavoriteAlbums = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteAlbums);
         btnFavoriteImages = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteImages);
         btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
+        btnOpenHiddenFolder = (Button)dialogNavBottom.findViewById(R.id.buttonHidden);
+
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -463,6 +466,14 @@ public class MainActivity extends AppCompatActivity {
 //                startActivity(intent);
 //            }
 //        });
+
+        btnOpenHiddenFolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this,HiddenImageActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
 

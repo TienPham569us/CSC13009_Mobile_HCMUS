@@ -27,4 +27,10 @@
     <item android:id="@+id/editImage"
         android:title="Edit Image"
         android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/addImageToHidden"
+        android:title="Add to hidden"
+        android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/removeImageFromHidden"
+        android:title="Remove from hidden"
+        android:icon="@android:drawable/bottom_bar" />
 </menu>

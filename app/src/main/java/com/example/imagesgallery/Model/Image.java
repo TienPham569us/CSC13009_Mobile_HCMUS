@@ -13,6 +13,8 @@ public class Image implements Serializable {
     private long size;
     private String type;
 
+    private boolean isHidden;
+
 
 
     public Date getDate() {
@@ -43,7 +45,15 @@ public class Image implements Serializable {
         this.path = path;
         this.description = description;
         this.isFavored = isFavored;
-        canAddToCurrentAlbum = true;
+        this.canAddToCurrentAlbum = true;
+        this.isHidden=false;
+    }
+    public Image(String path, String description, int isFavored, boolean isHidden) {
+        this.path = path;
+        this.description = description;
+        this.isFavored = isFavored;
+        this.canAddToCurrentAlbum = true;
+        this.isHidden=isHidden;
     }
     public Image(String path, String description, int isFavored, Date date, long size, String type) {
         this.path = path;
@@ -52,6 +62,7 @@ public class Image implements Serializable {
         this.date = date;
         this.size = size;
         this.type = type;
+        this.isHidden=false;
     }
     public String getPath() {
         return path;
@@ -83,5 +94,13 @@ public class Image implements Serializable {
 
     public void setCanAddToCurrentAlbum(boolean canAddToCurrentAlbum) {
         this.canAddToCurrentAlbum = canAddToCurrentAlbum;
+    }
+
+    public boolean isHidden() {
+        return isHidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        isHidden = hidden;
     }
 }
