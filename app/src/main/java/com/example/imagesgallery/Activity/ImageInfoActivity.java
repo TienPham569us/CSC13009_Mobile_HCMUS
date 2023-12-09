@@ -249,7 +249,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         finishAndRemoveTask();
     }
 
-    int EDIT_IMAGE_REQUEST_CODE = 69;
+
 
     private void editImage() {
         Intent editIntent = new Intent(ImageInfoActivity.this, DsPhotoEditorActivity.class);
@@ -331,6 +331,12 @@ public class ImageInfoActivity extends AppCompatActivity {
                     FileUtility.moveImageToFolder(newFile,trashFolder);
 
                     //Log.d("onResult", "After:" + newFile.getAbsolutePath());
+                    // update database
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("path", editedImageUri.getPath());
+                    contentValues.put("description", "");
+                    contentValues.put("isFavored", 0);
+                    MainActivity.db.insert("Image", null, contentValues);
                 } else {
                     Log.d("onResult", "File path is null");
                 }
@@ -355,6 +361,12 @@ public class ImageInfoActivity extends AppCompatActivity {
                     String hiddenFolder = Environment.getExternalStorageDirectory() + File.separator + ".hidden_image_folder";
                     FileUtility.moveImageToFolder(newFile, hiddenFolder);
                     //Log.d("onResult", "After:" + newFile.getAbsolutePath());
+                    // update database
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("path", editedImageUri.getPath());
+                    contentValues.put("description", "");
+                    contentValues.put("isFavored", 0);
+                    MainActivity.db.insert("Image", null, contentValues);
                 } else {
                     Log.d("onResult", "File path is null");
                 }
