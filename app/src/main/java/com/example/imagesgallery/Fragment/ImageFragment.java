@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -34,6 +35,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.ContentResolver;
@@ -46,6 +48,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -149,6 +152,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     ImageButton imageBtnCamera;
     String TAG = "Permission";
 
+    //AT
+    Switch switchMode;
+    boolean nightMode = false;
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
+
     AppCompatActivity activity;
     private long dateTaken = 0;
     private String imageLink="...";
@@ -161,6 +170,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity = (MainActivity) getActivity();
+
+
         setHasOptionsMenu(true);
         launcher_for_camera =
                 registerForActivityResult(
@@ -215,6 +226,29 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
+
+        switchMode = linearLayout.findViewById(R.id.switchMode);
+        sharedPreferences = mainActivity.getSharedPreferences("MODE",Context.MODE_PRIVATE);
+        nightMode = sharedPreferences.getBoolean("nightMode", false);
+        if (nightMode) {
+            switchMode.setChecked(true);
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+        switchMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (nightMode) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    editor = sharedPreferences.edit();
+                    editor.putBoolean("nightMode", false);
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    editor = sharedPreferences.edit();
+                    editor.putBoolean("nightMode", true);
+                }
+                editor.apply();
+            }
+        });
 
         images = new ArrayList<>();
 

@@ -145,28 +145,6 @@ public class MainActivity extends AppCompatActivity {
 
         //AT
 //        setTheme(android.R.style.Theme_Material_Dialog);
-        switchMode = findViewById(R.id.switchMode);
-        sharedPreferences = getSharedPreferences("MODE",Context.MODE_PRIVATE);
-        nightMode = sharedPreferences.getBoolean("nightMode", false);
-        if (nightMode) {
-            switchMode.setChecked(true);
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
-        switchMode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (nightMode) {
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                    editor = sharedPreferences.edit();
-                    editor.putBoolean("nightMode", false);
-                } else {
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                    editor = sharedPreferences.edit();
-                    editor.putBoolean("nightMode", true);
-                }
-                editor.apply();
-            }
-        });
 
         // Login Facebook
         //Tam comment

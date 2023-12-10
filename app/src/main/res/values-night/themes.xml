@@ -24,6 +24,7 @@
     <style name="FavoriteImagesToolBar"><item name="android:backgroundTint">@color/darkGrey</item></style>
     <style name="ChooseImagesToolBar"><item name="android:backgroundTint">@color/darkGrey</item></style>
     <style name="DescriptionToolBar"><item name="android:backgroundTint">@color/darkGrey</item></style>
+    <style name="PictureTopToolBar"><item name="android:backgroundTint">@color/darkGrey</item></style>
 
     <style name="SelectButton">
         <item name="android:background">@drawable/multiselect_cancel_btn_dark_mode</item>
