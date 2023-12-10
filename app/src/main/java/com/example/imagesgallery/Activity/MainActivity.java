@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.loader.content.AsyncTaskLoader;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -31,6 +32,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -58,6 +60,7 @@ import com.example.imagesgallery.Interface.DownloadService;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
+import com.example.imagesgallery.Utility.FileUtility;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -79,6 +82,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
@@ -396,6 +400,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnOpenHiddenFolder;
     Button btnOpenTrashFolder;
 
+    Button btnDeleteDuplicateImage;
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
         dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
@@ -409,6 +414,7 @@ public class MainActivity extends AppCompatActivity {
         btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
         btnOpenHiddenFolder = (Button)dialogNavBottom.findViewById(R.id.buttonHidden);
         btnOpenTrashFolder = (Button)dialogNavBottom.findViewById(R.id.buttonTrash);
+        btnDeleteDuplicateImage = (Button) dialogNavBottom.findViewById(R.id.buttonDeleteDuplicateImage);
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -483,10 +489,80 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        btnDeleteDuplicateImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //TODO: continue implement duplicate
+            }
+        });
 
 
         dialogNavBottom.show();
 
+    }
+    public class DeleteDuplicateAsyncTask extends AsyncTask<Void, Integer, Void> {
+        private ProgressDialog progressDialog;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            //deleteDuplicateImage();
+            return null;
+        }
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Loading, please wait...");
+            progressDialog.show();
+        }
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            Intent intent_duplicate = new Intent(MainActivity.this, TrashImageActivity.class);
+            /*intent_duplicate.putStringArrayListExtra("data", (ArrayList<String>) list);
+            intent_duplicate.putExtra("name", "Duplicate Image");
+            intent_duplicate.putExtra("duplicateImg", 2);
+            intent_duplicate.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);*/
+            startActivity(intent_duplicate);
+            progressDialog.cancel();
+        }
+    }
+    /*public void deleteDuplicateImage() {
+        ArrayList<Image> imageList;// = getAll data of image
+        long hash=0;
+        ArrayList<Long> hashImage = new ArrayList<Long>();
+        for (Image image: imageList) {
+            Bitmap bitmap = BitmapFactory.decodeFile(image.getPath());
+            hash = hashBitmap(bitmap);
+            hashImage.add(hash);
+        }
+        *//*for (int i=hashImage.size();i>=0;i--){
+
+        }*//*
+
+        String trashFolder = Environment.getExternalStorageDirectory()+File.separator + ".trash_image_folder";
+        for (int i=0;i<hashImage.size();i++) {
+
+            for (int j=i+1;j<hashImage.size();j++){
+                if (hashImage.get(i).equals(hashImage.get(j))){
+                    File deleteFile = new File(imageList.get(j).getPath());
+                    FileUtility.moveImageToFolder(deleteFile,trashFolder);
+                }
+            }
+        }
+
+        //loadImage2(); this function to load image without query database
+
+    }*/
+    public long hashBitmap(Bitmap bmp){
+        long hash = 31;
+        for(int x = 1; x <  bmp.getWidth(); x=x*2){
+            for (int y = 1; y < bmp.getHeight(); y=y*2){
+                hash *= (bmp.getPixel(x,y) + 31);
+                hash = hash%1111122233;
+            }
+        }
+        return hash;
     }
     Dialog downloadDialog;
     private EditText edtImageUrl;

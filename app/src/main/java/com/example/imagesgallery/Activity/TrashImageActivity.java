@@ -72,7 +72,6 @@ public class TrashImageActivity extends AppCompatActivity {
 
         if (images!=null) {
             images.clear();
-
             loadTrashImage();
         }
         if (adapter!=null)

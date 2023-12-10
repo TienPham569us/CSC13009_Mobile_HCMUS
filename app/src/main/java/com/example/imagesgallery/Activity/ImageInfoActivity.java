@@ -572,12 +572,15 @@ public class ImageInfoActivity extends AppCompatActivity {
                     setResult(Activity.RESULT_OK, resultIntent);
                     finish();
                 } else {
-                    Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                    /*Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
                     if (intent != null) {
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa Activity Stack
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
                         startActivity(intent);
-                    }
+                    }*/
+                    Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+                    startActivity(intent);
+                    finishAndRemoveTask();
                 }
             }
         }
