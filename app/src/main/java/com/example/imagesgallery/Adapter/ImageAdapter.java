@@ -112,6 +112,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public void addImage(Image image) {
         this.images_list.add(image);
     }
+    public void removeImage(int pos) { this.images_list.remove(pos);}
 
     //  AT Toggle the selection state of an item at the given position
     public void toggleSelection(int position) {

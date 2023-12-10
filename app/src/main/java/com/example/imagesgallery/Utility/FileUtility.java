@@ -3,6 +3,9 @@ package com.example.imagesgallery.Utility;
 import static java.security.AccessController.getContext;
 
 import android.content.ContentResolver;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,6 +153,8 @@ public class FileUtility {
             // Failed to move the file
         }
     }
+
+
 
 
 

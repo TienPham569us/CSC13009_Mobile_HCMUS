@@ -15,6 +15,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.ParseException;
@@ -58,6 +59,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.imagesgallery.Activity.ImageInfoActivity;
 import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
@@ -187,7 +189,16 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }*/
-                                    triggerMediaScan(imageUri);
+                                    /*Log.d("onResume","before count: "+adapter.getItemCount()+" - size: "+images.size());
+                                    Image newImage = new Image(newImageUri.getPath(), "captured image", 0);
+                                    images.add(newImage);
+                                    //adapter.addImage(newImage);
+                                    adapter.notifyDataSetChanged();
+                                    adapter.notifyItemInserted(0);
+                                    Log.d("onResume","after count: "+adapter.getItemCount()+" - size: "+images.size());*/
+
+                                    //onResume();
+                                    //triggerMediaScan(imageUri);
                                 }
                             }
                         }
@@ -223,6 +234,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        //Log.d("ImageFragment","onCreateView");
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
@@ -264,7 +276,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler.setAdapter(adapter);
         //getDateTaken();
         //getEditorImage();
+
+        images.clear();
         loadImages();
+        loadImagesOnResume();
         adapter.notifyDataSetChanged();
         //recycler.getAdapter().notifyDataSetChanged();
 
@@ -338,10 +353,42 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public void onResume() {
 
         super.onResume();
+       // Log.d("onResume","Count: "+adapter.getItemCount()+" - list: "+images.size());
         if (images!=null) {
             images.clear();
             loadImagesOnResume();
+            if (newImageUri!=null) {
+               // loadNewestImageOnResume();
+                newImageUri=null;
+            }
+
+            /*if (newImageUri!=null) {
+                Log.d("onResume","newImage");
+                File newImageFile = null;
+                String extensionName = "";
+                long imageSizeInBytes = 0;
+                long imageSizeInKB = 0;
+                try {
+
+                    newImageFile = new File(newImageUri.getPath());
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (newImageFile != null) {
+                    imageSizeInBytes = newImageFile.length();
+                    imageSizeInKB = imageSizeInBytes / 1024;
+                    extensionName = FileUtility.getFileExtension(newImageFile);
+                }
+
+                Image newImage = new Image(newImageUri.getPath(), "captured image", 0,new Date(),imageSizeInKB,extensionName);
+                images.add(newImage);
+                newImageUri = null;
+            }
+*/
         }
+
         if (adapter!=null){
             Log.d("onResume","data changed");
             adapter.notifyDataSetChanged();
@@ -487,9 +534,20 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
                         startActivity(intent);
                     }
+                    /*
+                    Intent intent = new Intent(getContext(),MainActivity.class);
+                    startActivity(intent);*/
+
                 }
             }
         }
+    }
+    public void addImageToTrashFolder(String imagePath) {
+        File sourceImage = new File(imagePath);
+        String trashFolderPath = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
+        FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+        Intent intent = new Intent(getContext(),MainActivity.class);
+        startActivity(intent);
     }
 
     public void createDialogDeleteImage() {
@@ -505,7 +563,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 Log.d(TAG, "selectedImages size " + adapter.getSelectedImages().size());
                 // Define variables to track the number of successfully deleted images
                 for (String imagePath : selectedImages) {
-                    deleteImage(imagePath);
+                    //deleteImage(imagePath);
+                    addImageToTrashFolder(imagePath);
                 }
                 toggleButtonsOfMultiSelectMode(multiSelectMode);
                 multiSelectMode = false;
@@ -575,7 +634,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 
-            images.clear();
+           // images.clear();
             Thread insertThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -641,8 +700,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
 
-                        //Image newImage = new Image(path, "", isFavored, date ,imageSizeInKB, extensionName);
-                        //images.add(newImage);
+                        /*Image newImage = new Image(path, "", isFavored, date ,imageSizeInKB, extensionName);
+                        images.add(newImage);*/
                     }
                 }
             });
@@ -701,11 +760,86 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 }
                 String path = cursor.getString(columnindex);
                 int isFavored = 0;
+                String description = "";
+                String[] args = {path};
+                Cursor cursor1 = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+
+                if (!cursor1.moveToFirst()) {
+
+                } else {
+                    cursor1.moveToPosition(-1);
+                    while (cursor1.moveToNext()) {
+                        int favorColumn = cursor1.getColumnIndex("isFavored");
+                        int descriptionColumn = cursor1.getColumnIndex("description");
+                        isFavored = cursor1.getInt(favorColumn);
+                        description = cursor1.getString(descriptionColumn);
+                    }
+                }
+
 
 
                 Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
                 images.add(newImage);
             }
+        }
+    }
+    public void loadNewestImageOnResume() {
+        boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
+
+        if (SDCard) {
+            final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
+            final String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN, MediaStore.Images.ImageColumns.ORIENTATION};
+            //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+            final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
+            ContentResolver contentResolver = requireActivity().getContentResolver();
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, order);
+            int count = cursor.getCount();
+            totalimages.setText("Total items: " + count);
+
+            String firstImage = images.get(0).getPath();
+            for (int i = 0; i < 1; i++) {
+                cursor.moveToPosition(i);
+                int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                imageLink = cursor.getString(columnindex);
+                //load date
+                try {
+                    int columnIndexDateTaken = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
+                    dateTaken = cursor.getLong(columnIndexDateTaken);
+                } catch (Exception e) {
+                    Log.e("testt", "run: " + e.getMessage(), e);
+                }
+                Date date = new Date(dateTaken);
+
+                //Load size image,type
+
+                File imageFile = null;
+                String extensionName = "";
+                long imageSizeInBytes = 0;
+                long imageSizeInKB = 0;
+                try {
+
+                    imageFile = new File(imageLink);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (imageFile != null) {
+                    imageSizeInBytes = imageFile.length();
+                    imageSizeInKB = imageSizeInBytes / 1024;
+                    int dotIndex = imageFile.getAbsolutePath().lastIndexOf('.');
+                    if (dotIndex >= 0 && dotIndex < imageLink.length() - 1) {
+                        extensionName = imageFile.getAbsolutePath().substring(dotIndex + 1);
+                    }
+                }
+                String path = cursor.getString(columnindex);
+                int isFavored = 0;
+
+
+                Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
+                images.add(0,newImage);
+            }
+            adapter.notifyDataSetChanged();
         }
     }
     @Override
@@ -932,22 +1066,24 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     }
                 }
         );
-        Image newImage = new Image(imageUri.getPath(), "captured image", 0);
-        images.add(0, newImage);
-        //adapter.addImage(newImage);
-        adapter.notifyDataSetChanged();
-        adapter.notifyItemInserted(0);
-        adapter.notifyItemRangeInserted(0, 10);
+
+        //adapter.notifyItemRangeInserted(0, 10);
     }
 
+    private Uri newImageUri= null;
     protected void openCamera() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
-        imageUri = mainActivity.getContentResolver().insert(
+        /*imageUri = mainActivity.getContentResolver().insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);*/
+        newImageUri = mainActivity.getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, newImageUri);
         launcher_for_camera.launch(cameraIntent);
+        //startActivityForResult(cameraIntent,REQUEST_IMAGE_CAPTURE);
         /*Image newImage = new Image(imageUri.getPath(),"captured image",0);
         images.add(0,newImage);
         //adapter.addImage(newImage);
@@ -968,9 +1104,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            //Bundle extras = data.getExtras();
+            //Bitmap imageBitmap = (Bitmap) extras.get("data");
 
+            //Uri imageUri = data.getData();
+            String imagePath = getImagePathFromUri(imageUri);
+            Bitmap imageBitmap = BitmapFactory.decodeFile(imagePath);
             // Save the captured image to external storage
             // String imageFilePath = saveImageToExternalStorage(imageBitmap);
             //String imageFilePath  = saveImageToMediaStore(imageBitmap);
@@ -984,6 +1123,18 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+    public String getImagePathFromUri(Uri uri) {
+        String path = null;
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = mainActivity.getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            path = cursor.getString(columnIndex);
+            cursor.close();
+        }
+        return path;
     }
 
 
@@ -1146,7 +1297,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 }*/
                 //albumDir.mkdirs();
                 File destination = new File(storageDir, imageFileName);
-                Toast.makeText(mainActivity, destination.toString(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(mainActivity, destination.toString(), Toast.LENGTH_SHORT).show();
                 if (mainActivity.hasManageExternalStoragePermission()) {
                     Toast.makeText(mainActivity, "Can access external memory", Toast.LENGTH_SHORT).show();
                     if (imageFile.renameTo(destination)) {
@@ -1158,7 +1309,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     MediaScannerConnection.scanFile(mainActivity, new String[]{destination.getAbsolutePath()}, null, null);
 
                     //notify change
-                    /*long imageSizeInBytes = 0;
+                    long imageSizeInBytes = 0;
                     long imageSizeInKB =0;
                     if (imageFile!=null) {
                         imageSizeInBytes = imageFile.length();
@@ -1168,7 +1319,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     String extensionName=FileUtility.getFileExtension(destination);
                     Image newImage = new Image(destination.getAbsolutePath(), "", 0, new Date() ,imageSizeInKB,extensionName);
                     images.add(newImage);
-                    adapter.notifyDataSetChanged();*/
+                    adapter.notifyDataSetChanged();
 
 
                 } else {
