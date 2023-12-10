@@ -153,6 +153,16 @@ public class AlbumFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         constraintLayoutAlbum = (ConstraintLayout) inflater.inflate(R.layout.fragment_album, container, false);
         init();
+
+        // set minimum items per row of gridview = 2
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
+        int itemWidth = 200; // size of an image
+        int ColumnCount = (int) screenWidthInDp / itemWidth; // the number of images in a row
+        if (ColumnCount < 2) {
+            gridView.setNumColumns(2);
+        }
+
         DefaultAlbumArrayList = new ArrayList<>();
         SearchAlbumArrayList = new ArrayList<>();
         CurrentAlbumArrayList = DefaultAlbumArrayList;

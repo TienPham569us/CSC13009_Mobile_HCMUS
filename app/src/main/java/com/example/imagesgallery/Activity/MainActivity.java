@@ -438,13 +438,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        btnOpenSettings.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-//                startActivity(intent);
-//            }
-//        });
+        btnOpenSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
 
         btnOpenHiddenFolder.setOnClickListener(new View.OnClickListener() {
             @Override
