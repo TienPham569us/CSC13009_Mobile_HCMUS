@@ -5,7 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Activity.HiddenImageActivity">
+    tools:context=".Activity.TrashImageActivity">
+
+    <ImageButton
+        android:contentDescription="null"
+        android:id="@+id/btnReturnHomeFromTrash"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/back_icon"/>
 
     <TextView
         android:id="@+id/textView3"

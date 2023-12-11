@@ -224,13 +224,14 @@ public class ImageInfoActivity extends AppCompatActivity {
         FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
         Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
         startActivity(intent);
+        finishAndRemoveTask();
     }
 
     public void removeImageFromHiddenFolder() {
         File sourceImage = new File(imagePath);
         String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
         FileUtility.moveImageToFolder(sourceImage, picturesFolder);
-        Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
+        Intent intent = new Intent(ImageInfoActivity.this, HiddenImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
     }
@@ -251,7 +252,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         File sourceImage = new File(imagePath);
         String picturesFolder = Environment.getExternalStorageDirectory()+"/Pictures";
         FileUtility.moveImageToFolder(sourceImage, picturesFolder);
-        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+        Intent intent = new Intent(ImageInfoActivity.this,TrashImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
     }
@@ -316,6 +317,12 @@ public class ImageInfoActivity extends AppCompatActivity {
                 contentValues.put("isFavored", 0);
                 MainActivity.db.insert("Image", null, contentValues);
 
+
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("EditedImage", true);
+                setResult(Activity.RESULT_OK, resultIntent);
+                finish();
+
             } else if (resultCode == RESULT_CANCELED) {
                 // The edit image activity was cancelled
                 // Handle cancellation if needed
@@ -347,10 +354,8 @@ public class ImageInfoActivity extends AppCompatActivity {
                 } else {
                     Log.d("onResult", "File path is null");
                 }
-
-
-
             }
+
         } else if (requestCode == EDIT_HIDDEN_IMAGE_REQUEST_CODE) {
             // Handle the result of the edit image activity here
             if (resultCode == RESULT_OK) {

@@ -182,10 +182,43 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         launcher_for_camera =
                 registerForActivityResult(
                         new ActivityResultContracts.StartActivityForResult(),
-                        new ActivityResultCallback<ActivityResult>() {
+                        result -> {
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                Log.d("cam","result oke");
+                                loadNewestImageOnResume();
+                                adapter.notifyDataSetChanged();
+                                updateNumberOfImage();
+                                Intent data = result.getData();
+                                if (data != null) {
+                                    Log.d("cam","data oke");
+
+                                }
+                            }
+                        }
+
+                );
+/*new ActivityResultCallback<ActivityResult>() {
                             @Override
                             public void onActivityResult(ActivityResult result) {
                                 if (result.getResultCode() == RESULT_OK) {
+                                    loadNewestImageOnResume();
+                                    adapter.notifyDataSetChanged();
+                                    updateNumberOfImage();
+                                    if (result.getData()!=null) {
+                                        Log.d("cam","result data");
+                                        if (newImageUri!=null) {
+                                            Log.d("cam","uri: "+newImageUri );
+                                            File tempImage = new File(newImageUri.getPath());
+                                            Log.d("cam","file path: "+tempImage.getAbsolutePath());
+                                            long size = tempImage.length() /1024;
+                                            String extension = FileUtility.getFileExtension(tempImage);
+                                            Image image = new Image(newImageUri.getPath(),"",0,new Date(),size,extension);
+                                            images.add(image);
+
+        newImageUri=null;
+    }
+
+}*/
                                 /*try {
                                     thumbnail = MediaStore.Images.Media.getBitmap(
                                             mainActivity.getContentResolver(),imageUri);
@@ -201,12 +234,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                     adapter.notifyItemInserted(0);
                                     Log.d("onResume","after count: "+adapter.getItemCount()+" - size: "+images.size());*/
 
-                                    //onResume();
-                                    //triggerMediaScan(imageUri);
-                                }
-                            }
-                        }
-                );
+//onResume();
+//triggerMediaScan(imageUri);
 
         // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
         startIntentSeeImageInfo = registerForActivityResult(
@@ -217,15 +246,23 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         if (data != null) {
                             String imageDeleted = data.getStringExtra("ImageDeleted");
                             String imageMoveToTrash = data.getStringExtra("ImageToTrash");
+                            Boolean didEditImage = data.getBooleanExtra("EditedImage",false);
                             Log.d("aaaaa", "2");
                             if (imageDeleted != null) {
                                 Log.d("aaaaa", "3");
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
+                                updateNumberOfImage();
                             }
                             if (imageMoveToTrash != null) {
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
+                                updateNumberOfImage();
+                            }
+                            if (didEditImage ==true) {
+                                loadNewestImageOnResume();
+                                adapter.notifyDataSetChanged();
+                                updateNumberOfImage();
                             }
                         }
                     }
@@ -691,11 +728,18 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         if (SDCard) {
             final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
-            final String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN,MediaStore.Images.ImageColumns.ORIENTATION};
+            final String[] projection = {MediaStore.Images.Media._ID,
+                                            MediaStore.Images.Media.DATA,
+                                            MediaStore.Images.Media.DATE_TAKEN,
+                                            MediaStore.Images.ImageColumns.ORIENTATION};
             //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
             final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
             ContentResolver contentResolver = requireActivity().getContentResolver();
-            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, order);
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                                    projection,
+                                            null,
+                                            null,
+                                                    order);
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 
@@ -771,6 +815,24 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 }
             });
             insertThread.start();
+        }
+    }
+    public void updateNumberOfImage() {
+        boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
+
+        if (SDCard) {
+            final String[] projection = {MediaStore.Images.Media._ID
+            };
+            //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+            final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
+            ContentResolver contentResolver = requireActivity().getContentResolver();
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    order);
+            int count = cursor.getCount();
+            totalimages.setText("Total items: " + count);
         }
     }
     public void loadImagesOnResume() {
@@ -1136,6 +1198,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     }
 
     private Uri newImageUri= null;
+    private Uri newCapturedImageUri = null;
     protected void openCamera() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
