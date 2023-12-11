@@ -239,8 +239,12 @@ public class ImageInfoActivity extends AppCompatActivity {
         File sourceImage = new File(imagePath);
         String trashFolderPath = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
         FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
-        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+//        startActivity(intent);
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("ImageToTrash", imagePath);
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
     }
 
     public void removeImageFromTrashFolder() {
@@ -581,9 +585,13 @@ public class ImageInfoActivity extends AppCompatActivity {
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Tạo mới Task
                         startActivity(intent);
                     }*/
-                    Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
-                    startActivity(intent);
-                    finishAndRemoveTask();
+//                    Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
+//                    startActivity(intent);
+//                    finishAndRemoveTask();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("ImageDeleted", imageTemp);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
                 }
             }
         }
