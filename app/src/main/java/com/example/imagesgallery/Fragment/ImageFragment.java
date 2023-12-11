@@ -277,6 +277,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         //getDateTaken();
         //getEditorImage();
 
+        //deleteContentUri();
         images.clear();
         loadImages();
         loadImagesOnResume();
@@ -488,6 +489,27 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         adapter.notifyDataSetChanged();
     }
 
+    //Warning: this function is used for test and setup AVD only
+    public void deleteContentUri() {
+        // Create a content resolver instance
+        ContentResolver contentResolver = mainActivity.getContentResolver();
+
+        // Define the content URI for images
+        Uri imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+            // Delete all images using the content resolver
+        int rowsDeleted = contentResolver.delete(imagesUri, null, null);
+
+        // Check the number of rows deleted to determine if the deletion was successful
+        if (rowsDeleted > 0) {
+            // Images deletion was successful
+            // Add your desired logic here
+        } else {
+            // Images deletion failed or there are no images
+            // Add your desired logic here
+        }
+    }
+
     //AT
     private void deleteImage(String imagePath) {
         File deleteImage = new File(imagePath);
@@ -626,7 +648,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         if (SDCard) {
             final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
-            final String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN,MediaStore.Images.ImageColumns.ORIENTATION};
+            final String[] projection = {MediaStore.Images.Media._ID,
+                                        MediaStore.Images.Media.DATA,
+                                        MediaStore.Images.Media.DATE_TAKEN,
+                                        MediaStore.Images.ImageColumns.ORIENTATION};
             //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
             final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
             ContentResolver contentResolver = requireActivity().getContentResolver();
@@ -778,7 +803,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
 
-                Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
+                Image newImage = new Image(path, description, isFavored, date, imageSizeInKB, extensionName);
                 images.add(newImage);
             }
         }

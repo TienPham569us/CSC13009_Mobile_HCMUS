@@ -436,13 +436,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnDownloadImage.setOnClickListener(new View.OnClickListener() {
+     /*   btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, FavoriteImagesActivity.class);
                 startActivity(intent);
             }
-        });
+        });*/
 
         btnOpenSettings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -557,10 +557,16 @@ public class MainActivity extends AppCompatActivity {
         btnStartDownload = (Button) downloadDialog.findViewById(R.id.buttonDownloadImage);
         btnCancelDownload = (Button) downloadDialog.findViewById(R.id.buttonCancelDownload);
 
+
+        progressDialog = new ProgressDialog(this);
         btnStartDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String url = edtImageUrl.getText().toString();
+
+                progressDialog.show();
+                downloadBitmap(url);
+                progressDialog.dismiss();
                 //new FetchImage(url).start();
             }
         });
@@ -682,7 +688,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
 
     public void downloadImage2(String imageUrl) {
         try {
@@ -880,6 +885,32 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             // Handle any errors that occurred during the saving process
         }
+    }
+
+    protected Bitmap downloadBitmap(String imageUrl) {
+        InputStream inputStream = null;
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setAllowUserInteraction(false);
+            connection.setInstanceFollowRedirects(true);
+            connection.setRequestMethod("GET");
+            connection.connect();
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK)
+                inputStream = connection.getInputStream();
+            else
+                return null;
+
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            return bitmap;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

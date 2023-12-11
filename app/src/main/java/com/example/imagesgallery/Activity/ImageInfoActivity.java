@@ -141,6 +141,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             menu.findItem(R.id.deleteImage).setVisible(false);
             menu.findItem(R.id.recoverImage).setVisible(true);
 
+            menu.findItem(R.id.deleteImagePermanently).setVisible(true);
             //trash cannot hidden
             menu.findItem(R.id.addImageToHidden).setVisible(false);
             menu.findItem(R.id.removeImageFromHidden).setVisible(false);
@@ -148,6 +149,8 @@ public class ImageInfoActivity extends AppCompatActivity {
         } else {
             menu.findItem(R.id.deleteImage).setVisible(true);
             menu.findItem(R.id.recoverImage).setVisible(false);
+
+            menu.findItem(R.id.deleteImagePermanently).setVisible(false);
 
             boolean isHidden = image.isHidden();
             if (isHidden == false) {
@@ -429,7 +432,7 @@ public class ImageInfoActivity extends AppCompatActivity {
     private void seeDescriptionImage() {
         Intent intent = new Intent(ImageInfoActivity.this, DescriptionActivity.class);
         intent.putExtra("image", (Serializable) image);
-        startIntentSeeeDescription.launch(intent);
+        startIntentSeeDescription.launch(intent);
     }
 
     private void addImageToFavorites() {
@@ -600,7 +603,7 @@ public class ImageInfoActivity extends AppCompatActivity {
     }
 
     // when click button back in toolbar or in smartphone to finish DescriptionActivity
-    ActivityResultLauncher<Intent> startIntentSeeeDescription = registerForActivityResult(
+    ActivityResultLauncher<Intent> startIntentSeeDescription = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {

@@ -51,7 +51,7 @@ public class DetailImageActivity extends AppCompatActivity {
         loadImageInformation();
         txtViewLink.setText(imageLink);
 
-        Toast.makeText(this,"detail: "+dateTaken,Toast.LENGTH_LONG).show();
+        //Toast.makeText(this,"detail: "+dateTaken,Toast.LENGTH_LONG).show();
         Date date = new Date(dateTaken);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
         String formattedDate = dateFormat.format(date);
