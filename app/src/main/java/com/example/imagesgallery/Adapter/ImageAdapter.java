@@ -186,35 +186,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             public void onClick(View view) {
                 // Get the position of the image
                 int position = holder.getAdapterPosition();
-                if (isMultiSelectMode) {
-                    toggleSelection(position);
-                    // Notify the adapter that the data set has changed
-                    notifyDataSetChanged();
-                    Log.d("selected images array ", selectedImages.toString());
-                    Log.d("Image list size: ", String.valueOf(getItemCount()));
-                    // Show the checkbox only for the clicked image and set it to true
-                }
+                listener.click(position);
 
-                if (!isMultiSelectMode) {
-                    // Pass the position to the listener
-                    listener.click(position);
-                    if (!(context instanceof AlbumInfoActivity)) {
-                        context = view.getContext();
-                        // Create an intent to start the new activity
-                        Intent intent = new Intent(context, ImageInfoActivity.class);
-                        Bundle bundle = new Bundle();
-                        bundle.putInt("position", position);
-                        intent.putExtras(bundle);
-                        intent.putExtra("image_path", images_list.get(position).getPath());
-                        intent.putExtra("image", (Serializable) images_list.get(position));
-                        //intent.putExtra("next_image_path", images_list.get(position + 1));
-
-                        // Pass the path to the image to the new activity
-                        // Start the new activity
-                        context.startActivity(intent);
-                        //Log.d("newTest", "onClick: 2");
-                    }
-                }
             }
         });
 
