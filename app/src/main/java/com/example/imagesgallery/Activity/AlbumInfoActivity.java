@@ -15,9 +15,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -25,11 +27,16 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -54,6 +61,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
     TextView txtAlbumName, txtAlbumDescription;
     ImageView imgCoverAlbum;
+    Button btnChange, btnCancel;
+    EditText edtChangeNameAlbum;
+    TextView txtTitleDialog;
+    Dialog dialog;
     Toolbar toolbar;
     Album album;
     RecyclerView recyclerView;
@@ -130,7 +141,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
         int imageWidth = 110; // size of an image
-        int desiredColumnCount = (int)screenWidthInDp / imageWidth; // the number of images in a row
+        int desiredColumnCount = (int) screenWidthInDp / imageWidth; // the number of images in a row
 
         images = new ArrayList<>();
         album.setListImage(images);
@@ -221,6 +232,77 @@ public class AlbumInfoActivity extends AppCompatActivity {
         });
     }
 
+    // show dialog when user choose "change name" in menu
+    private void showDialogChangeNameAlbum() {
+        dialog = new Dialog(AlbumInfoActivity.this);
+        dialog.setContentView(R.layout.dialog_change_album_name);
+
+        btnChange = (Button) dialog.findViewById(R.id.buttonChangeName);
+        btnCancel = (Button) dialog.findViewById(R.id.buttonCancelChangeName);
+        edtChangeNameAlbum = (EditText) dialog.findViewById(R.id.edtChangeAlbumName);
+        txtTitleDialog = (TextView) dialog.findViewById(R.id.title_dialog_change_name);
+
+        edtChangeNameAlbum.setText(album.getName());
+
+        // when click button add of dialog
+        btnChange.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String name = edtChangeNameAlbum.getText().toString();
+                if (name.equals("")) {
+                    Toast.makeText(AlbumInfoActivity.this, "Please enter name of album", Toast.LENGTH_SHORT).show();
+                } else {
+                    String newName = edtChangeNameAlbum.getText().toString();
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("name", newName);
+                    String[] args = {String.valueOf(album.getId())};
+                    long rowID = MainActivity.db.update("Album", contentValues, "id_album = ?", args);
+                    if (rowID > 0) {
+                        album.setName(newName);
+                        Objects.requireNonNull(getSupportActionBar()).setTitle(album.getName());
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(AlbumInfoActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
+
+        // when click button cancel of dialog
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+        resizeDialog();
+    }
+
+    // resize the dialog to fit the screen size
+    private void resizeDialog() {
+        // resize dialog size
+        Display display = ((WindowManager) getApplicationContext().getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
+        int width = getApplicationContext().getApplicationContext().getResources().getDisplayMetrics().widthPixels;
+        Objects.requireNonNull(dialog.getWindow()).setLayout((6 * width) / 7, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        // get screen size
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        float screenWidth = displayMetrics.widthPixels;
+
+        // resize text size
+        float newTextSize = screenWidth * 0.05f;
+        edtChangeNameAlbum.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
+
+        newTextSize = screenWidth * 0.08f;
+        txtTitleDialog.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
+
+        newTextSize = screenWidth * 0.04f;
+        btnChange.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
+        btnCancel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newTextSize);
+    }
+
     public void createDialogDeleteImage() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         if (adapter.getSelectedImages().size() == 0) {
@@ -254,7 +336,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 Button noButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 Button yesButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 yesButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender));
-                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender)); // Change to your desired color resource
             }
         });
         dialog.show();
@@ -395,6 +477,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
         resultIntent.putExtra("images", images);
         resultIntent.putExtra("isFavored", album.getIsFavored());
         resultIntent.putExtra("PreviousActivity", "FavoriteAlbumActivity");
+        resultIntent.putExtra("newName", album.getName());
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
@@ -449,14 +532,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
             slideshowImages();
         } else if (itemID == R.id.removeFromAlbum) {
             createDialogRemoveImages();
-        } else if (itemID==R.id.changeNameAlbum){
-            changeNameAlbum();
+        } else if (itemID == R.id.changeNameAlbum) {
+            showDialogChangeNameAlbum();
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void changeNameAlbum(){
-
     }
 
     private void createDialogRemoveImages() {
@@ -561,7 +640,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                 Button noButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 Button yesButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 yesButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender));
-                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+                noButton.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.lavender)); // Change to your desired color resource
             }
         });
         dialog.show();

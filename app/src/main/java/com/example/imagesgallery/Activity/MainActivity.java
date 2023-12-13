@@ -384,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnOpenTrashFolder;
 
     Button btnDeleteDuplicateImage;
+
     private void showDialogNavBottom() {
         dialogNavBottom = new Dialog(MainActivity.this);
         dialogNavBottom.setContentView(R.layout.dialog_nav_bottom);
@@ -394,9 +395,9 @@ public class MainActivity extends AppCompatActivity {
         btnDownloadImage = (Button) dialogNavBottom.findViewById(R.id.buttonDownload);
         btnFavoriteAlbums = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteAlbums);
         btnFavoriteImages = (Button) dialogNavBottom.findViewById(R.id.buttonFavoriteImages);
-        btnOpenSettings = (Button)dialogNavBottom.findViewById(R.id.buttonSettings);
-        btnOpenHiddenFolder = (Button)dialogNavBottom.findViewById(R.id.buttonHidden);
-        btnOpenTrashFolder = (Button)dialogNavBottom.findViewById(R.id.buttonTrash);
+        btnOpenSettings = (Button) dialogNavBottom.findViewById(R.id.buttonSettings);
+        btnOpenHiddenFolder = (Button) dialogNavBottom.findViewById(R.id.buttonHidden);
+        btnOpenTrashFolder = (Button) dialogNavBottom.findViewById(R.id.buttonTrash);
         btnDeleteDuplicateImage = (Button) dialogNavBottom.findViewById(R.id.buttonDeleteDuplicateImage);
         btnDownloadImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -422,11 +423,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, FavoriteAlbumsActivity.class);
                 Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
-                if (fragment instanceof AlbumFragment){
+                if (fragment instanceof AlbumFragment) {
                     Log.d("aaaaa", "album");
                     AlbumFragment AlbumFragment = (AlbumFragment) fragment;
                     AlbumFragment.startIntentSeeFavoriteAlbums.launch(intent);
-                } else{
+                } else {
                     Log.d("aaaaa", "image");
                     startActivity(intent);
                 }
@@ -436,7 +437,7 @@ public class MainActivity extends AppCompatActivity {
         btnFavoriteImages.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this,FavoriteImagesActivity.class);
+                Intent intent = new Intent(MainActivity.this, FavoriteImagesActivity.class);
                 startActivity((intent));
             }
         });
@@ -460,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
         btnOpenHiddenFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this,HiddenImageActivity.class);
+                Intent intent = new Intent(MainActivity.this, HiddenImageActivity.class);
                 startActivity(intent);
             }
         });
@@ -468,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
         btnOpenTrashFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this,TrashImageActivity.class);
+                Intent intent = new Intent(MainActivity.this, TrashImageActivity.class);
                 startActivity(intent);
             }
         });
@@ -484,6 +485,7 @@ public class MainActivity extends AppCompatActivity {
         dialogNavBottom.show();
 
     }
+
     public class DeleteDuplicateAsyncTask extends AsyncTask<Void, Integer, Void> {
         private ProgressDialog progressDialog;
 
@@ -492,6 +494,7 @@ public class MainActivity extends AppCompatActivity {
             deleteDuplicateImage();
             return null;
         }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -499,6 +502,7 @@ public class MainActivity extends AppCompatActivity {
             progressDialog.setMessage("Loading, please wait...");
             progressDialog.show();
         }
+
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
@@ -511,6 +515,7 @@ public class MainActivity extends AppCompatActivity {
             progressDialog.cancel();
         }
     }
+
     public ArrayList<String> getAllImagePath() {
         ArrayList<String> result = new ArrayList<String>();
 
@@ -542,11 +547,12 @@ public class MainActivity extends AppCompatActivity {
         return result;
 
     }
+
     public int deleteDuplicateImage() {
         ArrayList<String> imageList = getAllImagePath();// = getAll data of image
-        long hash=0;
+        long hash = 0;
         ArrayList<Long> hashImage = new ArrayList<Long>();
-        for (String imagePath: imageList) {
+        for (String imagePath : imageList) {
             Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
             hash = hashBitmap(bitmap);
             hashImage.add(hash);
@@ -555,37 +561,40 @@ public class MainActivity extends AppCompatActivity {
 
         }*/
 
-        int count =0;
-        String trashFolder = Environment.getExternalStorageDirectory()+File.separator + ".trash_image_folder";
-        for (int i=0;i<hashImage.size();i++) {
-            for (int j=i+1;j<hashImage.size();j++){
-                if (hashImage.get(i).equals(hashImage.get(j))){
+        int count = 0;
+        String trashFolder = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
+        for (int i = 0; i < hashImage.size(); i++) {
+            for (int j = i + 1; j < hashImage.size(); j++) {
+                if (hashImage.get(i).equals(hashImage.get(j))) {
                     File deleteFile = new File(imageList.get(j));
-                    FileUtility.moveImageToFolder(deleteFile,trashFolder);
+                    FileUtility.moveImageToFolder(deleteFile, trashFolder);
                     count++;
                 }
             }
         }
 
-        Log.d("dup","number: "+count);
+        Log.d("dup", "number: " + count);
         return count;
         //loadImage2(); this function to load image without query database
 
     }
-    public long hashBitmap(Bitmap bmp){
+
+    public long hashBitmap(Bitmap bmp) {
         long hash = 31;
-        for(int x = 1; x <  bmp.getWidth(); x=x*2){
-            for (int y = 1; y < bmp.getHeight(); y=y*2){
-                hash *= (bmp.getPixel(x,y) + 31);
-                hash = hash%1111122233;
+        for (int x = 1; x < bmp.getWidth(); x = x * 2) {
+            for (int y = 1; y < bmp.getHeight(); y = y * 2) {
+                hash *= (bmp.getPixel(x, y) + 31);
+                hash = hash % 1111122233;
             }
         }
         return hash;
     }
+
     Dialog downloadDialog;
     private EditText edtImageUrl;
     private Button btnStartDownload;
     private Button btnCancelDownload;
+
     private void showDownloadButton() {
         downloadDialog = new Dialog(MainActivity.this);
         downloadDialog.setContentView(R.layout.download_image_dialog);
@@ -621,6 +630,7 @@ public class MainActivity extends AppCompatActivity {
         downloadDialog.show();
 
     }
+
     boolean writeFileToStorage(ResponseBody body) {
         String nameOfFile = "Downloaded_image" + System.currentTimeMillis() + ".jpg";
 
@@ -649,7 +659,6 @@ public class MainActivity extends AppCompatActivity {
                 byte[] fileReader = new byte[4096];
                 long fileSize = body.contentLength();
                 long fileSizeDownloaded = 0;
-
 
 
                 //OutputStream outputstream = new FileOutputStream(fileDescriptor);
@@ -696,7 +705,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void downloadImage(String fileUrl) {
         Retrofit.Builder builder = new Retrofit.Builder().baseUrl(fileUrl);
-        Retrofit retrofit =builder.build();
+        Retrofit retrofit = builder.build();
 
         DownloadService downloadService = retrofit.create(DownloadService.class);
         Call<ResponseBody> call = downloadService.downloadFileFromUrl("wiki/Wikipedia:In_the_news/Candidates#/media/File:Ryan_blaney_(52866797550)_(cropped).jpg");
@@ -707,24 +716,24 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     try {
                         boolean writeToDisk = writeFileToStorage(response.body());
-                        Toast.makeText(MainActivity.this,"file downloaded or not status -> "+writeToDisk,Toast.LENGTH_SHORT).show();
-                        Log.d(TAG,"file downloaded or not status -> "+writeToDisk);
+                        Toast.makeText(MainActivity.this, "file downloaded or not status -> " + writeToDisk, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "file downloaded or not status -> " + writeToDisk);
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                 } else {
-                    Log.d(TAG,"server connection error");
-                    Toast.makeText(MainActivity.this,"server connection error",Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "server connection error");
+                    Toast.makeText(MainActivity.this, "server connection error", Toast.LENGTH_SHORT).show();
                 }
                 progressDialog.dismiss();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d(TAG,"Something went wrong");
-                Toast.makeText(MainActivity.this,"Something went wrong",Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Something went wrong");
+                Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -738,7 +747,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Get the file name from the URL
             //tring fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-            String fileName  = "Downloaded_image_group_9_"+System.currentTimeMillis()+ imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+            String fileName = "Downloaded_image_group_9_" + System.currentTimeMillis() + imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
             // Create a file in the device's external storage directory
             File directory = Environment.getExternalStorageDirectory();
             File file = new File(directory, fileName);
@@ -776,6 +785,7 @@ public class MainActivity extends AppCompatActivity {
             // Handle any errors that occurred during the download process
         }
     }
+
     public void downLoadImage3(String imageUrl) {
         OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
@@ -847,13 +857,15 @@ public class MainActivity extends AppCompatActivity {
             // Handle any errors that occurred during the file-saving process
         }
     }
-    private Handler mainHandler =new Handler();
-    public class FetchImage extends Thread{
+
+    private Handler mainHandler = new Handler();
+
+    public class FetchImage extends Thread {
         String url;
         Bitmap bitmap;
 
         public FetchImage(String url) {
-            this.url=url;
+            this.url = url;
         }
 
         @Override
@@ -883,14 +895,15 @@ public class MainActivity extends AppCompatActivity {
                     if (progressDialog.isShowing()) {
                         progressDialog.dismiss();
                         //save
-                        String fileName = "download_image_group_9_"+url.substring(url.lastIndexOf("/") + 1);
-                        saveBitmapToExternalStorage(bitmap,fileName);
+                        String fileName = "download_image_group_9_" + url.substring(url.lastIndexOf("/") + 1);
+                        saveBitmapToExternalStorage(bitmap, fileName);
                     }
                 }
             });
 
         }
     }
+
     private void saveBitmapToExternalStorage(Bitmap bitmap, String fileName) {
         // Get the external storage directory
         String externalStorageDirectory = Environment.getExternalStorageDirectory().toString();
@@ -946,8 +959,7 @@ public class MainActivity extends AppCompatActivity {
 
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             return bitmap;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

@@ -80,6 +80,7 @@ public class AlbumFragment extends Fragment {
     Context context;
     ConstraintLayout constraintLayoutAlbum;
     ContentValues rowValues;
+
     // Default: default album (not found through search)
     // Search: albums are found through search
     // Current: current album (default, search)
@@ -295,7 +296,6 @@ public class AlbumFragment extends Fragment {
 
     // Load album from database and add to arraylist
     private void loadDataFromDatabase(String SearchName, ArrayList<Album> albumArrayList, int[] currentMaxPosition, boolean[] isAllItemsLoaded, int[] IdMaxWhenStartingLoadData) {
-        Log.d("aaaa", "before: " + CurrentAlbumArrayList.size());
         String sql = "";
         Cursor cursor = null;
         if (IdMaxWhenStartingLoadData[0] == 0) {
@@ -371,7 +371,6 @@ public class AlbumFragment extends Fragment {
 
         cursor.close();
         currentMaxPosition[0] += ItemsPerLoading;
-        Log.d("aaaa", "after: " + CurrentAlbumArrayList.size());
     }
 
     private void init() {
@@ -396,7 +395,7 @@ public class AlbumFragment extends Fragment {
             public void onClick(View view) {
                 String name = edtNameAlbum.getText().toString();
                 if (name.equals("")) {
-                    Toast.makeText(context, "Please enter the name of album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Please enter name of album", Toast.LENGTH_SHORT).show();
                 } else {
                     rowValues.clear();
                     rowValues.put("description", "");
@@ -719,6 +718,7 @@ public class AlbumFragment extends Fragment {
                             String description = data.getStringExtra("description");
                             int isDelete = data.getIntExtra("isDelete", 0);
                             int isFavored = data.getIntExtra("isFavored", 0);
+                            String newName = data.getStringExtra("newName");
                             ArrayList<Image> imageArrayListAfterChange = (ArrayList<Image>) data.getSerializableExtra("images");
 
                             // change images in album if user choose button add image or delete image in album
@@ -743,6 +743,9 @@ public class AlbumFragment extends Fragment {
                                 }
                                 if (description != null) {
                                     album.setDescription(description);
+                                }
+                                if (newName != null) {
+                                    album.setName(newName);
                                 }
                                 album.setIsFavored(isFavored);
 
