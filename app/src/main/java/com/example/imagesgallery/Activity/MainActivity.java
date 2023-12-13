@@ -2,6 +2,7 @@ package com.example.imagesgallery.Activity;
 
 import static android.Manifest.permission.MANAGE_EXTERNAL_STORAGE;
 import static android.content.ContentValues.TAG;
+import static android.os.Environment.MEDIA_MOUNTED;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -17,6 +18,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,10 +28,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -82,6 +86,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -471,9 +476,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //TODO: continue implement duplicate
+                DeleteDuplicateAsyncTask deleteDuplicateAsyncTask = new DeleteDuplicateAsyncTask();
+                deleteDuplicateAsyncTask.execute();
             }
         });
-
 
         dialogNavBottom.show();
 
@@ -483,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            //deleteDuplicateImage();
+            deleteDuplicateImage();
             return null;
         }
         @Override
@@ -505,33 +511,67 @@ public class MainActivity extends AppCompatActivity {
             progressDialog.cancel();
         }
     }
-    /*public void deleteDuplicateImage() {
-        ArrayList<Image> imageList;// = getAll data of image
+    public ArrayList<String> getAllImagePath() {
+        ArrayList<String> result = new ArrayList<String>();
+
+        boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
+
+        if (SDCard) {
+
+            final String[] projection = {MediaStore.Images.Media.DATA};
+
+            final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
+            ContentResolver contentResolver = this.getContentResolver();
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    order);
+            int count = cursor.getCount();
+
+            for (int i = 0; i < count; i++) {
+                cursor.moveToPosition(i);
+                int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+
+                String imageLink = cursor.getString(columnindex);
+                result.add(imageLink);
+            }
+
+
+        }
+        return result;
+
+    }
+    public int deleteDuplicateImage() {
+        ArrayList<String> imageList = getAllImagePath();// = getAll data of image
         long hash=0;
         ArrayList<Long> hashImage = new ArrayList<Long>();
-        for (Image image: imageList) {
-            Bitmap bitmap = BitmapFactory.decodeFile(image.getPath());
+        for (String imagePath: imageList) {
+            Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
             hash = hashBitmap(bitmap);
             hashImage.add(hash);
         }
-        *//*for (int i=hashImage.size();i>=0;i--){
+       /* for (int i=hashImage.size();i>=0;i--){
 
-        }*//*
+        }*/
 
+        int count =0;
         String trashFolder = Environment.getExternalStorageDirectory()+File.separator + ".trash_image_folder";
         for (int i=0;i<hashImage.size();i++) {
-
             for (int j=i+1;j<hashImage.size();j++){
                 if (hashImage.get(i).equals(hashImage.get(j))){
-                    File deleteFile = new File(imageList.get(j).getPath());
+                    File deleteFile = new File(imageList.get(j));
                     FileUtility.moveImageToFolder(deleteFile,trashFolder);
+                    count++;
                 }
             }
         }
 
+        Log.d("dup","number: "+count);
+        return count;
         //loadImage2(); this function to load image without query database
 
-    }*/
+    }
     public long hashBitmap(Bitmap bmp){
         long hash = 31;
         for(int x = 1; x <  bmp.getWidth(); x=x*2){
