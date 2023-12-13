@@ -110,6 +110,10 @@ public class ImageInfoActivity extends AppCompatActivity {
                     setResult(Activity.RESULT_OK, resultIntent);
                     finish();
                 } else {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("isFavored", image.getIsFavored());
+                    resultIntent.putExtra("description", image.getDescription());
+                    setResult(Activity.RESULT_OK, resultIntent);
                     finish();
                 }
             }

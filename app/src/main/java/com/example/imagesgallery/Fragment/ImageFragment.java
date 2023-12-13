@@ -166,7 +166,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
     AppCompatActivity activity;
     private long dateTaken = 0;
-    private String imageLink="...";
+    private String imageLink = "...";
 
     Toolbar toolbar;
     SearchView searchView;
@@ -184,13 +184,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         new ActivityResultContracts.StartActivityForResult(),
                         result -> {
                             if (result.getResultCode() == Activity.RESULT_OK) {
-                                Log.d("cam","result oke");
+                                Log.d("cam", "result oke");
                                 loadNewestImageOnResume();
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                                 Intent data = result.getData();
                                 if (data != null) {
-                                    Log.d("cam","data oke");
+                                    Log.d("cam", "data oke");
 
                                 }
                             }
@@ -237,7 +237,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 //onResume();
 //triggerMediaScan(imageUri);
 
-        // when click button back in toolbar or in smartphone to finish AlbumInfoActivity
+        // when click button back in toolbar or in smartphone to finish ImageInfoActivity
         startIntentSeeImageInfo = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -246,10 +246,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         if (data != null) {
                             String imageDeleted = data.getStringExtra("ImageDeleted");
                             String imageMoveToTrash = data.getStringExtra("ImageToTrash");
-                            Boolean didEditImage = data.getBooleanExtra("EditedImage",false);
-                            Log.d("aaaaa", "2");
+                            Boolean didEditImage = data.getBooleanExtra("EditedImage", false);
+                            String description = data.getStringExtra("description");
+                            int isFavored = data.getIntExtra("isFavored", -1);
                             if (imageDeleted != null) {
-                                Log.d("aaaaa", "3");
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
@@ -259,7 +259,15 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
-                            if (didEditImage ==true) {
+                            if (description != null) {
+                                images.get(clickPosition).setDescription(description);
+                                adapter.notifyDataSetChanged();
+                            }
+                            if (isFavored != -1 && images.get(clickPosition).getIsFavored() != isFavored) {
+                                images.get(clickPosition).setIsFavored(isFavored);
+                                adapter.notifyDataSetChanged();
+                            }
+                            if (didEditImage == true) {
                                 loadNewestImageOnResume();
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
@@ -519,7 +527,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         // The edit image activity completed successfully
         // Perform any necessary actions
-        String internalFolder = Environment.getExternalStorageDirectory() + "/Pictures";;
+        String internalFolder = Environment.getExternalStorageDirectory() + "/Pictures";
+        ;
         String editorPhotoFolder = internalFolder + "/DS_Photo_Editor";
         //Toast.makeText(mainActivity,"internal: "+internalFolder,Toast.LENGTH_SHORT).show();
         //Toast.makeText(mainActivity,"editor: "+editorPhotoFolder,Toast.LENGTH_SHORT).show();
@@ -527,14 +536,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                /* String internalFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/Pictures";;
                 String editorPhotoFolder = internalFolder+"/DS_Photo_Editor";*/
 
-        ArrayList<File> resultFiles = FileUtility.moveAllImagesInAFolderToAnotherFolder(editorPhotoFolder,internalFolder);
-        if (resultFiles!=null) {
-            for (File file: resultFiles)
-            {
-                Uri imageUri = FileProvider.getUriForFile(mainActivity,"com.example.imagesgallery.Utility.fileprovider",file);
+        ArrayList<File> resultFiles = FileUtility.moveAllImagesInAFolderToAnotherFolder(editorPhotoFolder, internalFolder);
+        if (resultFiles != null) {
+            for (File file : resultFiles) {
+                Uri imageUri = FileProvider.getUriForFile(mainActivity, "com.example.imagesgallery.Utility.fileprovider", file);
                 ContentValues values = new ContentValues();
-                values.put(MediaStore.Images.Media.DATA, imageUri.getPath() );
-                values.put(MediaStore.Images.Media.MIME_TYPE, "image/"+FileUtility.getFileExtension(file));
+                values.put(MediaStore.Images.Media.DATA, imageUri.getPath());
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/" + FileUtility.getFileExtension(file));
 
 
                 try {
@@ -544,9 +552,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                     Date dateTaken = dateFormat.parse(dateTime);
 
                     long dateTakenMillis = System.currentTimeMillis(); //dateTaken.getTime();
-                    Toast.makeText(mainActivity,"date taken: "+dateTaken,Toast.LENGTH_LONG).show();
+                    Toast.makeText(mainActivity, "date taken: " + dateTaken, Toast.LENGTH_LONG).show();
                     values.put(MediaStore.Images.Media.DATE_TAKEN, dateTakenMillis);
-                    Toast.makeText(mainActivity,"success: "+dateTakenMillis,Toast.LENGTH_LONG).show();
+                    Toast.makeText(mainActivity, "success: " + dateTakenMillis, Toast.LENGTH_LONG).show();
                 } catch (IOException | ParseException | java.text.ParseException e) {
                     e.printStackTrace();
                     // Handle the exception as needed
@@ -554,11 +562,11 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
                 ContentResolver contentResolver = getContext().getContentResolver();
-                Uri imageUriInserted = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);
-                if (imageUriInserted!=null) {
-                    Toast.makeText(mainActivity,"editor success",Toast.LENGTH_SHORT).show();
+                Uri imageUriInserted = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                if (imageUriInserted != null) {
+                    Toast.makeText(mainActivity, "editor success", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(mainActivity,"editor fail",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mainActivity, "editor fail", Toast.LENGTH_SHORT).show();
 
                 }
 
@@ -577,7 +585,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         // Define the content URI for images
         Uri imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-            // Delete all images using the content resolver
+        // Delete all images using the content resolver
         int rowsDeleted = contentResolver.delete(imagesUri, null, null);
 
         // Check the number of rows deleted to determine if the deletion was successful
@@ -644,11 +652,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             }
         }
     }
+
     public void addImageToTrashFolder(String imagePath) {
         File sourceImage = new File(imagePath);
-        String trashFolderPath = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
+        String trashFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
         FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
-        Intent intent = new Intent(getContext(),MainActivity.class);
+        Intent intent = new Intent(getContext(), MainActivity.class);
         startActivity(intent);
     }
 
@@ -690,7 +699,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 Button noButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE);
                 Button yesButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE);
                 yesButton.setTextColor(ContextCompat.getColor(getActivity().getApplicationContext(), R.color.lavender));
-                noButton.setTextColor(ContextCompat.getColor(getActivity().getApplicationContext(),R.color.lavender)); // Change to your desired color resource
+                noButton.setTextColor(ContextCompat.getColor(getActivity().getApplicationContext(), R.color.lavender)); // Change to your desired color resource
             }
         });
         dialog.show();
@@ -729,21 +738,21 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         if (SDCard) {
             final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
             final String[] projection = {MediaStore.Images.Media._ID,
-                                            MediaStore.Images.Media.DATA,
-                                            MediaStore.Images.Media.DATE_TAKEN,
-                                            MediaStore.Images.ImageColumns.ORIENTATION};
+                    MediaStore.Images.Media.DATA,
+                    MediaStore.Images.Media.DATE_TAKEN,
+                    MediaStore.Images.ImageColumns.ORIENTATION};
             //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
             final String order = MediaStore.Images.Media.DATE_ADDED + " DESC";
             ContentResolver contentResolver = requireActivity().getContentResolver();
             Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                                    projection,
-                                            null,
-                                            null,
-                                                    order);
+                    projection,
+                    null,
+                    null,
+                    order);
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 
-           // images.clear();
+            // images.clear();
             Thread insertThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -754,21 +763,19 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
                         imageLink = cursor.getString(columnindex);
                         //load date
-                        try{
+                        try {
                             int columnIndexDateTaken = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
                             dateTaken = cursor.getLong(columnIndexDateTaken);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.e("testt", "run: "+e.getMessage(),e );
+                        } catch (Exception e) {
+                            Log.e("testt", "run: " + e.getMessage(), e);
                         }
                         Date date = new Date(dateTaken);
 
                         //Load size image,type
                         ExifInterface exifInterface = null;
-                        File imageFile=null;
-                        String extensionName="";
-                        long imageSizeInBytes =0;
+                        File imageFile = null;
+                        String extensionName = "";
+                        long imageSizeInBytes = 0;
                         long imageSizeInKB = 0;
                         try {
                             exifInterface = new ExifInterface(imageLink);
@@ -778,7 +785,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             e.printStackTrace();
                         }
 
-                        if (imageFile!=null) {
+                        if (imageFile != null) {
                             imageSizeInBytes = imageFile.length();
                             imageSizeInKB = imageSizeInBytes / 1024;
                             int dotIndex = imageFile.getAbsolutePath().lastIndexOf('.');
@@ -817,6 +824,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             insertThread.start();
         }
     }
+
     public void updateNumberOfImage() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
@@ -835,6 +843,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             totalimages.setText("Total items: " + count);
         }
     }
+
     public void loadImagesOnResume() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
@@ -904,12 +913,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 }
 
 
-
                 Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
                 images.add(newImage);
             }
         }
     }
+
     public void loadNewestImageOnResume() {
         boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
 
@@ -964,11 +973,12 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
 
                 Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
-                images.add(0,newImage);
+                images.add(0, newImage);
             }
             adapter.notifyDataSetChanged();
         }
     }
+
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         requireActivity().getMenuInflater().inflate(R.menu.menu_image_home_page, menu);
@@ -1197,8 +1207,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         //adapter.notifyItemRangeInserted(0, 10);
     }
 
-    private Uri newImageUri= null;
+    private Uri newImageUri = null;
     private Uri newCapturedImageUri = null;
+
     protected void openCamera() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
@@ -1252,9 +1263,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             }
         }
     }
+
     public String getImagePathFromUri(Uri uri) {
         String path = null;
-        String[] projection = { MediaStore.Images.Media.DATA };
+        String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = mainActivity.getContentResolver().query(uri, projection, null, null, null);
         if (cursor != null) {
             int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -1438,14 +1450,14 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
                     //notify change
                     long imageSizeInBytes = 0;
-                    long imageSizeInKB =0;
-                    if (imageFile!=null) {
+                    long imageSizeInKB = 0;
+                    if (imageFile != null) {
                         imageSizeInBytes = imageFile.length();
                         imageSizeInKB = imageSizeInBytes / 1024;
 
                     }
-                    String extensionName=FileUtility.getFileExtension(destination);
-                    Image newImage = new Image(destination.getAbsolutePath(), "", 0, new Date() ,imageSizeInKB,extensionName);
+                    String extensionName = FileUtility.getFileExtension(destination);
+                    Image newImage = new Image(destination.getAbsolutePath(), "", 0, new Date(), imageSizeInKB, extensionName);
                     images.add(newImage);
                     adapter.notifyDataSetChanged();
 

@@ -47,20 +47,7 @@ public class DescriptionActivity extends AppCompatActivity {
         // set description (image)
         image = (Image) getIntent().getSerializableExtra("image");
         if (image != null) {
-            /*TODO: edtDescription.setText(image.getDescription());*/
-
-            String[] args = {image.getPath()};
-            Cursor cursor = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
-            while (cursor.moveToNext()) {
-                int descriptionColumn = cursor.getColumnIndex("description");
-                String description = cursor.getString(descriptionColumn);
-                if (description != null) {
-                    image.setDescription(description);
-                } else {
-                    image.setDescription("");
-                }
-                edtDescription.setText(image.getDescription());
-            }
+            edtDescription.setText(image.getDescription());
         }
 
         edtDescription.setFocusableInTouchMode(false);
