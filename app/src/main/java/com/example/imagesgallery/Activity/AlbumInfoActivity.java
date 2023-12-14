@@ -425,37 +425,34 @@ public class AlbumInfoActivity extends AppCompatActivity {
         Cursor cursorContainImages = null;
         try {
             cursorContainImages = MainActivity.db.rawQuery(sqlContainImages, argsContainImages);
+            if (!cursorContainImages.moveToFirst()) {
+                isAllItemsLoaded = true;
+            }
+            cursorContainImages.moveToPosition(-1);
+
+            int pathImageColumn = cursorContainImages.getColumnIndex("Contain.path");
+            int descriptionImageColumn = cursorContainImages.getColumnIndex("I.description");
+            int isFavoredImageColumn = cursorContainImages.getColumnIndex("I.isFavored");
+
+            String pathImageInAlbum = MainActivity.pathNoImage;
+            String descriptionImageInAlbum = "";
+            int isFavoredImageInAlbum = 0;
+
+            //images = new ArrayList<>();
+            while (cursorContainImages.moveToNext()) {
+                descriptionImageInAlbum = cursorContainImages.getString(descriptionImageColumn);
+                isFavoredImageInAlbum = cursorContainImages.getInt(isFavoredImageColumn);
+                pathImageInAlbum = cursorContainImages.getString(pathImageColumn);
+                Image image = new Image(pathImageInAlbum, descriptionImageInAlbum, isFavoredImageInAlbum);
+                images.add(image);
+            }
+            cursorContainImages.close();
+            CurrentMaxPosition += ItemsPerLoading;
+            Log.d("aaaaa", "after: " + images.size());
         } catch (Exception exception) {
             return;
         }
-
-        if (!cursorContainImages.moveToFirst()) {
-            isAllItemsLoaded = true;
-        }
-        cursorContainImages.moveToPosition(-1);
-
-        int pathImageColumn = cursorContainImages.getColumnIndex("Contain.path");
-        int descriptionImageColumn = cursorContainImages.getColumnIndex("I.description");
-        int isFavoredImageColumn = cursorContainImages.getColumnIndex("I.isFavored");
-
-        String pathImageInAlbum = MainActivity.pathNoImage;
-        String descriptionImageInAlbum = "";
-        int isFavoredImageInAlbum = 0;
-
-        //images = new ArrayList<>();
-        while (cursorContainImages.moveToNext()) {
-            descriptionImageInAlbum = cursorContainImages.getString(descriptionImageColumn);
-            isFavoredImageInAlbum = cursorContainImages.getInt(isFavoredImageColumn);
-            pathImageInAlbum = cursorContainImages.getString(pathImageColumn);
-            Image image = new Image(pathImageInAlbum, descriptionImageInAlbum, isFavoredImageInAlbum);
-            images.add(image);
-        }
-        cursorContainImages.close();
-        CurrentMaxPosition += ItemsPerLoading;
-        Log.d("aaaaa", "after: " + images.size());
     }
-
-
     private void init() {
         txtAlbumDescription = (TextView) findViewById(R.id.txtAlbumDescription);
         imgCoverAlbum = (ImageView) findViewById(R.id.imgCoverAlbum);
@@ -703,6 +700,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                         String pathDeleted = data.getStringExtra("ImageDeleted");
                         String pathRemoved = data.getStringExtra("ImageRemoved");
                         int isFavored = data.getIntExtra("isFavored", 0);
+                        String description = data.getStringExtra("description");
 
                         // if user choose delete image
                         if (pathDeleted != null) {
@@ -725,6 +723,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
                         if (pathRemoved == null && pathDeleted == null) {
                             // update favorite of image
                             images.get(clickPosition).setIsFavored(isFavored);
+                            images.get(clickPosition).setDescription(description);
                         }
                     }
                 }

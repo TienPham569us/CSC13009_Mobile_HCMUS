@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.bumptech.glide.Glide;
 import com.example.imagesgallery.Adapter.ImageAdapter;
@@ -103,19 +104,11 @@ public class ImageInfoActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // check whether user go to this activity from AlbumInfoActivity or not
-                String PreviousActivity = getIntent().getStringExtra("PreviousActivity");
-                if (PreviousActivity != null && PreviousActivity.equals("AlbumInfoActivity")) {
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("isFavored", image.getIsFavored());
-                    setResult(Activity.RESULT_OK, resultIntent);
-                    finish();
-                } else {
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("isFavored", image.getIsFavored());
-                    resultIntent.putExtra("description", image.getDescription());
-                    setResult(Activity.RESULT_OK, resultIntent);
-                    finish();
-                }
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("isFavored", image.getIsFavored());
+                resultIntent.putExtra("description", image.getDescription());
+                setResult(Activity.RESULT_OK, resultIntent);
+                finish();
             }
         });
 
@@ -242,7 +235,7 @@ public class ImageInfoActivity extends AppCompatActivity {
 
     public void addImageToTrashFolder() {
         File sourceImage = new File(imagePath);
-        String trashFolderPath = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
+        String trashFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
         FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
 //        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
 //        startActivity(intent);
@@ -254,13 +247,12 @@ public class ImageInfoActivity extends AppCompatActivity {
 
     public void removeImageFromTrashFolder() {
         File sourceImage = new File(imagePath);
-        String picturesFolder = Environment.getExternalStorageDirectory()+"/Pictures";
+        String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
         FileUtility.moveImageToFolder(sourceImage, picturesFolder);
-        Intent intent = new Intent(ImageInfoActivity.this,TrashImageActivity.class);
+        Intent intent = new Intent(ImageInfoActivity.this, TrashImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
     }
-
 
 
     private void editImage() {
@@ -292,10 +284,10 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         //Log.d("onResult","Trash: "+isTrash+" - Hidden: "+isHidden);
         // Start activity
-        if (isTrash==true) {
-            startActivityForResult(editIntent,EDIT_TRASH_IMAGE_REQUEST_CODE );
-        } else if (isHidden==true) {
-            startActivityForResult(editIntent,EDIT_HIDDEN_IMAGE_REQUEST_CODE );
+        if (isTrash == true) {
+            startActivityForResult(editIntent, EDIT_TRASH_IMAGE_REQUEST_CODE);
+        } else if (isHidden == true) {
+            startActivityForResult(editIntent, EDIT_HIDDEN_IMAGE_REQUEST_CODE);
         } else {
 
             startActivityForResult(editIntent, EDIT_IMAGE_REQUEST_CODE);
@@ -321,7 +313,6 @@ public class ImageInfoActivity extends AppCompatActivity {
                 contentValues.put("isFavored", 0);
                 MainActivity.db.insert("Image", null, contentValues);
 
-
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("EditedImage", true);
                 setResult(Activity.RESULT_OK, resultIntent);
@@ -341,12 +332,12 @@ public class ImageInfoActivity extends AppCompatActivity {
                 //Log.d("onResult","This is trash image");
 
                 String filePath = getFilePathFromFileURI(editedImageUri);
-                if (filePath!=null) {
+                if (filePath != null) {
                     File newFile = new File(filePath);
                     //Log.d("onResult", "Before: " + newFile.getAbsolutePath());
 
-                    String trashFolder = Environment.getExternalStorageDirectory()+File.separator+".trash_image_folder";
-                    FileUtility.moveImageToFolder(newFile,trashFolder);
+                    String trashFolder = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
+                    FileUtility.moveImageToFolder(newFile, trashFolder);
 
                     //Log.d("onResult", "After:" + newFile.getAbsolutePath());
                     // update database
@@ -370,7 +361,7 @@ public class ImageInfoActivity extends AppCompatActivity {
                 //Log.d("onResult","This is hidden image");
 
                 String filePath = getFilePathFromFileURI(editedImageUri);
-                if (filePath!=null) {
+                if (filePath != null) {
                     File newFile = new File(filePath);
                     //Log.d("onResult", "Before: " + newFile.getAbsolutePath());
 
@@ -391,7 +382,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         }
     }
 
-    public String getFilePathFromFileURI(Uri uri ) {
+    public String getFilePathFromFileURI(Uri uri) {
         // Resolve the Uri to obtain the file path
         String filePath = null;
         if (uri.getScheme().equals("content")) {
@@ -415,6 +406,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             // Handle the case where the file path is null or cannot be resolved
         }*/
     }
+
     private void setDateTimeOriginal(@NonNull Uri imageUri) {
         try {
             File newImageFile = new File(imageUri.getPath());
@@ -442,6 +434,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             // Handle any exceptions
         }
     }
+
     private void seeDescriptionImage() {
         Intent intent = new Intent(ImageInfoActivity.this, DescriptionActivity.class);
         intent.putExtra("image", (Serializable) image);
