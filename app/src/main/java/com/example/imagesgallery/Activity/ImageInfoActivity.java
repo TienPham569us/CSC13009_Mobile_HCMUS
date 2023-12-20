@@ -32,6 +32,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -228,6 +229,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         intent.putExtra("extracted text", extractedText);
         startActivity(intent);
     }
+    @Nullable
     private String extractTextFromImage() {
         Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
         TextRecognizer recognizer = new TextRecognizer.Builder(this).build();
@@ -252,8 +254,13 @@ public class ImageInfoActivity extends AppCompatActivity {
         File sourceImage = new File(imagePath);
         String hiddenFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".hidden_image_folder";
         FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
-        Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
-        startActivity(intent);
+       /* Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
+        finish();
+        startActivity(intent);*/
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("HiddenImage", imagePath);
+        setResult(Activity.RESULT_OK, resultIntent);
+
         finishAndRemoveTask();
     }
 

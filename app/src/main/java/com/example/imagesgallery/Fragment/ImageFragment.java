@@ -246,6 +246,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         if (data != null) {
                             String imageDeleted = data.getStringExtra("ImageDeleted");
                             String imageMoveToTrash = data.getStringExtra("ImageToTrash");
+                            String hiddenImage = data.getStringExtra("HiddenImage");
                             Boolean didEditImage = data.getBooleanExtra("EditedImage", false);
                             String description = data.getStringExtra("description");
                             int isFavored = data.getIntExtra("isFavored", -1);
@@ -255,6 +256,11 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                 updateNumberOfImage();
                             }
                             if (imageMoveToTrash != null) {
+                                images.remove(clickPosition);
+                                adapter.notifyDataSetChanged();
+                                updateNumberOfImage();
+                            }
+                            if (hiddenImage!=null) {
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
