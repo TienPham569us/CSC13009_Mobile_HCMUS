@@ -129,7 +129,7 @@ public class FileUtility {
         }
     }
 
-    public static void moveImageToFolder(File sourceImage, String folderPath) {
+    public static File moveImageToFolder(File sourceImage, String folderPath) {
         // Create the hidden folder if it doesn't exist
         File destinationFolder = new File(folderPath);
         if (!destinationFolder.exists()) {
@@ -152,6 +152,7 @@ public class FileUtility {
         } else {
             // Failed to move the file
         }
+        return destinationFile;
     }
 
 

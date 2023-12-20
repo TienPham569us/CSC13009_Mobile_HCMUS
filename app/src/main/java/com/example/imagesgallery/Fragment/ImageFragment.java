@@ -251,16 +251,19 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             String description = data.getStringExtra("description");
                             int isFavored = data.getIntExtra("isFavored", -1);
                             if (imageDeleted != null) {
+                                deleteImageFromDatabase(images.get(clickPosition));
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
                             if (imageMoveToTrash != null) {
+                                deleteImageFromDatabase(images.get(clickPosition));
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
                             if (hiddenImage!=null) {
+                                deleteImageFromDatabase(images.get(clickPosition));
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
@@ -822,13 +825,28 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             }
                         }
 
-                        Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
+                        Image newImage = new Image(path, description, isFavored, date, imageSizeInKB, extensionName);
                         images.add(newImage);
                     }
                 }
             });
             insertThread.start();
         }
+    }
+
+    public void deleteImageFromDatabase(Image image) {
+        Thread deleteThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                String tableName = "Image";
+                String condition = "path = ?";
+                String[] args = {image.getPath()};
+                int deletedRows = mainActivity.db.delete(tableName,condition,args);
+                Log.d("deletedRows","Count: "+deletedRows);
+            }
+        });
+        deleteThread.start();
     }
 
     public void updateNumberOfImage() {
@@ -919,7 +937,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 }
 
 
-                Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
+                Image newImage = new Image(path, description, isFavored, date, imageSizeInKB, extensionName);
                 images.add(newImage);
             }
         }
@@ -939,6 +957,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             totalimages.setText("Total items: " + count);
 
             String firstImage = images.get(0).getPath();
+            ContentValues rowValues = new ContentValues();
             for (int i = 0; i < 1; i++) {
                 cursor.moveToPosition(i);
                 int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
@@ -977,8 +996,29 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 String path = cursor.getString(columnindex);
                 int isFavored = 0;
 
+                String description = "";
+                String[] args = {path};
+                Cursor cursor1 = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
 
-                Image newImage = new Image(path, "", isFavored, date, imageSizeInKB, extensionName);
+                if (!cursor1.moveToFirst()) {
+                    rowValues.clear();
+                    rowValues.put("path", path);
+                    rowValues.put("description", "");
+                    rowValues.put("isFavored", isFavored);
+                    long rowID = MainActivity.db.insert("Image", null, rowValues);
+                } else {
+                    cursor1.moveToPosition(-1);
+                    while (cursor1.moveToNext()) {
+                        int favorColumn = cursor1.getColumnIndex("isFavored");
+                        int descriptionColumn = cursor1.getColumnIndex("description");
+                        isFavored = cursor1.getInt(favorColumn);
+                        description = cursor1.getString(descriptionColumn);
+                    }
+                }
+
+
+
+                Image newImage = new Image(path, description, isFavored, date, imageSizeInKB, extensionName);
                 images.add(0, newImage);
             }
             adapter.notifyDataSetChanged();

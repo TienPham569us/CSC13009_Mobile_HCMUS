@@ -79,6 +79,7 @@ public class ImageInfoActivity extends AppCompatActivity {
     String imagePath = "";
     Image image;
 
+    MainActivity mainActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -267,7 +268,9 @@ public class ImageInfoActivity extends AppCompatActivity {
     public void removeImageFromHiddenFolder() {
         File sourceImage = new File(imagePath);
         String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
-        FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+        File destinationFile = FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+
+        insertImageIntoDatabase(destinationFile);
         Intent intent = new Intent(ImageInfoActivity.this, HiddenImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
@@ -285,10 +288,27 @@ public class ImageInfoActivity extends AppCompatActivity {
         finish();
     }
 
+    public void insertImageIntoDatabase(File file) {
+        String tableName = "Image";
+        ContentValues rowValues = new ContentValues();
+        rowValues.put("path", file.getAbsolutePath());
+        rowValues.put("description", "");
+        rowValues.put("isFavored", 0);
+
+        long newRowId = mainActivity.db.insert(tableName, null, rowValues);
+
+        if (newRowId != -1) {
+            Log.d("insertImageToDB","success: "+file.getAbsolutePath());
+        } else {
+            Log.d("insertImageToDB","fail: "+file.getAbsolutePath());
+        }
+    }
     public void removeImageFromTrashFolder() {
         File sourceImage = new File(imagePath);
         String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
-        FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+        File destinationFile = FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+
+        insertImageIntoDatabase(destinationFile);
         Intent intent = new Intent(ImageInfoActivity.this, TrashImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
@@ -347,11 +367,11 @@ public class ImageInfoActivity extends AppCompatActivity {
                 setDateTimeOriginal(editedImageUri);
 
                 // update database
-                ContentValues contentValues = new ContentValues();
+                /*ContentValues contentValues = new ContentValues();
                 contentValues.put("path", editedImageUri.getPath());
                 contentValues.put("description", "");
                 contentValues.put("isFavored", 0);
-                MainActivity.db.insert("Image", null, contentValues);
+                MainActivity.db.insert("Image", null, contentValues);*/
 
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("EditedImage", true);
@@ -381,11 +401,11 @@ public class ImageInfoActivity extends AppCompatActivity {
 
                     //Log.d("onResult", "After:" + newFile.getAbsolutePath());
                     // update database
-                    ContentValues contentValues = new ContentValues();
+                    /*ContentValues contentValues = new ContentValues();
                     contentValues.put("path", editedImageUri.getPath());
                     contentValues.put("description", "");
                     contentValues.put("isFavored", 0);
-                    MainActivity.db.insert("Image", null, contentValues);
+                    MainActivity.db.insert("Image", null, contentValues);*/
                 } else {
                     Log.d("onResult", "File path is null");
                 }
@@ -409,11 +429,11 @@ public class ImageInfoActivity extends AppCompatActivity {
                     FileUtility.moveImageToFolder(newFile, hiddenFolder);
                     //Log.d("onResult", "After:" + newFile.getAbsolutePath());
                     // update database
-                    ContentValues contentValues = new ContentValues();
+                    /*ContentValues contentValues = new ContentValues();
                     contentValues.put("path", editedImageUri.getPath());
                     contentValues.put("description", "");
                     contentValues.put("isFavored", 0);
-                    MainActivity.db.insert("Image", null, contentValues);
+                    MainActivity.db.insert("Image", null, contentValues);*/
                 } else {
                     Log.d("onResult", "File path is null");
                 }
