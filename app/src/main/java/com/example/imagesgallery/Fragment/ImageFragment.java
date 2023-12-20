@@ -177,6 +177,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         super.onCreate(savedInstanceState);
         mainActivity = (MainActivity) getActivity();
         context = getContext();
+        Toast.makeText(context,"onCreate",Toast.LENGTH_SHORT).show();
 
         setHasOptionsMenu(true);
         launcher_for_camera =
@@ -330,6 +331,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Toast.makeText(context,"onCreateView",Toast.LENGTH_SHORT).show();
 
         //Log.d("ImageFragment","onCreateView");
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
@@ -375,7 +377,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         //getEditorImage();
 
         //deleteContentUri();
-        images.clear();
+        //images.clear();
         loadImages();
         //loadImagesOnResume();
         adapter.notifyDataSetChanged();
@@ -451,6 +453,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public void onResume() {
 
         super.onResume();
+        Toast.makeText(context,"onResume",Toast.LENGTH_SHORT).show();
 //        // Log.d("onResume","Count: "+adapter.getItemCount()+" - list: "+images.size());
 //        if (images != null) {
 //            images.clear();
@@ -761,10 +764,11 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 
-            // images.clear();
+            //images.clear();
             Thread insertThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    images.clear();
                     ContentValues rowValues = new ContentValues();
                     for (int i = 0; i < count; i++) {
                         cursor.moveToPosition(i);
