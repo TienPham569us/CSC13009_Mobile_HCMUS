@@ -219,9 +219,17 @@ public class ImageInfoActivity extends AppCompatActivity {
             invalidateOptionsMenu();
         } else if (itemID == R.id.extractText) {
             extractText();
+        } else if (itemID == R.id.editTag) {
+            editTag();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void editTag() {
+        Intent intent = new Intent(ImageInfoActivity.this, EditImageTagActivity.class);
+        intent.putExtra("ImagePath",imagePath);
+        startActivity(intent);
     }
 
     private void extractText() {
