@@ -125,7 +125,8 @@ public class EditImageTagActivity extends AppCompatActivity {
         values.put("Image_Path",imagePath);
         values.put("Tag",tagValue);
         mainActivity.db.insert("Image_Tag",null,values);
-        arrayListTag.add(tagValue);
+        //arrayListTag.add(tagValue);
+        tagAdapter.add(tagValue);
         tagAdapter.notifyDataSetChanged();
         addTagDialog.dismiss();
 

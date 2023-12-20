@@ -2,6 +2,7 @@ package com.example.imagesgallery.Adapter;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -58,27 +59,30 @@ public class TagAdapter extends ArrayAdapter<String> {
             viewHolder.txtViewTag = convertView.findViewById(R.id.txtViewTag);
             viewHolder.imageButtonRemoveTag = convertView.findViewById(R.id.imageBtnRemoveTag);
             viewHolder.imageButtonEditTag = convertView.findViewById(R.id.imageBtnEditTag);
-            viewHolder.imageButtonRemoveTag.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    //String tagValue = viewHolder.txtViewTag.getText().toString();
-                   /* String tagValue = items.get(position);
-                    Toast.makeText(context, "tag: "+tagValue, Toast.LENGTH_SHORT).show();*/
-                    deleteTag(position);
-                }
-            });
-            viewHolder.imageButtonEditTag.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showEditTagDialog(items.get(position),position);
-                }
-            });
+
             convertView.setTag(viewHolder);
        } else {
            viewHolder = (ViewHolder) convertView.getTag();
        }
 
        viewHolder.txtViewTag.setText(items.get(position));
+        viewHolder.imageButtonRemoveTag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //String tagValue = viewHolder.txtViewTag.getText().toString();
+                String tagValue = items.get(position);
+                Toast.makeText(context, "size: "+items.size()+" - tag: "+tagValue, Toast.LENGTH_SHORT).show();
+                deleteTag(position);
+            }
+        });
+        viewHolder.imageButtonEditTag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String tagValue = items.get(position);
+                Toast.makeText(context, "size: "+items.size()+" - tag: "+tagValue, Toast.LENGTH_SHORT).show();
+                showEditTagDialog(items.get(position),position);
+            }
+        });
 
        return convertView;
 
@@ -104,14 +108,15 @@ public class TagAdapter extends ArrayAdapter<String> {
         editTagDialog.getWindow().setGravity(Gravity.CENTER);
 
         btnEditTagDialog = (Button) editTagDialog.findViewById(R.id.buttonEditTagDialog);
-        btnCancelEditTagDialog = (Button) editTextEditTag.findViewById(R.id.buttonCancelEditTagDialog);
-        editTextEditTag = (EditText) editTextEditTag.findViewById(R.id.editTextEditTag);
+        btnCancelEditTagDialog = (Button) editTagDialog.findViewById(R.id.buttonCancelEditTagDialog);
+        editTextEditTag = (EditText) editTagDialog.findViewById(R.id.editTextEditTag);
 
+        editTextEditTag.setText(currentTag);
         btnEditTagDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String tagValue = editTextEditTag.getText().toString();
-                editTag(position, tagValue);
+                editTag(position, tagValue, currentTag);
             }
         });
 
@@ -126,8 +131,20 @@ public class TagAdapter extends ArrayAdapter<String> {
     }
 
 
-    private void editTag(int position, String newTagValue) {
+    private void editTag(int position, String newTagValue, String oldTagValue) {
 
+        ContentValues values = new ContentValues();
+        values.put("Image_Path",imagePath);
+        values.put("Tag",newTagValue);
+        String condition = "Image_Path = ? and Tag= ?";
+        String[] args = {imagePath,oldTagValue};
+        mainActivity.db.update("Image_Tag",values,condition,args);
+        items.set(position,newTagValue);
+        this.notifyDataSetChanged();
         editTagDialog.dismiss();
+    }
+
+    public void add(String tagValue) {
+        items.add(tagValue);
     }
 }
