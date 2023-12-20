@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
@@ -19,6 +20,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -59,6 +61,9 @@ import java.util.TimeZone;
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.example.imagesgallery.Utility.FileUtility;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.text.TextBlock;
+import com.google.android.gms.vision.text.TextRecognizer;
 
 public class ImageInfoActivity extends AppCompatActivity {
     public String imageTemp;
@@ -210,9 +215,37 @@ public class ImageInfoActivity extends AppCompatActivity {
         } else if (itemID == R.id.recoverImage) {
             removeImageFromTrashFolder();
             invalidateOptionsMenu();
+        } else if (itemID == R.id.extractText) {
+            extractText();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void extractText() {
+        String extractedText = extractTextFromImage();
+        Intent intent = new Intent(ImageInfoActivity.this, ExtractTextActivity.class);
+        intent.putExtra("extracted text", extractedText);
+        startActivity(intent);
+    }
+    private String extractTextFromImage() {
+        Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+        TextRecognizer recognizer = new TextRecognizer.Builder(this).build();
+        if (!recognizer.isOperational()) {
+            Toast.makeText(ImageInfoActivity.this,"Error Occurred!!",Toast.LENGTH_SHORT).show();
+
+        } else {
+            Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+            SparseArray<TextBlock> textBlockSparseArray = recognizer.detect(frame);
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i=0;i<textBlockSparseArray.size();i++) {
+                TextBlock textBlock = textBlockSparseArray.valueAt(i);
+                stringBuilder.append(textBlock.getValue());
+                stringBuilder.append("\n");
+            }
+            return stringBuilder.toString();
+        }
+        return null;
     }
 
     public void addImageToHiddenFolder() {

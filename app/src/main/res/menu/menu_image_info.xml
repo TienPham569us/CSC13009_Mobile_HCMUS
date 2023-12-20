@@ -39,4 +39,7 @@
     <item android:id="@+id/removeImageFromHidden"
         android:title="Remove from hidden"
         android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/extractText"
+        android:title="Extract text from image"
+        android:icon="@android:drawable/bottom_bar" />
 </menu>
