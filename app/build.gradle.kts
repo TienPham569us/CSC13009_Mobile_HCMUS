@@ -62,4 +62,7 @@ dependencies {
 
     implementation("io.reactivex.rxjava2:rxandroid:2.0.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
+
+    implementation("com.google.android.gms:play-services-vision:20.1.3")
+
 }
