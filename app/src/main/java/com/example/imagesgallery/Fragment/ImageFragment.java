@@ -331,7 +331,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStorageDirectory();
+        File storageDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Pictures");
 
         // Create the directory if it doesn't exist
         if (!storageDir.exists()) {
