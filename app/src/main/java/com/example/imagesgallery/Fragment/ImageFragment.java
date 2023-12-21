@@ -186,18 +186,57 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                         result -> {
                             if (result.getResultCode() == Activity.RESULT_OK) {
                                 Log.d("cam", "result oke");
-                                loadNewestImageOnResume();
-                                adapter.notifyDataSetChanged();
-                                updateNumberOfImage();
+
                                 Intent data = result.getData();
                                 if (data != null) {
                                     Log.d("cam", "data oke");
+                                    Bundle extras = data.getExtras();
+                                    Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+                                    try {
+                                        // Create a file to save the captured image
+                                        File imageFile = createImageFile();
+
+                                        // Save the image bitmap to the file
+                                        FileOutputStream fos = new FileOutputStream(imageFile);
+                                        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                                        fos.close();
+
+                                        // Insert the image file into the MediaStore
+                                        ContentValues values = new ContentValues();
+                                        values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
+                                        values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFile.getName());
+                                        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                                        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+                                        values.put(MediaStore.Images.Media.DATA, imageFile.getAbsolutePath());
+
+                                        Uri newImageUri = mainActivity.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+                                        loadNewestImageOnResume();
+                                        adapter.notifyDataSetChanged();
+                                        updateNumberOfImage();
+
+                                        // Perform any further operations with the newImageUri as needed
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    /*ContentValues values = new ContentValues();
+                                    values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
+                                    newImageUri = mainActivity.getContentResolver().insert(
+                                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);*/
+
+                                    //cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, newImageUri);;
 
                                 }
+                            } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                                Log.d("cam", "result cancel");
                             }
                         }
 
                 );
+
+
 /*new ActivityResultCallback<ActivityResult>() {
                             @Override
                             public void onActivityResult(ActivityResult result) {
@@ -288,6 +327,23 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         );
     }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStorageDirectory();
+
+        // Create the directory if it doesn't exist
+        if (!storageDir.exists()) {
+            storageDir.mkdirs();
+        }
+
+        // Create the file
+        File imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
+
+        // Return the file
+        return imageFile;
+    }
     ClickListener clickListener = new ClickListener() {
         @Override
         public void click(int index) {
@@ -1263,16 +1319,19 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     private Uri newCapturedImageUri = null;
 
     protected void openCamera() {
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
+
         /*imageUri = mainActivity.getContentResolver().insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);*/
+
+        /*ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
         newImageUri = mainActivity.getContentResolver().insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, newImageUri);*/
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, newImageUri);
         launcher_for_camera.launch(cameraIntent);
         //startActivityForResult(cameraIntent,REQUEST_IMAGE_CAPTURE);
         /*Image newImage = new Image(imageUri.getPath(),"captured image",0);
