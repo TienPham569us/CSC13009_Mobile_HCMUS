@@ -29,6 +29,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        mlModelBinding = true
 
     }
     compileOptions {
@@ -48,6 +49,9 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.burhanrashid52:photoeditor:3.0.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
     testImplementation("junit:junit:4.13.2")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 

@@ -4,6 +4,8 @@ package  com.example.imagesgallery.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -11,12 +13,22 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.imagesgallery.Adapter.TagAdapter;
 import com.example.imagesgallery.R;
+import com.example.imagesgallery.ml.MobilenetV110224Quant;
 
+import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.util.ArrayList;
 
 public class EditImageTagActivity extends AppCompatActivity {
@@ -28,12 +40,32 @@ public class EditImageTagActivity extends AppCompatActivity {
     TagAdapter tagAdapter;
     ArrayList<String> arrayListTag;
     String imagePath ="";
+    String[] labels;
+    Bitmap bitmap;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_image_tag);
 
         imagePath = getIntent().getStringExtra("ImagePath");
+        bitmap = BitmapFactory.decodeFile(imagePath);
+        labels = new String[1001];
+
+        int count=0;
+        BufferedReader bufferedReader=null;
+        try {
+            bufferedReader = new BufferedReader(new InputStreamReader(getAssets().open("labels.txt")));
+            String line = bufferedReader.readLine();
+
+            while (line!=null) {
+                labels[count] =line;
+                count++;
+                line = bufferedReader.readLine();
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         btnAddTag = (Button) findViewById(R.id.btnAddTag);
         btnAutoAddTag = (Button) findViewById(R.id.btnAutoAddTag);
@@ -50,7 +82,7 @@ public class EditImageTagActivity extends AppCompatActivity {
         btnAutoAddTag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                objectDetection();
             }
         });
 
@@ -131,7 +163,47 @@ public class EditImageTagActivity extends AppCompatActivity {
         addTagDialog.dismiss();
 
     }
-    private void objectDetection() {
 
+    private void objectDetection() {
+        try {
+            MobilenetV110224Quant model = MobilenetV110224Quant.newInstance(EditImageTagActivity.this);
+
+            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{
+                    1,224,224,3
+            }, DataType.UINT8);
+
+            bitmap = Bitmap.createScaledBitmap(bitmap, 224,224, true);
+            inputFeature0.loadBuffer(TensorImage.fromBitmap(bitmap).getBuffer());
+
+
+            MobilenetV110224Quant.Outputs outputs = model.process(inputFeature0);
+
+            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+            int resultIndex = getMax(outputFeature0.getFloatArray());
+            String result = labels[resultIndex];
+            /*Toast.makeText(
+                    EditImageTagActivity.this,
+                    result,
+                    Toast.LENGTH_SHORT
+            ).show();*/
+
+            addTag(result);
+
+            model.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int getMax(float[] arr) {
+        int max=0;
+
+        for (int i=0; i<arr.length; i++) {
+            if (arr[i] >arr[max]) {
+                max = i;
+            }
+        }
+
+        return max;
     }
 }
