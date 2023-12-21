@@ -847,7 +847,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 String condition = "path = ?";
                 String[] args = {image.getPath()};
                 int deletedRows = mainActivity.db.delete(tableName,condition,args);
-                Log.d("deletedRows","Count: "+deletedRows);
+
+                int deletedRowInAlbum = mainActivity.db.delete("Album_Contain_Images",condition,args);
+                Log.d("deletedRows","Count: "+deletedRows+" - albums: "+deletedRowInAlbum);
             }
         });
         deleteThread.start();

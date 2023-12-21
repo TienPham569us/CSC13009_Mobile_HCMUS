@@ -258,11 +258,23 @@ public class ImageInfoActivity extends AppCompatActivity {
         }
         return null;
     }
+    private void updateTagOfImage(String oldImagePath, String newImagePath) {
+        ContentValues values = new ContentValues();
+        values.put("Image_Path",newImagePath);
+        String condition = "Image_Path = ?";
+        String[] args = { oldImagePath };
+        mainActivity.db.update("Image_Tag",values,condition,args);
+    }
 
     public void addImageToHiddenFolder() {
         File sourceImage = new File(imagePath);
+        String oldImagePath = sourceImage.getAbsolutePath();
+
         String hiddenFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".hidden_image_folder";
-        FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
+        File destinationFile = FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
+
+        String newImagePath = destinationFile.getAbsolutePath();
+        updateTagOfImage(oldImagePath, newImagePath);
        /* Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
         finish();
         startActivity(intent);*/
@@ -272,22 +284,30 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         finishAndRemoveTask();
     }
-
     public void removeImageFromHiddenFolder() {
         File sourceImage = new File(imagePath);
+        String oldImagePath = sourceImage.getAbsolutePath();
+
         String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
         File destinationFile = FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+
+        String newImagePath = destinationFile.getAbsolutePath();
+        updateTagOfImage(oldImagePath, newImagePath);
 
         insertImageIntoDatabase(destinationFile);
         Intent intent = new Intent(ImageInfoActivity.this, HiddenImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
     }
-
     public void addImageToTrashFolder() {
         File sourceImage = new File(imagePath);
+        String oldImagePath = sourceImage.getAbsolutePath();
+
         String trashFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
-        FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+        File destinationFile = FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+
+        String newImagePath = destinationFile.getAbsolutePath();
+        updateTagOfImage(oldImagePath, newImagePath);
 //        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
 //        startActivity(intent);
         Intent resultIntent = new Intent();
@@ -295,7 +315,6 @@ public class ImageInfoActivity extends AppCompatActivity {
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
-
     public void insertImageIntoDatabase(File file) {
         String tableName = "Image";
         ContentValues rowValues = new ContentValues();
@@ -313,15 +332,19 @@ public class ImageInfoActivity extends AppCompatActivity {
     }
     public void removeImageFromTrashFolder() {
         File sourceImage = new File(imagePath);
+        String oldImagePath = sourceImage.getAbsolutePath();
+
         String picturesFolder = Environment.getExternalStorageDirectory() + "/Pictures";
         File destinationFile = FileUtility.moveImageToFolder(sourceImage, picturesFolder);
+
+        String newImagePath = destinationFile.getAbsolutePath();
+        updateTagOfImage(oldImagePath, newImagePath);
 
         insertImageIntoDatabase(destinationFile);
         Intent intent = new Intent(ImageInfoActivity.this, TrashImageActivity.class);
         startActivity(intent);
         finishAndRemoveTask();
     }
-
 
     private void editImage() {
         Intent editIntent = new Intent(ImageInfoActivity.this, DsPhotoEditorActivity.class);
