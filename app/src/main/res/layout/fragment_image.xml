@@ -84,14 +84,14 @@
 
     </LinearLayout>
 
-    <Switch
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/switchMode"
-        android:scrollbarSize="10dp"
-        android:layout_marginRight="10dp"
-        android:thumb="@drawable/thumb"
-        app:track="@drawable/track"/>
+<!--    <Switch-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:id="@+id/switchMode"-->
+<!--        android:scrollbarSize="10dp"-->
+<!--        android:layout_marginRight="10dp"-->
+<!--        android:thumb="@drawable/thumb"-->
+<!--        app:track="@drawable/track"/>-->
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"

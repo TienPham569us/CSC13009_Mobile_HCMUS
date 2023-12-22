@@ -4,6 +4,7 @@
     <PreferenceCategory
         android:title="General">
         <SwitchPreference
+            android:id="@+id/switchMode"
             android:key="darkMode"
             android:title="Dark mode"
             android:defaultValue="false"

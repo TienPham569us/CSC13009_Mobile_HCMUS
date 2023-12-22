@@ -394,28 +394,28 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
 
-        switchMode = linearLayout.findViewById(R.id.switchMode);
-        sharedPreferences = mainActivity.getSharedPreferences("MODE", Context.MODE_PRIVATE);
-        nightMode = sharedPreferences.getBoolean("nightMode", false);
-        if (nightMode) {
-            switchMode.setChecked(true);
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
-        switchMode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (nightMode) {
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                    editor = sharedPreferences.edit();
-                    editor.putBoolean("nightMode", false);
-                } else {
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                    editor = sharedPreferences.edit();
-                    editor.putBoolean("nightMode", true);
-                }
-                editor.apply();
-            }
-        });
+//        switchMode = linearLayout.findViewById(R.id.switchMode);
+//        sharedPreferences = mainActivity.getSharedPreferences("MODE", Context.MODE_PRIVATE);
+//        nightMode = sharedPreferences.getBoolean("nightMode", false);
+//        if (nightMode) {
+//            switchMode.setChecked(true);
+//            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+//        }
+//        switchMode.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (nightMode) {
+//                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+//                    editor = sharedPreferences.edit();
+//                    editor.putBoolean("nightMode", false);
+//                } else {
+//                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+//                    editor = sharedPreferences.edit();
+//                    editor.putBoolean("nightMode", true);
+//                }
+//                editor.apply();
+//            }
+//        });
 
         images = new ArrayList<>();
 
