@@ -33,7 +33,7 @@ public class DetailImageActivity extends AppCompatActivity {
     TextView txtViewLink;
     TextView txtViewDate;
     TextView txtViewImageExif;
-    TextView txtViewTag;
+    //TextView txtViewTag;
     String extensionName = "null";
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -47,7 +47,7 @@ public class DetailImageActivity extends AppCompatActivity {
         txtViewLink = (TextView) findViewById(R.id.txtViewLink);
         txtViewDate =(TextView)findViewById(R.id.txtViewDate);
         txtViewImageExif =(TextView)findViewById(R.id.txtViewExif);
-        txtViewTag = (TextView)findViewById(R.id.txtViewTag);
+        //txtViewTag = (TextView)findViewById(R.id.txtViewTag);
         loadImageInformation();
         txtViewLink.setText(imageLink);
 

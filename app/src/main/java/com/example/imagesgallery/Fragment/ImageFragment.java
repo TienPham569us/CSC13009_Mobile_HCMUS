@@ -207,7 +207,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
                                         values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFile.getName());
                                         values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                                        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+                                        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+                                        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
                                         values.put(MediaStore.Images.Media.DATA, imageFile.getAbsolutePath());
 
                                         Uri newImageUri = mainActivity.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);

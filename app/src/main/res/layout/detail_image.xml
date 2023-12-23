@@ -58,7 +58,7 @@
                 android:minHeight="48dp">
             </TextView>
         </TableRow>
-        <TableRow  android:layout_marginBottom="10dp">
+        <!--<TableRow  android:layout_marginBottom="10dp">
             <TextView android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="Tag:"
@@ -73,7 +73,7 @@
                 android:layout_marginTop="10dp"
                 android:minHeight="48dp">
             </TextView>
-        </TableRow>
+        </TableRow>-->
 
     </TableLayout>
 
