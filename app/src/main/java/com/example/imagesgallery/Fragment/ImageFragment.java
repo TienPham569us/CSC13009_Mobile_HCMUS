@@ -292,18 +292,21 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             int isFavored = data.getIntExtra("isFavored", -1);
                             if (imageDeleted != null) {
                                 deleteImageFromDatabase(images.get(clickPosition));
+                                Log.d("deletedRows","Index: "+clickPosition);
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
                             if (imageMoveToTrash != null) {
                                 deleteImageFromDatabase(images.get(clickPosition));
+                                Log.d("deletedRows","Index: "+clickPosition);
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
                             if (hiddenImage!=null) {
                                 deleteImageFromDatabase(images.get(clickPosition));
+                                Log.d("deletedRows","Index: "+clickPosition);
                                 images.remove(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
@@ -509,7 +512,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public void onResume() {
 
         super.onResume();
-        Toast.makeText(context,"onResume",Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context,"onResume",Toast.LENGTH_SHORT).show();
 //        // Log.d("onResume","Count: "+adapter.getItemCount()+" - list: "+images.size());
 //        if (images != null) {
 //            images.clear();
@@ -895,20 +898,13 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     }
 
     public void deleteImageFromDatabase(Image image) {
-        Thread deleteThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        String tableName = "Image";
+        String condition = "path = ?";
+        String[] args = {image.getPath()};
+        int deletedRows = mainActivity.db.delete(tableName,condition,args);
 
-                String tableName = "Image";
-                String condition = "path = ?";
-                String[] args = {image.getPath()};
-                int deletedRows = mainActivity.db.delete(tableName,condition,args);
-
-                int deletedRowInAlbum = mainActivity.db.delete("Album_Contain_Images",condition,args);
-                Log.d("deletedRows","Count: "+deletedRows+" - albums: "+deletedRowInAlbum);
-            }
-        });
-        deleteThread.start();
+        int deletedRowInAlbum = mainActivity.db.delete("Album_Contain_Images",condition,args);
+        Log.d("deletedRows","Count: "+deletedRows+" - albums: "+deletedRowInAlbum);
     }
 
     public void updateNumberOfImage() {
@@ -1018,7 +1014,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
             int count = cursor.getCount();
             totalimages.setText("Total items: " + count);
 
-            String firstImage = images.get(0).getPath();
+            //String firstImage = images.get(0).getPath();
             ContentValues rowValues = new ContentValues();
             for (int i = 0; i < 1; i++) {
                 cursor.moveToPosition(i);

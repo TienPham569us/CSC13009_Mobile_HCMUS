@@ -651,7 +651,7 @@ public class ImageInfoActivity extends AppCompatActivity {
                 if (rowID > 0 && rowID2 > 0) {
                     Toast.makeText(this, "Delete success", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
                 }
 
 
