@@ -290,24 +290,30 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                             Boolean didEditImage = data.getBooleanExtra("EditedImage", false);
                             String description = data.getStringExtra("description");
                             int isFavored = data.getIntExtra("isFavored", -1);
+
                             if (imageDeleted != null) {
                                 deleteImageFromDatabase(images.get(clickPosition));
                                 Log.d("deletedRows","Index: "+clickPosition);
-                                images.remove(clickPosition);
+                                //images.remove(clickPosition);
+                                adapter.removeImage(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
                             if (imageMoveToTrash != null) {
                                 deleteImageFromDatabase(images.get(clickPosition));
                                 Log.d("deletedRows","Index: "+clickPosition);
-                                images.remove(clickPosition);
+                                //images.remove(clickPosition);
+
+                                adapter.removeImage(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
                             if (hiddenImage!=null) {
                                 deleteImageFromDatabase(images.get(clickPosition));
                                 Log.d("deletedRows","Index: "+clickPosition);
-                                images.remove(clickPosition);
+                                //images.remove(clickPosition);
+
+                                adapter.removeImage(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
                             }
