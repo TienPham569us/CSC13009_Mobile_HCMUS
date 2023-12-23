@@ -274,6 +274,10 @@ public class ImageInfoActivity extends AppCompatActivity {
         //File destinationFile = FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
         File destinationFile = FileUtility.moveImageToSecretFolder(sourceImage, hiddenFolderPath);
 
+        if (destinationFile!=null) {
+            sourceImage.delete();
+        }
+
         String newImagePath = destinationFile.getAbsolutePath();
         updateTagOfImage(oldImagePath, newImagePath);
        /* Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
@@ -309,8 +313,12 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         File destinationFile = FileUtility.moveImageToSecretFolder(sourceImage, trashFolderPath);
 
+        if (destinationFile!=null) {
+            sourceImage.delete();
+        }
         String newImagePath = destinationFile.getAbsolutePath();
         updateTagOfImage(oldImagePath, newImagePath);
+        Log.d("trash","old: "+sourceImage.getAbsolutePath()+" - new: "+newImagePath);
 //        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
 //        startActivity(intent);
         Intent resultIntent = new Intent();
