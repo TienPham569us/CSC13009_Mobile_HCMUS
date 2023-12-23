@@ -3,9 +3,15 @@ package com.example.imagesgallery.Utility;
 import static java.security.AccessController.getContext;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
+
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.File;
 import java.io.IOException;
@@ -189,6 +195,36 @@ public class FileUtility {
         return destinationFile;
     }
 
+    public static void insertImageOnExternalContentURI(Context context, File imageFile) {
+        ExifInterface exifInterface =null;
+        try {
+            exifInterface = new ExifInterface(imageFile.getAbsolutePath());
+
+            ContentResolver contentResolver = context.getContentResolver();
+            ContentValues contentValues =  new ContentValues();
+            contentValues.put(MediaStore.Images.Media.DATE_TAKEN,exifInterface.getAttribute(ExifInterface.TAG_DATETIME));
+            contentValues.put(MediaStore.Images.Media.DATE_ADDED,exifInterface.getAttribute(ExifInterface.TAG_DATETIME));
+            contentValues.put(MediaStore.Images.Media.DISPLAY_NAME,imageFile.getName());
+            contentValues.put(MediaStore.Images.Media.MIME_TYPE,"image/jpeg");
+            contentValues.put(MediaStore.Images.Media.DATE_TAKEN,exifInterface.getAttribute(ExifInterface.TAG_DATETIME));
+            contentValues.put(MediaStore.Images.Media.DATA,imageFile.getAbsolutePath());
+
+            // Insert the image
+            Uri imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+            if (imageUri != null) {
+                Log.d("insertImage","Success");
+                // Image inserted successfully
+            } else {
+                // Failed to insert image
+                Log.d("insertImage","fail");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
 
 

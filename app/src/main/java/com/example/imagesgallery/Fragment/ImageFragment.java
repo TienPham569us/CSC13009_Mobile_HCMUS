@@ -178,7 +178,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         mainActivity = (MainActivity) getActivity();
         context = getContext();
         Toast.makeText(context,"onCreate",Toast.LENGTH_SHORT).show();
-
+        Log.d("state","onCreate");
         setHasOptionsMenu(true);
         launcher_for_camera =
                 registerForActivityResult(
@@ -304,7 +304,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                 deleteImageFromDatabase(images.get(clickPosition));
                                 Log.d("deletedRows","Index: "+clickPosition);
                                 //images.remove(clickPosition);
-
+                                deleteImageOnExternalContentURI(images.get(clickPosition));
                                 adapter.removeImage(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
@@ -313,7 +313,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                                 deleteImageFromDatabase(images.get(clickPosition));
                                 Log.d("deletedRows","Index: "+clickPosition);
                                 //images.remove(clickPosition);
-
+                                deleteImageOnExternalContentURI(images.get(clickPosition));
                                 adapter.removeImage(clickPosition);
                                 adapter.notifyDataSetChanged();
                                 updateNumberOfImage();
@@ -353,6 +353,16 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         // Return the file
         return imageFile;
+    }
+
+    private void deleteImageOnExternalContentURI(Image image) {
+        ContentResolver contentResolver = mainActivity.getContentResolver();
+        Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Images.Media.DATA + "=?";
+        String[] selectionArgs = new String[]{ image.getPath() };
+
+        int deletedRows = contentResolver.delete(imageUri, selection, selectionArgs);
+        Log.d("deletedRows","External: "+deletedRows);
     }
     ClickListener clickListener = new ClickListener() {
         @Override
@@ -398,7 +408,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Toast.makeText(context,"onCreateView",Toast.LENGTH_SHORT).show();
-
+        Log.d("state","onCreateView");
         //Log.d("ImageFragment","onCreateView");
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
