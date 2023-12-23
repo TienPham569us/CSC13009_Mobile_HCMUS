@@ -170,8 +170,11 @@ public class HiddenImageActivity extends AppCompatActivity {
         ArrayList<File> resultFile = FileUtility.getAllImageInADirectory(hiddenFolderPath);
         if (resultFile!=null) {
             for (File file : resultFile) {
-                Image newImage = new Image(file.getAbsolutePath(), "", 0, true, false);
-                images.add(newImage);
+                if (file.getName() != ".nomedia") {
+                    Image newImage = new Image(file.getAbsolutePath(), "", 0, true, false);
+                    images.add(newImage);
+                }
+
             }
             Log.d("hidden", "oke");
         }

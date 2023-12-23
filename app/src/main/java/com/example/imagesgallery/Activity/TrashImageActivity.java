@@ -165,8 +165,11 @@ public class TrashImageActivity extends AppCompatActivity {
         ArrayList<File> resultFile = FileUtility.getAllImageInADirectory(trashFolderPath);
         if (resultFile!=null) {
             for (File file : resultFile) {
-                Image newImage = new Image(file.getAbsolutePath(), "", 0, false, true);
-                images.add(newImage);
+                if (file.getName() != ".nomedia") {
+                    Image newImage = new Image(file.getAbsolutePath(), "", 0, false, true);
+                    images.add(newImage);
+                }
+
             }
             Log.d("hidden", "oke");
         }

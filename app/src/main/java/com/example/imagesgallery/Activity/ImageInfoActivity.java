@@ -271,7 +271,8 @@ public class ImageInfoActivity extends AppCompatActivity {
         String oldImagePath = sourceImage.getAbsolutePath();
 
         String hiddenFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".hidden_image_folder";
-        File destinationFile = FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
+        //File destinationFile = FileUtility.moveImageToFolder(sourceImage, hiddenFolderPath);
+        File destinationFile = FileUtility.moveImageToSecretFolder(sourceImage, hiddenFolderPath);
 
         String newImagePath = destinationFile.getAbsolutePath();
         updateTagOfImage(oldImagePath, newImagePath);
@@ -304,7 +305,9 @@ public class ImageInfoActivity extends AppCompatActivity {
         String oldImagePath = sourceImage.getAbsolutePath();
 
         String trashFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
-        File destinationFile = FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+        //File destinationFile = FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+
+        File destinationFile = FileUtility.moveImageToSecretFolder(sourceImage, trashFolderPath);
 
         String newImagePath = destinationFile.getAbsolutePath();
         updateTagOfImage(oldImagePath, newImagePath);

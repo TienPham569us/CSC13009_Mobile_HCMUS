@@ -155,6 +155,40 @@ public class FileUtility {
         return destinationFile;
     }
 
+    public static File moveImageToSecretFolder(File sourceImage, String folderPath){
+        // Create the hidden folder if it doesn't exist
+        File destinationFolder = new File(folderPath);
+        if (!destinationFolder.exists()) {
+            destinationFolder.mkdirs();
+            File nomediaFile = new File(folderPath +File.separator + ".nomedia");
+            if (!nomediaFile.exists()) {
+                try {
+                    nomediaFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // Get the source image file name
+        String sourceFileName = sourceImage.getName();
+
+        // Generate the destination file path in the hidden folder
+        String destinationFilePath = folderPath + File.separator + sourceFileName;
+
+        // Create the destination file
+        File destinationFile = new File(destinationFilePath);
+
+        // Move the image file to the hidden folder
+        if (sourceImage.renameTo(destinationFile)) {
+            // File moved successfully
+
+        } else {
+            // Failed to move the file
+        }
+        return destinationFile;
+    }
+
 
 
 
