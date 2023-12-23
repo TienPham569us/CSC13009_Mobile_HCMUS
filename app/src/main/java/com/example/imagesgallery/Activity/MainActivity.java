@@ -43,6 +43,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Base64;
@@ -146,13 +147,25 @@ public class MainActivity extends AppCompatActivity {
     AlertDialog alertDialog;
     String DatabaseName = "myDatabase";
 
+    private void setDarkMode(boolean enabled) {
+        int mode = enabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO;
+        AppCompatDelegate.setDefaultNightMode(mode);
+
+        // Update the background color or theme based on the dark mode state
+        int backgroundColor = enabled ? android.R.color.background_dark : android.R.color.white;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
-        //AT
+//        mainLayout = findViewById(R.id.mainLayout);  // Replace with the ID of your main layout
+//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+//        boolean isDarkModeEnabled = sharedPreferences.getBoolean("nightMode", false);
+//
+//        // Apply dark mode to the entire app
+//        setDarkMode(isDarkModeEnabled);
 //        setTheme(android.R.style.Theme_Material_Dialog);
 
         // Login Facebook

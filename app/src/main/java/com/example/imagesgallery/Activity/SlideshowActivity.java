@@ -13,7 +13,7 @@ import com.example.imagesgallery.R;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-public class SlideshowActivity extends AppCompatActivity {
+public class  SlideshowActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private ArrayList<String> selectedImages;
     private int currentPosition = 0;
