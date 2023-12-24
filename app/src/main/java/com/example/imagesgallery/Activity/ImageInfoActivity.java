@@ -281,6 +281,12 @@ public class ImageInfoActivity extends AppCompatActivity {
 
         String newImagePath = destinationFile.getAbsolutePath();
         updateTagOfImage(oldImagePath, newImagePath);
+
+        // change database
+        String[] args = {imagePath};
+        long rowID = MainActivity.db.delete("Image", "path = ?", args);
+        long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
+
        /* Intent intent = new Intent(ImageInfoActivity.this, MainActivity.class);
         finish();
         startActivity(intent);*/
@@ -322,6 +328,12 @@ public class ImageInfoActivity extends AppCompatActivity {
         String newImagePath = destinationFile.getAbsolutePath();
         updateTagOfImage(oldImagePath, newImagePath);
         Log.d("trash","old: "+sourceImage.getAbsolutePath()+" - new: "+newImagePath);
+
+        // change database
+        String[] args = {imagePath};
+        long rowID = MainActivity.db.delete("Image", "path = ?", args);
+        long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
+        Log.d("aaaa", "trash");
 //        Intent intent = new Intent(ImageInfoActivity.this,MainActivity.class);
 //        startActivity(intent);
         Intent resultIntent = new Intent();
@@ -373,6 +385,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         // Set background color
         editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
 
+
         //editIntent.putExtra(MediaStore.Images.Media.DATE_TAKEN,System.currentTimeMillis());
         /*ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
@@ -395,7 +408,6 @@ public class ImageInfoActivity extends AppCompatActivity {
         } else if (isHidden == true) {
             startActivityForResult(editIntent, EDIT_HIDDEN_IMAGE_REQUEST_CODE);
         } else {
-
             startActivityForResult(editIntent, EDIT_IMAGE_REQUEST_CODE);
         }
     }
@@ -619,6 +631,7 @@ public class ImageInfoActivity extends AppCompatActivity {
 
 
     public void createDialogDeleteImage() {
+        Log.d("aaaa", "permanent");
 //        setTheme(android.R.style.Theme_Material_Dialog);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

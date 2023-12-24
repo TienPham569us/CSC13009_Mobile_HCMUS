@@ -81,15 +81,20 @@ public class AlbumInfoActivity extends AppCompatActivity {
         @Override
         public void click(int index) {
             clickPosition = index;
-            int id_album = album.getId();
-            ArrayList<Image> listImage = album.getListImage();
+            if (adapter.isInMultiSelectMode()) {
+                adapter.toggleSelection(index);
+                adapter.notifyDataSetChanged();
+            } else {
+                int id_album = album.getId();
+                ArrayList<Image> listImage = album.getListImage();
 
-            Intent intent = new Intent(AlbumInfoActivity.this, ImageInfoActivity.class);
-            intent.putExtra("PreviousActivity", "AlbumInfoActivity");
-            intent.putExtra("id_album", id_album);
-            intent.putExtra("position", index);
-            intent.putExtra("image", (Serializable) listImage.get(index));
-            startIntentSeeImageInfo.launch(intent);
+                Intent intent = new Intent(AlbumInfoActivity.this, ImageInfoActivity.class);
+                intent.putExtra("PreviousActivity", "AlbumInfoActivity");
+                intent.putExtra("id_album", id_album);
+                intent.putExtra("position", index);
+                intent.putExtra("image", (Serializable) listImage.get(index));
+                startIntentSeeImageInfo.launch(intent);
+            }
         }
 
         @Override
@@ -453,6 +458,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
             return;
         }
     }
+
     private void init() {
         txtAlbumDescription = (TextView) findViewById(R.id.txtAlbumDescription);
         imgCoverAlbum = (ImageView) findViewById(R.id.imgCoverAlbum);
@@ -701,8 +707,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
                         String pathRemoved = data.getStringExtra("ImageRemoved");
                         int isFavored = data.getIntExtra("isFavored", 0);
                         String description = data.getStringExtra("description");
+                        String pathToTrash = data.getStringExtra("ImageToTrash");
+                        String pathHiddenImage = data.getStringExtra("HiddenImage");
 
-                        // if user choose delete image
+                        // if user choose delete image permanently
                         if (pathDeleted != null) {
                             images.remove(clickPosition);
                             adapter.notifyItemRemoved(clickPosition);
@@ -714,13 +722,38 @@ public class AlbumInfoActivity extends AppCompatActivity {
                             }
                         }
 
+                        // if user choose move image to trash
+                        if (pathToTrash != null) {
+                            images.remove(clickPosition);
+                            adapter.notifyItemRemoved(clickPosition);
+                            Log.d("aaaa", "album");
+
+                            // change cover if deleting image used as cover
+                            if (album.getCover().getPath().equals(pathToTrash)) {
+                                album.getCover().setPath(MainActivity.pathNoImage);
+                                imgCoverAlbum.setImageResource(R.drawable.no_image);
+                            }
+                        }
+
+                        // if user choose move image to hidden
+                        if (pathHiddenImage != null) {
+                            images.remove(clickPosition);
+                            adapter.notifyItemRemoved(clickPosition);
+
+                            // change cover if deleting image used as cover
+                            if (album.getCover().getPath().equals(pathHiddenImage)) {
+                                album.getCover().setPath(MainActivity.pathNoImage);
+                                imgCoverAlbum.setImageResource(R.drawable.no_image);
+                            }
+                        }
+
                         // if user choose remove image from album
                         if (pathRemoved != null) {
                             images.remove(clickPosition);
                             adapter.notifyItemRemoved(clickPosition);
                         }
 
-                        if (pathRemoved == null && pathDeleted == null) {
+                        if (pathRemoved == null && pathDeleted == null && pathToTrash == null && pathHiddenImage == null) {
                             // update favorite of image
                             images.get(clickPosition).setIsFavored(isFavored);
                             images.get(clickPosition).setDescription(description);
