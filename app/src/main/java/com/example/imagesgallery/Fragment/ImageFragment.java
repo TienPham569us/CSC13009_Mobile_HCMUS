@@ -33,9 +33,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -172,13 +174,14 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     SearchView searchView;
     //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
-
+    String[] items ={"Increase by day","decrease by day","Increase by name","Decrease by name"};
+    Spinner spinner;
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mainActivity = (MainActivity) getActivity();
         context = getContext();
-        Toast.makeText(context,"onCreate",Toast.LENGTH_SHORT).show();
-        Log.d("state","onCreate");
+
         setHasOptionsMenu(true);
         launcher_for_camera =
                 registerForActivityResult(
@@ -407,10 +410,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Toast.makeText(context,"onCreateView",Toast.LENGTH_SHORT).show();
-        Log.d("state","onCreateView");
-        //Log.d("ImageFragment","onCreateView");
+
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
+        spinner = (Spinner) linearLayout.findViewById(R.id.spinner);
+        spinner.setAdapter(new ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_dropdown_item, items));
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
 
