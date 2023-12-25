@@ -29,7 +29,11 @@
         android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />-->
-
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"/>
     <ImageButton
         android:id="@+id/btnAdd_album"
         android:layout_width="0dp"
@@ -50,6 +54,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="24dp">
+
         <ImageButton
             android:id="@+id/imageBtnCamera"
             android:layout_width="48dp"
@@ -57,6 +62,7 @@
             android:layout_marginStart="10dp"
             style="@style/CameraButton"
             android:importantForAccessibility="no"/>
+
         <Button
             android:id="@+id/multiSelectButton"
             android:layout_width="wrap_content"
