@@ -364,6 +364,15 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         int deletedRows = contentResolver.delete(imageUri, selection, selectionArgs);
         Log.d("deletedRows","External: "+deletedRows);
     }
+    public void deleteImageOnExternalContentURIUsingImagePath(String imagePath) {
+        ContentResolver contentResolver = mainActivity.getContentResolver();
+        Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Images.Media.DATA + "=?";
+        String[] selectionArgs = new String[]{ imagePath };
+
+        int deletedRows = contentResolver.delete(imageUri, selection, selectionArgs);
+        Log.d("deletedRows","External: "+deletedRows);
+    }
     ClickListener clickListener = new ClickListener() {
         @Override
         public void click(int index) {
@@ -743,10 +752,29 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
     public void addImageToTrashFolder(String imagePath) {
         File sourceImage = new File(imagePath);
+        String oldImagePath = sourceImage.getAbsolutePath();
+
         String trashFolderPath = Environment.getExternalStorageDirectory() + File.separator + ".trash_image_folder";
-        FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
-        Intent intent = new Intent(getContext(), MainActivity.class);
-        startActivity(intent);
+        //File destinationFile = FileUtility.moveImageToFolder(sourceImage, trashFolderPath);
+
+        File destinationFile = FileUtility.moveImageToSecretFolder(sourceImage, trashFolderPath);
+
+        if (destinationFile!=null) {
+            boolean deletedFile = sourceImage.delete();
+            Log.d("hidden","res: "+deletedFile);
+        }
+        String newImagePath = destinationFile.getAbsolutePath();
+        updateTagOfImage(oldImagePath, newImagePath);
+        Log.d("trash","old: "+sourceImage.getAbsolutePath()+" - new: "+newImagePath);
+        /*Intent intent = new Intent(getContext(), MainActivity.class);
+        startActivity(intent);*/
+    }
+    public void updateTagOfImage(String oldImagePath, String newImagePath) {
+        ContentValues values = new ContentValues();
+        values.put("Image_Path",newImagePath);
+        String condition = "Image_Path = ?";
+        String[] args = { oldImagePath };
+        mainActivity.db.update("Image_Tag",values,condition,args);
     }
 
     public void createDialogDeleteImage() {
@@ -764,7 +792,21 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
                 for (String imagePath : selectedImages) {
                     //deleteImage(imagePath);
                     addImageToTrashFolder(imagePath);
+                    deleteImageFromDatabaseUsingImagePath(imagePath);
+
+                    //images.remove(clickPosition);
+                    deleteImageOnExternalContentURIUsingImagePath(imagePath);
+
+
+
                 }
+                ArrayList<Integer> selectedPosition = adapter.getSelectedPositions();
+                for (int i = selectedPosition.size()-1;i>=0; i++) {
+                    adapter.removeImage(i);
+                }
+                adapter.notifyDataSetChanged();
+                updateNumberOfImage();
+
                 toggleButtonsOfMultiSelectMode(multiSelectMode);
                 multiSelectMode = false;
                 adapter.setMultiSelectMode(multiSelectMode);
@@ -918,6 +960,15 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         String tableName = "Image";
         String condition = "path = ?";
         String[] args = {image.getPath()};
+        int deletedRows = mainActivity.db.delete(tableName,condition,args);
+
+        int deletedRowInAlbum = mainActivity.db.delete("Album_Contain_Images",condition,args);
+        Log.d("deletedRows","Count: "+deletedRows+" - albums: "+deletedRowInAlbum);
+    }
+    public void deleteImageFromDatabaseUsingImagePath(String imagePath) {
+        String tableName = "Image";
+        String condition = "path = ?";
+        String[] args = {imagePath};
         int deletedRows = mainActivity.db.delete(tableName,condition,args);
 
         int deletedRowInAlbum = mainActivity.db.delete("Album_Contain_Images",condition,args);

@@ -258,7 +258,7 @@ public class ImageInfoActivity extends AppCompatActivity {
         }
         return null;
     }
-    private void updateTagOfImage(String oldImagePath, String newImagePath) {
+    public void updateTagOfImage(String oldImagePath, String newImagePath) {
         ContentValues values = new ContentValues();
         values.put("Image_Path",newImagePath);
         String condition = "Image_Path = ?";
