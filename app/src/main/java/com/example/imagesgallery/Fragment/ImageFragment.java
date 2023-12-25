@@ -33,6 +33,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -63,6 +64,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.imagesgallery.Activity.AlbumInfoActivity;
 import com.example.imagesgallery.Activity.ImageInfoActivity;
+import com.example.imagesgallery.Adapter.SortAdapter;
 import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
@@ -80,6 +82,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -174,7 +177,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     SearchView searchView;
     //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
-    String[] items ={"Increase by day","decrease by day","Increase by name","Decrease by name"};
+    ArrayList<String> items = new ArrayList<>(Arrays.asList("Decrease by day", "Increase by day", "Increase by name", "Decrease by name"));
     Spinner spinner;
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -415,14 +418,126 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
         }
     };
+    SortAdapter sortAdapter;
 
+    public void loadImagesAscendingByDate() {
+        boolean SDCard = Environment.getExternalStorageState().equals(MEDIA_MOUNTED);
+
+        if (SDCard) {
+            final String[] columns = {MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID};
+            final String[] projection = {MediaStore.Images.Media._ID,
+                    MediaStore.Images.Media.DATA,
+                    MediaStore.Images.Media.DATE_TAKEN,
+                    MediaStore.Images.ImageColumns.ORIENTATION};
+            //final String order = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+            final String order = MediaStore.Images.Media.DATE_ADDED + " ASC";
+            ContentResolver contentResolver = requireActivity().getContentResolver();
+            Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    order);
+            int count = cursor.getCount();
+            totalimages.setText("Total items: " + count);
+
+            //images.clear();
+            Thread insertThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    images.clear();
+                    ContentValues rowValues = new ContentValues();
+                    for (int i = 0; i < count; i++) {
+                        cursor.moveToPosition(i);
+                        int columnindex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+
+                        imageLink = cursor.getString(columnindex);
+                        //load date
+                        try {
+                            int columnIndexDateTaken = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
+                            dateTaken = cursor.getLong(columnIndexDateTaken);
+                        } catch (Exception e) {
+                            Log.e("testt", "run: " + e.getMessage(), e);
+                        }
+                        Date date = new Date(dateTaken);
+
+                        //Load size image,type
+                        ExifInterface exifInterface = null;
+                        File imageFile = null;
+                        String extensionName = "";
+                        long imageSizeInBytes = 0;
+                        long imageSizeInKB = 0;
+                        try {
+                            exifInterface = new ExifInterface(imageLink);
+                            imageFile = new File(imageLink);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        if (imageFile != null) {
+                            imageSizeInBytes = imageFile.length();
+                            imageSizeInKB = imageSizeInBytes / 1024;
+                            int dotIndex = imageFile.getAbsolutePath().lastIndexOf('.');
+                            if (dotIndex >= 0 && dotIndex < imageLink.length() - 1) {
+                                extensionName = imageFile.getAbsolutePath().substring(dotIndex + 1);
+                            }
+                        }
+
+                        String path = cursor.getString(columnindex);
+                        int isFavored = 0;
+                        String description = "";
+                        String[] args = {path};
+                        Cursor cursor1 = MainActivity.db.rawQuery("SELECT * FROM Image WHERE path = ?", args);
+
+                        if (!cursor1.moveToFirst()) {
+                            rowValues.clear();
+                            rowValues.put("path", path);
+                            rowValues.put("description", "");
+                            rowValues.put("isFavored", isFavored);
+                            long rowID = MainActivity.db.insert("Image", null, rowValues);
+                        } else {
+                            cursor1.moveToPosition(-1);
+                            while (cursor1.moveToNext()) {
+                                int favorColumn = cursor1.getColumnIndex("isFavored");
+                                int descriptionColumn = cursor1.getColumnIndex("description");
+                                isFavored = cursor1.getInt(favorColumn);
+                                description = cursor1.getString(descriptionColumn);
+                            }
+                        }
+
+                        Image newImage = new Image(path, description, isFavored, date, imageSizeInKB, extensionName);
+                        images.add(newImage);
+                    }
+
+                }
+            });
+            insertThread.start();
+        }
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         linearLayout = (LinearLayout) inflater.inflate(R.layout.fragment_image, container, false);
         spinner = (Spinner) linearLayout.findViewById(R.id.spinner);
+        //sortAdapter = new SortAdapter(mainActivity,R.layout.custom_sort_spinner_view,items);
+        //spinner.setAdapter(sortAdapter);
         spinner.setAdapter(new ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_dropdown_item, items));
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(mainActivity,items.get(i),Toast.LENGTH_SHORT).show();
+                /*if (i==1) {
+                    loadImagesAscendingByDate();
+                    adapter.notifyDataSetChanged();
+                }*/
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
         recycler = linearLayout.findViewById(R.id.gallery_recycler);
         toolbar = (Toolbar) linearLayout.findViewById(R.id.toolbar);
 

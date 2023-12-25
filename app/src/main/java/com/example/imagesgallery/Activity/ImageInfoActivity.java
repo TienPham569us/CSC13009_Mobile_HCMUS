@@ -221,6 +221,8 @@ public class ImageInfoActivity extends AppCompatActivity {
             extractText();
         } else if (itemID == R.id.editTag) {
             editTag();
+        } else if (itemID == R.id.scanQRCode) {
+            scanQRCode();
         }
 
         return super.onOptionsItemSelected(item);
@@ -228,6 +230,11 @@ public class ImageInfoActivity extends AppCompatActivity {
 
     public void editTag() {
         Intent intent = new Intent(ImageInfoActivity.this, EditImageTagActivity.class);
+        intent.putExtra("ImagePath",imagePath);
+        startActivity(intent);
+    }
+    public void scanQRCode() {
+        Intent intent = new Intent(ImageInfoActivity.this, ScanQRCodeActivity.class);
         intent.putExtra("ImagePath",imagePath);
         startActivity(intent);
     }

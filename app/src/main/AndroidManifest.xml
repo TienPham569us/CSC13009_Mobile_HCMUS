@@ -79,6 +79,7 @@
         <activity android:name=".Activity.TrashImageActivity" android:exported="true"/>
         <activity android:name=".Activity.ExtractTextActivity" android:exported="true"/>
         <activity android:name=".Activity.EditImageTagActivity" android:exported="true"/>
+        <activity android:name=".Activity.ScanQRCodeActivity" android:exported="true"/>
         <activity
             android:name=".Activity.LoadingActivity"
             android:exported="true"

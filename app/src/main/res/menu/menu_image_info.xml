@@ -45,4 +45,7 @@
     <item android:id="@+id/editTag"
         android:title="Add and remove tag"
         android:icon="@android:drawable/bottom_bar" />
+    <item android:id="@+id/scanQRCode"
+        android:title="ScanQRCode"
+        android:icon="@android:drawable/bottom_bar" />
 </menu>

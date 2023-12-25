@@ -69,5 +69,7 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
 
     implementation("com.google.android.gms:play-services-vision:20.1.3")
-
+    implementation("me.dm7.barcodescanner:zxing:1.9")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.4.1")
 }
