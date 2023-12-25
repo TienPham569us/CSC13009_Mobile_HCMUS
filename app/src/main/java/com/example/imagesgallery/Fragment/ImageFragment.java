@@ -804,7 +804,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
 
                 }
                 ArrayList<Integer> selectedPosition = adapter.getSelectedPositions();
-                for (int i = selectedPosition.size()-1;i>=0; i++) {
+                for (int i = selectedPosition.size()-1;i>=0; i--) {
                     adapter.removeImage(i);
                 }
                 adapter.notifyDataSetChanged();
