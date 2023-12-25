@@ -581,8 +581,26 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < hashImage.size(); i++) {
             for (int j = i + 1; j < hashImage.size(); j++) {
                 if (hashImage.get(i).equals(hashImage.get(j))) {
-                    File deleteFile = new File(imageList.get(j));
-                    FileUtility.moveImageToFolder(deleteFile, trashFolder);
+                    File sourceImage = new File(imageList.get(j));
+                    String oldImagePath = sourceImage.getAbsolutePath();
+                    deleteImageFromDatabaseUsingImagePath(oldImagePath);
+
+
+                    File destinationFile = FileUtility.moveImageToSecretFolder(sourceImage, trashFolder);
+
+                    if (destinationFile!=null) {
+                        boolean deletedFile = sourceImage.delete();
+                        Log.d("hidden","res: "+deletedFile);
+                    }
+
+                    String newImagePath = destinationFile.getAbsolutePath();
+                    updateTagOfImage(oldImagePath, newImagePath);
+                    deleteImageOnExternalContentURIUsingImagePath(oldImagePath);
+                    // change database
+                    String[] args = {imageList.get(j)};
+                    long rowID = MainActivity.db.delete("Image", "path = ?", args);
+                    long rowID2 = MainActivity.db.delete("Album_Contain_Images", "path = ?", args);
+
                     count++;
                 }
             }
@@ -593,7 +611,32 @@ public class MainActivity extends AppCompatActivity {
         //loadImage2(); this function to load image without query database
 
     }
+    public void updateTagOfImage(String oldImagePath, String newImagePath) {
+        ContentValues values = new ContentValues();
+        values.put("Image_Path",newImagePath);
+        String condition = "Image_Path = ?";
+        String[] args = { oldImagePath };
+        db.update("Image_Tag",values,condition,args);
+    }
 
+    public void deleteImageFromDatabaseUsingImagePath(String imagePath) {
+        String tableName = "Image";
+        String condition = "path = ?";
+        String[] args = {imagePath};
+        int deletedRows = db.delete(tableName,condition,args);
+
+        int deletedRowInAlbum = db.delete("Album_Contain_Images",condition,args);
+        Log.d("deletedRows","Count: "+deletedRows+" - albums: "+deletedRowInAlbum);
+    }
+    public void deleteImageOnExternalContentURIUsingImagePath(String imagePath) {
+        ContentResolver contentResolver = getContentResolver();
+        Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Images.Media.DATA + "=?";
+        String[] selectionArgs = new String[]{ imagePath };
+
+        int deletedRows = contentResolver.delete(imageUri, selection, selectionArgs);
+        Log.d("deletedRows","External: "+deletedRows);
+    }
     public long hashBitmap(Bitmap bmp) {
         long hash = 31;
         for (int x = 1; x < bmp.getWidth(); x = x * 2) {
