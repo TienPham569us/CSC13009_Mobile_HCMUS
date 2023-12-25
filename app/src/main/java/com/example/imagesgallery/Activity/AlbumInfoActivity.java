@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,6 +25,7 @@ import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -696,6 +698,25 @@ public class AlbumInfoActivity extends AppCompatActivity {
             }
     );
 
+    private void deleteImageOnExternalContentURI(Image image) {
+        ContentResolver contentResolver = mainActivity.getContentResolver();
+        Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Images.Media.DATA + "=?";
+        String[] selectionArgs = new String[]{ image.getPath() };
+
+        int deletedRows = contentResolver.delete(imageUri, selection, selectionArgs);
+        Log.d("deletedRows","External: "+deletedRows);
+    }
+    public void deleteImageFromDatabase(Image image) {
+        String tableName = "Image";
+        String condition = "path = ?";
+        String[] args = {image.getPath()};
+        int deletedRows = mainActivity.db.delete(tableName,condition,args);
+
+        int deletedRowInAlbum = mainActivity.db.delete("Album_Contain_Images",condition,args);
+        Log.d("deletedRows","Count: "+deletedRows+" - albums: "+deletedRowInAlbum);
+    }
+    MainActivity mainActivity;
     // when return from ImageInfoActivity
     public ActivityResultLauncher<Intent> startIntentSeeImageInfo = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -724,6 +745,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
                         // if user choose move image to trash
                         if (pathToTrash != null) {
+                            deleteImageFromDatabase(images.get(clickPosition));
+                            Log.d("deletedRows","Index: "+clickPosition);
+                            //images.remove(clickPosition);
+                            deleteImageOnExternalContentURI(images.get(clickPosition));
                             images.remove(clickPosition);
                             adapter.notifyItemRemoved(clickPosition);
                             Log.d("aaaa", "album");
@@ -737,6 +762,10 @@ public class AlbumInfoActivity extends AppCompatActivity {
 
                         // if user choose move image to hidden
                         if (pathHiddenImage != null) {
+                            deleteImageFromDatabase(images.get(clickPosition));
+                            Log.d("deletedRows","Index: "+clickPosition);
+                            //images.remove(clickPosition);
+                            deleteImageOnExternalContentURI(images.get(clickPosition));
                             images.remove(clickPosition);
                             adapter.notifyItemRemoved(clickPosition);
 
