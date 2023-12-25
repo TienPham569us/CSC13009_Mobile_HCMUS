@@ -699,7 +699,7 @@ public class AlbumInfoActivity extends AppCompatActivity {
     );
 
     private void deleteImageOnExternalContentURI(Image image) {
-        ContentResolver contentResolver = mainActivity.getContentResolver();
+        ContentResolver contentResolver = getContentResolver();
         Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Images.Media.DATA + "=?";
         String[] selectionArgs = new String[]{ image.getPath() };
