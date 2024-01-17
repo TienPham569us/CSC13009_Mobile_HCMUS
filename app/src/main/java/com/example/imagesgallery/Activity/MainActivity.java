@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.loader.content.AsyncTaskLoader;
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    String[] permissionsStr = {
+    private static final String[] permissionsStr = {
             Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_MEDIA_AUDIO,
             Manifest.permission.BLUETOOTH_ADMIN,
@@ -144,8 +145,16 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             MANAGE_EXTERNAL_STORAGE};
+    private static final String[] PERMISSIONS = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION
+    };
     AlertDialog alertDialog;
     String DatabaseName = "myDatabase";
+
+    private static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
 
     private void setDarkMode(boolean enabled) {
         int mode = enabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO;
@@ -155,11 +164,64 @@ public class MainActivity extends AppCompatActivity {
         int backgroundColor = enabled ? android.R.color.background_dark : android.R.color.white;
     }
 
+    private void requestReadImagePermission() {
+        // Check if the permission needs to be requested
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+           /* if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                // Explain why the permission is needed (optional)
+            }*/
+
+            // Request the permission
+            ActivityCompat.requestPermissions(this,
+                    PERMISSIONS,
+                    PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE) {
+            // Check if the permission is granted or not
+            /*if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted, you can proceed with reading images
+
+            } else {
+                Toast.makeText(this, "You denied permission read image", Toast.LENGTH_SHORT).show();
+                // Permission is denied, handle accordingly (e.g., show an error message)
+            }*/
+            if (grantResults.length>0) {
+                for (int grantResult : grantResults) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(this, "You denied permission" , Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean arePermissionsGranted() {
+        // Check if all the permissions are granted
+        for (String permission : PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+        if (arePermissionsGranted()) {
+
+        } else {
+            // Permission is not granted, request it
+            requestReadImagePermission();
+        }
 //        mainLayout = findViewById(R.id.mainLayout);  // Replace with the ID of your main layout
 //        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 //        boolean isDarkModeEnabled = sharedPreferences.getBoolean("nightMode", false);
