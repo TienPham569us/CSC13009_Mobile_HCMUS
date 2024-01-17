@@ -2,6 +2,8 @@ package com.example.imagesgallery.Activity;
 
 import android.app.Activity;
 import android.app.WallpaperManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -65,6 +67,8 @@ import com.example.imagesgallery.Utility.FileUtility;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 public class ImageInfoActivity extends AppCompatActivity {
     public String imageTemp;
@@ -222,7 +226,8 @@ public class ImageInfoActivity extends AppCompatActivity {
         } else if (itemID == R.id.editTag) {
             editTag();
         } else if (itemID == R.id.scanQRCode) {
-            scanQRCode();
+            scanCode();
+            //scanQRCode();
         }
 
         return super.onOptionsItemSelected(item);
@@ -232,6 +237,42 @@ public class ImageInfoActivity extends AppCompatActivity {
         Intent intent = new Intent(ImageInfoActivity.this, EditImageTagActivity.class);
         intent.putExtra("ImagePath",imagePath);
         startActivity(intent);
+    }
+    private void scanCode() {
+        ScanOptions options = new ScanOptions();
+        options.setPrompt("Volume up to flash on");
+        options.setBeepEnabled(true);
+        options.setOrientationLocked(true);
+        options.setCaptureActivity(CaptureAct.class);
+        barLauncher.launch(options);
+    }
+    ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(),
+            result -> {
+                if (result.getContents()!=null) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Result");
+                    builder.setMessage(result.getContents());
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder.setNegativeButton("Copy to clipboard", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            String resultString = result.getContents();
+                            copyToClipBoard(resultString);
+                        }
+                    });
+                    builder.show();
+                }
+            });
+    private void copyToClipBoard(String text) {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newPlainText("scanned text", text);
+        clipboardManager.setPrimaryClip(clipData);
+        Toast.makeText(ImageInfoActivity.this, "Copied to Clipboard", Toast.LENGTH_LONG).show();
     }
     public void scanQRCode() {
         Intent intent = new Intent(ImageInfoActivity.this, ScanQRCodeActivity.class);
