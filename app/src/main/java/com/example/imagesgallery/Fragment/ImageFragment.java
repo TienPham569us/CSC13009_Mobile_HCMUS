@@ -93,8 +93,8 @@ import java.util.Objects;
 public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
     RecyclerView recycler;
     public ArrayList<Image> images;
-    public ImageAdapter adapter;
-    GridLayoutManager manager;
+    public ImageAdapter adapter=null;
+    GridLayoutManager manager=null;
     TextView totalimages;
     MainActivity mainActivity;
     Context context;
@@ -177,7 +177,9 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
     SearchView searchView;
     //private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
-    ArrayList<String> items = new ArrayList<>(Arrays.asList("Decrease by day", "Increase by day", "Increase by name", "Decrease by name"));
+    //ArrayList<String> items = new ArrayList<>(Arrays.asList("Decrease by day", "Increase by day", "Increase by name", "Decrease by name"));
+    ArrayList<String> items = new ArrayList<>(Arrays.asList("Default", "1","2","3", "4", "5","6"));
+
     Spinner spinner;
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -526,11 +528,27 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(mainActivity,items.get(i),Toast.LENGTH_SHORT).show();
+                //Toast.makeText(mainActivity,items.get(i),Toast.LENGTH_SHORT).show();
                 /*if (i==1) {
                     loadImagesAscendingByDate();
                     adapter.notifyDataSetChanged();
                 }*/
+
+                if (manager!=null && adapter!=null) {
+                    if (i>=1) {
+                        int column = Integer.parseInt(items.get(i));
+                        manager.setSpanCount(column);
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                        float screenWidthInDp = displayMetrics.widthPixels / displayMetrics.density;
+                        int imageWidth = 110; // size of an image
+                        int desiredColumnCount = (int) screenWidthInDp / imageWidth; // the number of images in a row
+
+                        manager.setSpanCount(desiredColumnCount);
+                        adapter.notifyDataSetChanged();
+                    }
+                }
             }
 
             @Override

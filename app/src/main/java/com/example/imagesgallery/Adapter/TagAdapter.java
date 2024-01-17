@@ -71,7 +71,7 @@ public class TagAdapter extends ArrayAdapter<String> {
             public void onClick(View view) {
                 //String tagValue = viewHolder.txtViewTag.getText().toString();
                 String tagValue = items.get(position);
-                Toast.makeText(context, "size: "+items.size()+" - tag: "+tagValue, Toast.LENGTH_SHORT).show();
+               // Toast.makeText(context, "size: "+items.size()+" - tag: "+tagValue, Toast.LENGTH_SHORT).show();
                 deleteTag(position);
             }
         });
@@ -79,7 +79,7 @@ public class TagAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 String tagValue = items.get(position);
-                Toast.makeText(context, "size: "+items.size()+" - tag: "+tagValue, Toast.LENGTH_SHORT).show();
+               // Toast.makeText(context, "size: "+items.size()+" - tag: "+tagValue, Toast.LENGTH_SHORT).show();
                 showEditTagDialog(items.get(position),position);
             }
         });
