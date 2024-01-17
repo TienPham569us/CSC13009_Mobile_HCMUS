@@ -68,6 +68,7 @@ import com.example.imagesgallery.Adapter.SortAdapter;
 import com.example.imagesgallery.Interface.ClickListener;
 import com.example.imagesgallery.Activity.MainActivity;
 import com.example.imagesgallery.Adapter.ImageAdapter;
+import com.example.imagesgallery.Interface.FragmentCallBack;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
 import com.example.imagesgallery.Utility.FileUtility;
@@ -90,7 +91,7 @@ import java.util.Map;
 import java.util.Objects;
 
 
-public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener {
+public class ImageFragment extends Fragment implements ImageAdapter.SelectionChangeListener, FragmentCallBack {
     RecyclerView recycler;
     public ArrayList<Image> images;
     public ImageAdapter adapter=null;
@@ -1809,4 +1810,10 @@ public class ImageFragment extends Fragment implements ImageAdapter.SelectionCha
         return null;
     }
 
+    @Override
+    public void onMsgFromMainToFragment(Uri uri) {
+        loadNewestImageOnResume();
+        adapter.notifyDataSetChanged();
+        updateNumberOfImage();
+    }
 }

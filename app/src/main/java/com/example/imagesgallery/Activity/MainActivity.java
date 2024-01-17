@@ -3,6 +3,7 @@ package com.example.imagesgallery.Activity;
 import static android.Manifest.permission.MANAGE_EXTERNAL_STORAGE;
 import static android.content.ContentValues.TAG;
 import static android.os.Environment.MEDIA_MOUNTED;
+import static android.os.Environment.getExternalStorageState;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -36,6 +37,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -66,6 +69,7 @@ import com.example.imagesgallery.Interface.DownloadService;
 import com.example.imagesgallery.Model.Album;
 import com.example.imagesgallery.Model.Image;
 import com.example.imagesgallery.R;
+import com.example.imagesgallery.Utility.DownloadImageFromURL;
 import com.example.imagesgallery.Utility.FileUtility;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -727,15 +731,32 @@ public class MainActivity extends AppCompatActivity {
         btnCancelDownload = (Button) downloadDialog.findViewById(R.id.buttonCancelDownload);
 
 
-        progressDialog = new ProgressDialog(this);
+        //progressDialog = new ProgressDialog(this);
         btnStartDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String url = edtImageUrl.getText().toString();
 
-                progressDialog.show();
+                boolean network = checkInternetConnection();
+                if (!network)
+                    return;
+                DownloadImageFromURL task = new DownloadImageFromURL();
+                task.execute(url);
+                try {
+                    Bitmap bitmap = task.get();
+                    saveImage(bitmap);
+                    downloadDialog.dismiss();
+                    Toast.makeText(MainActivity.this, "Download success!", Toast.LENGTH_SHORT).show();
+
+                    // picturesFragment.onMsgFromMainToFrag(bitmap);
+                }
+                catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "No result", Toast.LENGTH_SHORT).show();
+                }
+
+                /*progressDialog.show();
                 downloadBitmap(url);
-                progressDialog.dismiss();
+                progressDialog.dismiss();*/
                 //new FetchImage(url).start();
             }
         });
@@ -750,6 +771,58 @@ public class MainActivity extends AppCompatActivity {
         downloadDialog.show();
 
     }
+
+    void saveImage(Bitmap bitmap) {
+        String folderImage =Environment.getExternalStorageDirectory() + "/Pictures";
+        File pictureFile = new File(folderImage, bitmap.toString() + ".jpg");
+        FileOutputStream output = null;
+        try {
+            output = new FileOutputStream(pictureFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
+            output.flush();
+            output.close();
+
+            // Insert the image file into the MediaStore
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, "Custom album group 9");
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, pictureFile.getName());
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+            values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
+            values.put(MediaStore.Images.Media.DATA, pictureFile.getAbsolutePath());
+
+            Uri newImageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            imageFragment.onMsgFromMainToFragment(newImageUri);
+
+        } catch (Exception e) {
+            Log.e("Error to save image! ", e.getMessage());
+        }
+
+    }
+
+    public boolean checkInternetConnection() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        if (networkInfo == null) {
+            Toast.makeText(MainActivity.this, "No network is currently active!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (!networkInfo.isConnected()) {
+            Toast.makeText(MainActivity.this, "Network is not connected!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (!networkInfo.isAvailable()) {
+            Toast.makeText(MainActivity.this, "Network is not available!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        Toast.makeText(MainActivity.this, "Network is OK!", Toast.LENGTH_SHORT).show();
+        return true;
+    }
+
 
     boolean writeFileToStorage(ResponseBody body) {
         String nameOfFile = "Downloaded_image" + System.currentTimeMillis() + ".jpg";
